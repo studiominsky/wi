@@ -1,22 +1,100 @@
-// app/page.tsx
-
-import { Button } from "@/components/ui/button"; // Import the shadcn button
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { BookText, PlusCircle, Settings2, BrainCircuit } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-3xl font-bold mb-4">Shadcn is working!</h1>
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <header className="w-full border-b">
+        <div className="container flex h-14 items-center px-4 md:px-6">
+          <Link
+            href="/"
+            className="flex items-center justify-center"
+            prefetch={false}
+          >
+            <BookText className="h-6 w-6" />
+            <span className="ml-2 text-lg font-semibold">Word Inventory</span>
+          </Link>
+          <nav className="ml-auto flex gap-4 sm:gap-6">
+            <Link href="/login">
+              <Button variant="outline">Login</Button>
+            </Link>
+          </nav>
+        </div>
+      </header>
 
-      {/* This is your new component */}
-      <Button>Click Me</Button>
+      <main className="flex-1 ">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 text-center px-5 mx-auto w-full max-w-screen-lg md:px-7">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                Build Your Personal Language Library
+              </h1>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                The ultimate tool to collect, customize, and master vocabulary
+                in any language you're learning. Your words, your rules.
+              </p>
+              <Link href="/login">
+                <Button size="lg">Get Started for Free</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
 
-      <Button variant="outline" className="mt-4">
-        Outline Button
-      </Button>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <div className="container px-4 md:px-6 px-5 mx-auto w-full max-w-screen-lg md:px-7">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                How It Works
+              </h2>
+              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                A simple yet powerful system designed for serious language
+                learners.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:grid-cols-3">
+              <div className="flex flex-col items-center space-y-2 text-center p-4">
+                <div className="p-4 bg-background rounded-full border">
+                  <PlusCircle className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Add Words Easily</h3>
+                <p className="text-sm text-muted-foreground">
+                  Quickly add new words and their translations to your personal
+                  inventory for any language you're studying.
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-2 text-center p-4">
+                <div className="p-4 bg-background rounded-full border">
+                  <Settings2 className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Customize Everything</h3>
+                <p className="text-sm text-muted-foreground">
+                  Add custom fields to each word—like articles, grammar notes,
+                  or example sentences—to learn your way.
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-2 text-center p-4">
+                <div className="p-4 bg-background rounded-full border">
+                  <BrainCircuit className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Master Your Vocabulary</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upcoming features like Anki-style flashcards and Mind Palace
+                  exercises will help you retain words forever.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
 
-      <Button variant="ghost" className="mt-4">
-        Ghost Button
-      </Button>
-    </main>
+      <footer className="w-full shrink-0 px-5 text-center">
+        <div className="container flex flex-col items-center justify-center mx-auto w-full max-w-screen-lg md:px-7gap-2 py-6 px-4 sm:flex-row md:px-6">
+          <p className="text-xs text-muted-foreground">
+            &copy; 2025 Word Inventory. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
