@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  // Skip auth callback
   if (pathname.startsWith("/auth/callback")) {
     return NextResponse.next();
   }
@@ -39,7 +38,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect all dashboard routes AND the add-word route
   const isProtectedRoute =
     pathname.startsWith("/dashboard") || pathname.startsWith("/add-word");
 

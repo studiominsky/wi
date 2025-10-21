@@ -1,28 +1,18 @@
-import { createServerClientRSC } from "@/lib/supabase/server";
+import { createServerClientRSC } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, BookOpen } from "lucide-react";
-import LanguageSwitcher from "./language-switcher"; // Import new component
+import LanguageSwitcher from "./language-switcher";
 
-type Word = {
-  id: string;
-  word: string;
-  slug: string;
-  translation?: string | null;
-  language_id?: string | null;
-  created_at?: string | null;
-  user_id?: string | null;
-};
-// Define the page as an async component that accepts searchParams
 export default async function DashboardPage({
   searchParams,
 }: {
   searchParams: { lang?: string };
 }) {
+  const supabase = await createServerClientRSC();
   const selectedLang = searchParams.lang;
 
-  const supabase = await createServerClientRSC();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -30,21 +20,18 @@ export default async function DashboardPage({
     redirect("/login");
   }
 
-  // Fetch languages for the dropdown
   const { data: languages } = await supabase
     .from("languages")
     .select("id, name");
 
-  // Build the query for words
   let query = supabase
     .from("user_words")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Add the language filter if one is selected
   if (selectedLang) {
-    query = query.eq("language_id", selectedLang); // Assuming 'language_id'
+    query = query.eq("language_id", selectedLang);
   }
 
   const { data: words, error } = await query;
@@ -65,14 +52,8 @@ export default async function DashboardPage({
 
       {words && words.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {words.map((word: Word) => (
-            <Link
-              // FIX: This link was pointing to a non-existent route.
-              // It should point to /word/[slug]
-              href={`/word/${word.slug}`}
-              key={word.id}
-              className="block"
-            >
+          {words.map((word) => (
+            <Link href={`/word/${word.word}`} key={word.id} className="block">
               <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                 <h2 className="text-xl font-semibold">{word.word}</h2>
                 <p className="text-muted-foreground">{word.translation}</p>

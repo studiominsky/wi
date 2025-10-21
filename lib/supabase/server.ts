@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 
 export async function createServerClientRSC() {
-  const cookieStore = await cookies(); // <-- await in Next 15
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -21,9 +21,7 @@ export default function AddWordPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [word, setWord] = useState("");
   const [translation, setTranslation] = useState("");
-
   const [notes, setNotes] = useState("");
-
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +68,7 @@ export default function AddWordPage() {
       setMessage("Success! Word added.");
       setWord("");
       setTranslation("");
-      setNotes(""); // Clear notes field
+      setNotes("");
       router.push(`/dashboard?lang=${selectedLanguage}`);
       router.refresh();
     }
@@ -104,6 +102,7 @@ export default function AddWordPage() {
             )}
           </select>
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="word">Word</Label>
           <Input
@@ -114,6 +113,7 @@ export default function AddWordPage() {
             onChange={(e) => setWord(e.target.value)}
           />
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="translation">Translation</Label>
           <Input

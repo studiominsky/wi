@@ -1,3 +1,4 @@
+// studiominsky/wi/wi-f7e042deb6451d23e7f0522a2dd16ccf927b33c6/app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookText, PlusCircle, Settings2, BrainCircuit } from "lucide-react";
@@ -60,7 +61,7 @@ export default async function Home() {
                 How It Works
               </h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                A simple yet powerful system designed for serious language
+                A simple, powerful system designed for serious language
                 learners.
               </p>
             </div>
@@ -71,18 +72,18 @@ export default async function Home() {
                 </div>
                 <h3 className="text-xl font-bold">Add Words Easily</h3>
                 <p className="text-sm text-muted-foreground">
-                  Quickly add new words and their translations to your personal
-                  inventory for any language you're studying.
+                  Quickly add new words, translations, and notes to your
+                  personal inventory for any language.
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-2 text-center p-4">
                 <div className="p-4 bg-background rounded-full border">
                   <Settings2 className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold">Customize Everything</h3>
+                <h3 className="text-xl font-bold">Filter & Organize</h3>
                 <p className="text-sm text-muted-foreground">
-                  Add custom fields to each word—like articles, grammar notes,
-                  or example sentences—to learn your way.
+                  Filter your library by language to focus on what matters most
+                  right now.
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-2 text-center p-4">
@@ -91,8 +92,8 @@ export default async function Home() {
                 </div>
                 <h3 className="text-xl font-bold">Master Your Vocabulary</h3>
                 <p className="text-sm text-muted-foreground">
-                  Upcoming features like Anki-style flashcards and Mind Palace
-                  exercises will help you retain words forever.
+                  Review your words, check your notes, and build a lasting
+                  personal language library.
                 </p>
               </div>
             </div>
