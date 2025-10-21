@@ -10,8 +10,9 @@ export default async function DashboardPage({
 }: {
   searchParams: { lang?: string };
 }) {
+  const { lang: selectedLang } = await searchParams;
+
   const supabase = await createServerClientRSC();
-  const selectedLang = searchParams.lang;
 
   const {
     data: { user },

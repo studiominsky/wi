@@ -1,3 +1,4 @@
+// studiominsky/wi/wi-f7e042deb6451d23e7f0522a2dd16ccf927b33c6/app/word/[slug]/page.tsx
 import { createServerClientRSC } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
@@ -7,10 +8,11 @@ export default async function WordDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const supabase = await createServerClientRSC();
-
-  const { slug } = params;
+  // FIX: Await params BEFORE using its properties, per Next.js 15 docs
+  const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
+
+  const supabase = await createServerClientRSC();
 
   const {
     data: { user },
