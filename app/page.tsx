@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookText, PlusCircle, Settings2, BrainCircuit } from "lucide-react";
+import { createServerClientRSC } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createServerClientRSC();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="w-full border-b">
@@ -16,9 +22,15 @@ export default function Home() {
             <span className="ml-2 text-lg font-semibold">Word Inventory</span>
           </Link>
           <nav className="ml-auto flex gap-4 sm:gap-6">
-            <Link href="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
+            {user ? (
+              <Link href="/dashboard">
+                <Button variant="outline">Dashboard</Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline">Login</Button>
+              </Link>
+            )}
           </nav>
         </div>
       </header>
@@ -34,7 +46,7 @@ export default function Home() {
                 The ultimate tool to collect, customize, and master vocabulary
                 in any language you're learning. Your words, your rules.
               </p>
-              <Link href="/login">
+              <Link href={user ? "/dashboard" : "/login"}>
                 <Button size="lg">Get Started for Free</Button>
               </Link>
             </div>
