@@ -1,11 +1,10 @@
-// studiominsky/wi/wi-f7e042deb6451d23e7f0522a2dd16ccf927b33c6/app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookText, PlusCircle, Settings2, BrainCircuit } from "lucide-react";
-import { createServerClientRSC } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
-  const supabase = await createServerClientRSC();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

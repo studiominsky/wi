@@ -1,8 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { NextRequest, NextResponse } from "next/server";
 
-export async function createServerClientRSC() {
+export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -10,28 +9,19 @@ export async function createServerClientRSC() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(_name: string, _value: string, _options: CookieOptions) {},
-        remove(_name: string, _options: CookieOptions) {},
-      },
-    }
-  );
-}
-
-export function createServerClientRoute(req: NextRequest, res: NextResponse) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
-        set: (name: string, value: string, options: CookieOptions) => {
-          res.cookies.set({ name, value, ...options });
-        },
-        remove: (name: string, options: CookieOptions) => {
-          res.cookies.set({ name, value: "", ...options });
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         },
       },
     }

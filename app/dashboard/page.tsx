@@ -1,4 +1,4 @@
-import { createServerClientRSC } from "../../lib/supabase/server";
+import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,7 @@ export default async function DashboardPage({
   searchParams: { lang?: string };
 }) {
   const { lang: selectedLang } = await searchParams;
-
-  const supabase = await createServerClientRSC();
+  const supabase = await createClient();
 
   const {
     data: { user },
