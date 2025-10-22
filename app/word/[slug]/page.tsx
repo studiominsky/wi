@@ -1,4 +1,3 @@
-// studiominsky/wi/wi-f7e042deb6451d23e7f0522a2dd16ccf927b33c6/app/word/[slug]/page.tsx
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";

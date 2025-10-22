@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, BookOpen } from "lucide-react";
-import LanguageSwitcher from "./language-switcher";
+import LanguageSwitcher from "../../components/ui/language-switcher";
 
 export default async function DashboardPage({
   searchParams,
