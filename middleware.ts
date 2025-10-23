@@ -34,15 +34,27 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname, search } = request.nextUrl;
-  const isProtectedRoute =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/add-word");
+
+  const authRoutes = ["/login", "/signup", "/forgot-password"];
+  const protectedRoutes = ["/dashboard", "/dashboard/profile"];
+
+  const isAuthRoute = authRoutes.some((path) => pathname.startsWith(path));
+  const isProtectedRoute = protectedRoutes.some((path) =>
+    pathname.startsWith(path)
+  );
 
   if (!user && isProtectedRoute) {
     const next = encodeURIComponent(pathname + search);
+    console.log(
+      `Middleware: User not logged in, accessing protected route ${pathname}. Redirecting to login.`
+    );
     return NextResponse.redirect(new URL(`/login?next=${next}`, request.url));
   }
 
-  if (user && pathname === "/login") {
+  if (user && isAuthRoute) {
+    console.log(
+      `Middleware: User logged in, accessing auth route ${pathname}. Redirecting to dashboard.`
+    );
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

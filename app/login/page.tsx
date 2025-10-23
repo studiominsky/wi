@@ -42,14 +42,10 @@ export default function LoginPage() {
     }
   };
 
-  // Magic Link handler removed
-
   return (
     <main className="grid place-items-center min-h-screen p-8">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-bold text-center">Log In</h1>
-
-        {/* Removed OAuth buttons and divider */}
 
         <div className="space-y-4">
           <div className="space-y-2">
@@ -86,7 +82,6 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Only Password Login Button */}
         <Button
           onClick={handlePasswordLogin}
           className="w-full"
@@ -94,8 +89,6 @@ export default function LoginPage() {
         >
           {loading ? "Logging in..." : "Login"}
         </Button>
-
-        {/* Magic Link button removed */}
 
         {msg && <p className="text-center text-sm">{msg}</p>}
 

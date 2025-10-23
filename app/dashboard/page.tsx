@@ -1,9 +1,11 @@
+import { AddLanguageDialog } from "@/components/AddLanguageDialog";
+import { AddWordDialog } from "@/components/AddWordDialog";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, BookOpen } from "lucide-react";
-import LanguageSwitcher from "../../components/ui/language-switcher";
+import { BookOpen } from "lucide-react";
+import LanguageSwitcher from "@/components/ui/language-switcher";
+import { revalidatePath } from "next/cache";
 
 export default async function DashboardPage({
   searchParams,
@@ -20,9 +22,11 @@ export default async function DashboardPage({
     redirect("/login");
   }
 
-  const { data: languages } = await supabase
-    .from("languages")
-    .select("id, name");
+  const { data: userLanguages } = await supabase
+    .from("user_languages")
+    .select("id, language_name")
+    .eq("user_id", user.id)
+    .order("language_name", { ascending: true });
 
   let query = supabase
     .from("user_words")
@@ -36,24 +40,33 @@ export default async function DashboardPage({
 
   const { data: words, error } = await query;
 
+  const refreshData = async () => {
+    "use server";
+    revalidatePath("/dashboard");
+  };
+
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Your Word Inventory</h1>
         <div className="flex items-center gap-4">
-          <LanguageSwitcher languages={languages || []} />
-          <Link href="/dashboard/add-word">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Word
-            </Button>
-          </Link>
+          <LanguageSwitcher languages={userLanguages || []} />
+          <AddLanguageDialog onLanguageAdded={refreshData} />
+          <AddWordDialog
+            userLanguages={userLanguages || []}
+            onWordAdded={refreshData}
+          />
         </div>
       </div>
 
       {words && words.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {words.map((word) => (
-            <Link href={`/word/${word.word}`} key={word.id} className="block">
+            <Link
+              href={`/word/${encodeURIComponent(word.word)}`}
+              key={word.id}
+              className="block"
+            >
               <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                 <h2 className="text-xl font-semibold">{word.word}</h2>
                 <p className="text-muted-foreground">{word.translation}</p>
@@ -64,11 +77,17 @@ export default async function DashboardPage({
       ) : (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h2 className="mt-4 text-xl font-semibold">No words yet!</h2>
+          <h2 className="mt-4 text-xl font-semibold">
+            {userLanguages && userLanguages.length === 0
+              ? "Add a language to get started!"
+              : "No words yet!"}
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            {selectedLang
+            {userLanguages && userLanguages.length === 0
+              ? "Click 'Add Language' above."
+              : selectedLang
               ? "No words found for this language."
-              : "Click the button above to add your first word."}
+              : "Click 'Add Word' above to add your first word."}
           </p>
         </div>
       )}

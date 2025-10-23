@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Language = {
   id: string;
-  name: string;
+  language_name: string;
 };
 
 type LanguageSwitcherProps = {
@@ -35,7 +35,7 @@ export default function LanguageSwitcher({ languages }: LanguageSwitcherProps) {
       <option value="">All Languages</option>
       {languages.map((lang) => (
         <option key={lang.id} value={lang.id}>
-          {lang.name}
+          {lang.language_name}
         </option>
       ))}
     </select>
