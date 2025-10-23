@@ -1,22 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const searchParams = useSearchParams();
 
-  const handlePasswordLogin = async () => {
+  const handleSignUp = async () => {
     setMsg(null);
     setLoading(true);
     if (!email || !password) {
@@ -24,32 +23,36 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    const supabase = createClient();
-    const next = searchParams.get("next") || "/dashboard";
+    if (password.length < 6) {
+      setMsg("Password must be at least 6 characters.");
+      setLoading(false);
+      return;
+    }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const supabase = createClient();
+    const origin = window.location.origin;
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`,
+      },
     });
-
-    setLoading(false);
 
     if (error) {
       setMsg(`Error: ${error.message}`);
     } else {
-      router.push(next);
-      router.refresh();
+      setMsg("✅ Success! Please check your email to confirm your account.");
+      setPassword("");
     }
+    setLoading(false);
   };
-
-  // Magic Link handler removed
 
   return (
     <main className="grid place-items-center min-h-screen p-8">
       <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-2xl font-bold text-center">Log In</h1>
-
-        {/* Removed OAuth buttons and divider */}
+        <h1 className="text-2xl font-bold text-center">Sign Up</h1>
 
         <div className="space-y-4">
           <div className="space-y-2">
@@ -63,13 +66,12 @@ export default function LoginPage() {
               disabled={loading}
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Your password"
+              placeholder="Choose a password (min 6 chars)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
@@ -77,33 +79,21 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="text-right">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-primary hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        {/* Only Password Login Button */}
         <Button
-          onClick={handlePasswordLogin}
+          onClick={handleSignUp}
           className="w-full"
-          disabled={loading || !email || !password}
+          disabled={loading || !email || !password || password.length < 6}
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Signing Up..." : "Sign Up with Email"}
         </Button>
-
-        {/* Magic Link button removed */}
 
         {msg && <p className="text-center text-sm">{msg}</p>}
 
         <div className="text-center">
           <p className="text-sm">
-            Don't have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline">
-              Sign Up
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary hover:underline">
+              Log In
             </Link>
           </p>
         </div>

@@ -11,30 +11,6 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="w-full border-b">
-        <div className="container flex h-14 items-center px-4 md:px-6">
-          <Link
-            href="/"
-            className="flex items-center justify-center"
-            prefetch={false}
-          >
-            <BookText className="h-6 w-6" />
-            <span className="ml-2 text-lg font-semibold">Word Inventory</span>
-          </Link>
-          <nav className="ml-auto flex gap-4 sm:gap-6">
-            {user ? (
-              <Link href="/dashboard">
-                <Button variant="outline">Dashboard</Button>
-              </Link>
-            ) : (
-              <Link href="/login">
-                <Button variant="outline">Login</Button>
-              </Link>
-            )}
-          </nav>
-        </div>
-      </header>
-
       <main className="flex-1 ">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 text-center px-5 mx-auto w-full max-w-screen-lg md:px-7">
           <div className="container px-4 md:px-6">
