@@ -1,6 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Language = {
   id: string;
@@ -14,30 +21,29 @@ type LanguageSwitcherProps = {
 export default function LanguageSwitcher({ languages }: LanguageSwitcherProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentLang = searchParams.get("lang") || "";
+  const currentLang = searchParams.get("lang") || "all";
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const langId = e.target.value;
-    if (langId) {
-      router.push(`/inventory?lang=${langId}`);
-    } else {
+  const handleValueChange = (langValue: string) => {
+    if (langValue === "all") {
       router.push("/inventory");
+    } else {
+      router.push(`/inventory?lang=${langValue}`);
     }
   };
 
   return (
-    <select
-      id="language"
-      value={currentLang}
-      onChange={handleChange}
-      className="flex h-9 border border-input bg-transparent px-3 py-1 text-sm"
-    >
-      <option value="">All Languages</option>
-      {languages.map((lang) => (
-        <option key={lang.id} value={lang.id}>
-          {lang.language_name}
-        </option>
-      ))}
-    </select>
+    <Select value={currentLang} onValueChange={handleValueChange}>
+      <SelectTrigger className="w-[180px] h-9">
+        <SelectValue placeholder="Select Language" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Languages</SelectItem>
+        {languages.map((lang) => (
+          <SelectItem key={lang.id} value={lang.id}>
+            {lang.language_name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
