@@ -67,7 +67,7 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
       return null;
     } else {
       content = (
-        <pre className="text-xs whitespace-pre-wrap bg-muted p-2 rounded">
+        <pre className="text-xs whitespace-pre-wrap bg-muted p-2">
           {JSON.stringify(data, null, 2)}
         </pre>
       );
@@ -121,7 +121,7 @@ export default async function WordDetailPage(props: {
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
-      <div className={cn("p-4 rounded-lg", word.color)}>
+      <div className={cn("p-4 ", word.color)}>
         <h1 className="text-4xl font-bold mb-2">{word.word}</h1>
         <p className="text-xl text-muted-foreground">
           {word.translation || "Translation not generated yet."}
@@ -133,7 +133,7 @@ export default async function WordDetailPage(props: {
         )}
       </div>
 
-      <div className="bg-muted p-4 rounded-lg">
+      <div className="bg-muted p-4 ">
         <h2 className="text-lg font-semibold mb-2">My Notes</h2>
         {word.notes ? (
           <p className="text-sm whitespace-pre-wrap">{word.notes}</p>
@@ -143,7 +143,7 @@ export default async function WordDetailPage(props: {
       </div>
 
       {aiData && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg space-y-4">
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4  space-y-4">
           <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
             AI Generated Details
           </h2>

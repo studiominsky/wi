@@ -67,7 +67,7 @@ export default async function DashboardPage({
               key={word.id}
               className="block"
             >
-              <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+              <div className="p-4 border">
                 <h2 className="text-xl font-semibold">{word.word}</h2>
                 <p className="text-muted-foreground">{word.translation}</p>
               </div>
@@ -75,7 +75,7 @@ export default async function DashboardPage({
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
+        <div className="text-center py-16 border-2 border-dashed ">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
           <h2 className="mt-4 text-xl font-semibold">
             {userLanguages && userLanguages.length === 0

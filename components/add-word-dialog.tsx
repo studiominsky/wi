@@ -38,12 +38,63 @@ type AddWordDialogProps = {
 
 const cefrLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const colorOptions = [
-  { name: "Default", value: null },
-  { name: "Red", value: "bg-red-100 dark:bg-red-900/30" },
-  { name: "Blue", value: "bg-blue-100 dark:bg-blue-900/30" },
-  { name: "Green", value: "bg-green-100 dark:bg-green-900/30" },
-  { name: "Yellow", value: "bg-yellow-100 dark:bg-yellow-900/30" },
-  { name: "Purple", value: "bg-purple-100 dark:bg-purple-900/30" },
+  { name: "Default", value: null, displayClass: "bg-transparent border-input" },
+
+  {
+    name: "Red",
+    value:
+      "bg-red-100 border-red-200 text-red-800 dark:bg-red-800/50 dark:border-red-700/60 dark:text-red-200",
+    displayClass:
+      "bg-red-100 border-red-200 dark:bg-red-800/50 dark:border-red-700/60",
+  },
+
+  {
+    name: "Blue",
+    value:
+      "bg-blue-100 border-blue-200 text-blue-800 dark:bg-blue-800/50 dark:border-blue-700/60 dark:text-blue-200",
+    displayClass:
+      "bg-blue-100 border-blue-200 dark:bg-blue-800/50 dark:border-blue-700/60",
+  },
+
+  {
+    name: "Green",
+    value:
+      "bg-green-100 border-green-200 text-green-800 dark:bg-green-800/50 dark:border-green-700/60 dark:text-green-200",
+    displayClass:
+      "bg-green-100 border-green-200 dark:bg-green-800/50 dark:border-green-700/60",
+  },
+
+  {
+    name: "Yellow",
+    value:
+      "bg-yellow-100 border-yellow-200 text-yellow-800 dark:bg-yellow-700/50 dark:border-yellow-600/60 dark:text-yellow-200", // Used 700/600 for dark yellow
+    displayClass:
+      "bg-yellow-100 border-yellow-200 dark:bg-yellow-700/50 dark:border-yellow-600/60",
+  },
+
+  {
+    name: "Purple",
+    value:
+      "bg-purple-100 border-purple-200 text-purple-800 dark:bg-purple-800/50 dark:border-purple-700/60 dark:text-purple-200",
+    displayClass:
+      "bg-purple-100 border-purple-200 dark:bg-purple-800/50 dark:border-purple-700/60",
+  },
+
+  {
+    name: "Pink",
+    value:
+      "bg-pink-100 border-pink-200 text-pink-800 dark:bg-pink-800/50 dark:border-pink-700/60 dark:text-pink-200",
+    displayClass:
+      "bg-pink-100 border-pink-200 dark:bg-pink-800/50 dark:border-pink-700/60",
+  },
+
+  {
+    name: "Indigo",
+    value:
+      "bg-indigo-100 border-indigo-200 text-indigo-800 dark:bg-indigo-800/50 dark:border-indigo-700/60 dark:text-indigo-200",
+    displayClass:
+      "bg-indigo-100 border-indigo-200 dark:bg-indigo-800/50 dark:border-indigo-700/60",
+  },
 ];
 
 export function AddWordDialog({

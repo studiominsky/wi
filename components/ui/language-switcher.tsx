@@ -30,7 +30,7 @@ export default function LanguageSwitcher({ languages }: LanguageSwitcherProps) {
       id="language"
       value={currentLang}
       onChange={handleChange}
-      className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+      className="flex h-9 border border-input bg-transparent px-3 py-1 text-sm"
     >
       <option value="">All Languages</option>
       {languages.map((lang) => (
