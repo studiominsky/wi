@@ -63,7 +63,6 @@ export default function ProfilePage() {
       .eq("id", user.id);
 
     if (error) {
-      // Handle potential unique constraint violation
       if (error.code === "23505") {
         setProfileMessage("Error: Username already taken.");
       } else {
@@ -71,7 +70,7 @@ export default function ProfilePage() {
       }
     } else {
       setProfileMessage("Username updated successfully!");
-      setCurrentUsername(username); // Update current username state
+      setCurrentUsername(username);
     }
   };
 

@@ -1,42 +1,73 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { cn } from "@/lib/utils";
+
+function VerbFormsSection({ data }: { data: any }) {
+  if (!data || typeof data !== "object" || Object.keys(data).length === 0)
+    return null;
+  return (
+    <div className="text-sm space-y-1">
+      {Object.entries(data).map(([key, value]) => (
+        <p key={key}>
+          <strong className="capitalize">{key.replace("_", " ")}:</strong>{" "}
+          {String(value)}
+        </p>
+      ))}
+    </div>
+  );
+}
 
 function AiDataSection({ title, data }: { title: string; data: any }) {
-  if (!data) return null;
+  if (data === null || data === undefined || data === "") return null;
+
   let content;
-  if (typeof data === "string") {
+  if (title === "Key Verb Forms" && typeof data === "object") {
+    content = <VerbFormsSection data={data} />;
+  } else if (typeof data === "string") {
     content = <p className="text-sm whitespace-pre-wrap">{data}</p>;
   } else if (Array.isArray(data)) {
-    content = (
-      <ul className="list-disc list-inside space-y-1 text-sm">
-        {data.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </ul>
-    );
+    if (data.length === 0) return null;
+    if (title === "Common Phrases / Idioms") {
+      content = (
+        <ul className="list-disc list-inside space-y-1 text-sm">
+          {data.map((item, index) => (
+            <li key={index}>"{item}"</li>
+          ))}
+        </ul>
+      );
+    } else {
+      content = (
+        <ul className="list-disc list-inside space-y-1 text-sm">
+          {data.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
   } else if (typeof data === "object") {
     if (
       title === "Synonyms / Antonyms" &&
-      (data as any).synonyms &&
-      (data as any).antonyms
+      ((data as any).synonyms?.length > 0 || (data as any).antonyms?.length > 0)
     ) {
       content = (
         <div className="text-sm space-y-1">
-          {(data as any).synonyms.length > 0 && (
+          {(data as any).synonyms?.length > 0 && (
             <p>
               <strong>Synonyms:</strong> {(data as any).synonyms.join(", ")}
             </p>
           )}
-          {(data as any).antonyms.length > 0 && (
+          {(data as any).antonyms?.length > 0 && (
             <p>
               <strong>Antonyms:</strong> {(data as any).antonyms.join(", ")}
             </p>
           )}
         </div>
       );
+    } else if (Object.keys(data).length === 0) {
+      return null;
     } else {
       content = (
-        <pre className="text-xs whitespace-pre-wrap bg-gray-100 dark:bg-gray-800 p-2 rounded">
+        <pre className="text-xs whitespace-pre-wrap bg-muted p-2 rounded">
           {JSON.stringify(data, null, 2)}
         </pre>
       );
@@ -44,8 +75,11 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   } else {
     content = <p className="text-sm">{String(data)}</p>;
   }
+
+  if (!content) return null;
+
   return (
-    <div className="border-t pt-4">
+    <div className="border-t pt-4 first:border-t-0">
       <h3 className="text-md font-semibold mb-2">{title}</h3>
       {content}
     </div>
@@ -65,7 +99,7 @@ export default async function WordDetailPage(props: {
 
   const { data: word, error } = await supabase
     .from("user_words")
-    .select("*, notes, ai_data")
+    .select("*, notes, ai_data, translation, color")
     .eq("user_id", user.id)
     .eq("word", decodedSlug)
     .single();
@@ -78,6 +112,7 @@ export default async function WordDetailPage(props: {
           try {
             return JSON.parse(word.ai_data);
           } catch {
+            console.error("Failed to parse ai_data string:", word.ai_data);
             return null;
           }
         })()
@@ -86,10 +121,18 @@ export default async function WordDetailPage(props: {
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
-      <div>
+      <div className={cn("p-4 rounded-lg", word.color)}>
         <h1 className="text-4xl font-bold mb-2">{word.word}</h1>
-        <p className="text-xl text-muted-foreground">{word.translation}</p>
+        <p className="text-xl text-muted-foreground">
+          {word.translation || "Translation not generated yet."}
+        </p>
+        {aiData?.gender && (
+          <p className="text-sm text-muted-foreground italic mt-1">
+            {aiData.gender}
+          </p>
+        )}
       </div>
+
       <div className="bg-muted p-4 rounded-lg">
         <h2 className="text-lg font-semibold mb-2">My Notes</h2>
         {word.notes ? (
@@ -98,11 +141,13 @@ export default async function WordDetailPage(props: {
           <p className="text-sm text-muted-foreground">No notes provided.</p>
         )}
       </div>
+
       {aiData && (
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg space-y-4">
           <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
             AI Generated Details
           </h2>
+          <AiDataSection title="Key Verb Forms" data={aiData.verb_forms} />
           <AiDataSection title="Grammar Explanation" data={aiData.grammar} />
           <AiDataSection title="Example Sentences" data={aiData.examples} />
           <AiDataSection
@@ -113,6 +158,12 @@ export default async function WordDetailPage(props: {
             title="Synonyms / Antonyms"
             data={aiData.synonyms_antonyms}
           />
+          <AiDataSection
+            title="Common Phrases / Idioms"
+            data={aiData.phrases}
+          />
+          <AiDataSection title="Mnemonic" data={aiData.mnemonic} />
+          <AiDataSection title="Etymology" data={aiData.etymology} />
         </div>
       )}
     </div>

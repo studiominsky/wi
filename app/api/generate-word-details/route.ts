@@ -1,64 +1,76 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "edge";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET() {
   return NextResponse.json({ ok: true, route: "generate-word-details" });
 }
 
 export async function POST(req: NextRequest) {
-  const { wordId, wordText, languageName, nativeLanguage, options, userId } =
-    await req.json();
+  const { wordText, languageName, nativeLanguage, options } = await req.json();
 
-  if (
-    !wordId ||
-    !wordText ||
-    !languageName ||
-    !nativeLanguage ||
-    !options ||
-    !userId
-  ) {
+  if (!wordText || !languageName || !nativeLanguage || !options) {
     return NextResponse.json(
       { error: "Missing required parameters" },
       { status: 400 }
     );
   }
 
+  const requestedKeys = [
+    `- "translation": (A string translating the word into ${nativeLanguage})`,
+    options.gender_verb_forms
+      ? `- "gender": (Grammatical gender if noun and applicable, e.g., Masculine/Feminine/Neuter, otherwise null)`
+      : "",
+    options.gender_verb_forms
+      ? `- "verb_forms": (Object with key verb forms like infinitive, past tense, present participle if verb and applicable, otherwise null)`
+      : "",
+    options.grammar
+      ? `- "grammar": (A string containing a concise grammar explanation for the word.)`
+      : "",
+    (options.examples ?? 0) > 0
+      ? `- "examples": (Array of ${options.examples} example sentences)`
+      : "",
+    options.difficulty ? `- "difficulty": (Easy|Medium|Hard)` : "",
+    options.synonyms
+      ? `- "synonyms_antonyms": (Object with arrays "synonyms" and "antonyms")`
+      : "",
+    options.mnemonic
+      ? `- "mnemonic": (A short, helpful memory aid string)`
+      : "",
+    options.phrases
+      ? `- "phrases": (Array of common phrases or idioms using the word)`
+      : "",
+    options.etymology
+      ? `- "etymology": (A brief string explaining the word's origin)`
+      : "",
+  ].filter(Boolean);
+
   const system = [
     `You are a language learning assistant.`,
     `For the ${languageName} word "${wordText}", provide only a JSON object matching the requested keys.`,
+    `If the word "${wordText}" is not recognizable or appears to be nonsensical in ${languageName}, respond ONLY with the JSON: {"error": "Word not recognized"}.`,
     `The user's native language is ${nativeLanguage}.`,
-
-    // Always include translation
-    `- "translation": (A string translating the word into ${nativeLanguage})`,
-
-    // Add other options conditionally
-    options.grammar || (options.examples ?? 0) > 0
-      ? `All explanations and examples should be tailored for a ${options.level} (CEFR) learner.`
-      : ``,
-    options.grammar
-      ? `- "grammar": (A string containing a concise grammar explanation for the word. For example, explain its type, conjugation pattern, or any relevant rules.)`
-      : ``,
-    (options.examples ?? 0) > 0 ? `- "examples" (${options.examples})` : ``,
-    options.difficulty ? `- "difficulty" (Easy|Medium|Hard)` : ``,
-    options.synonyms
-      ? `- "synonyms_antonyms" with arrays "synonyms" and "antonyms"`
-      : ``,
-    `No text outside JSON.`,
+    (options.grammar ||
+      (options.examples ?? 0) > 0 ||
+      options.mnemonic ||
+      options.phrases ||
+      options.etymology) &&
+    options.level
+      ? `All explanations, examples, mnemonics, phrases, or etymology should be tailored for a ${options.level} (CEFR) learner.`
+      : "",
+    `Requested keys:`,
+    ...requestedKeys,
+    `Provide null for keys that are not applicable (e.g., gender for a verb, verb_forms for a noun).`,
+    `Do not include any text outside the JSON object. Ensure the JSON is valid.`,
   ]
     .filter(Boolean)
     .join("\n");
 
   let aiData: any;
   let translation: string = "";
+  let bodyStr = "";
 
   try {
     const r = await generateText({
@@ -68,50 +80,60 @@ export async function POST(req: NextRequest) {
         { role: "user", content: "Respond with the JSON object only." },
       ],
       temperature: 0.3,
-      maxOutputTokens: 600,
+      maxOutputTokens: 800,
     });
 
     const raw = r.text?.trim() || "";
     const codeFence = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    const bodyStr = codeFence ? codeFence[1].trim() : raw;
+    bodyStr = codeFence ? codeFence[1].trim() : raw;
 
     aiData = JSON.parse(bodyStr);
 
-    // Extract translation
+    if (aiData.error && aiData.error === "Word not recognized") {
+      console.warn(
+        `AI indicated word "${wordText}" not recognized in ${languageName}.`
+      );
+      return NextResponse.json(
+        {
+          error: `Word "${wordText}" not recognized or processable in ${languageName}.`,
+          code: "WORD_NOT_RECOGNIZED",
+        },
+        { status: 422 }
+      );
+    }
+
     if (aiData.translation && typeof aiData.translation === "string") {
       translation = aiData.translation;
     } else {
-      throw new Error("AI did not provide a valid translation string.");
+      console.error(
+        `AI did not provide a valid translation string for "${wordText}".`
+      );
+      throw new Error("AI failed to provide a translation.");
     }
+
+    return NextResponse.json({
+      success: true,
+      translation: translation,
+      aiData: aiData,
+    });
   } catch (aiError: any) {
     console.error("AI Generation or JSON parse error:", aiError);
-    return NextResponse.json(
-      { error: "AI returned invalid data", details: aiError.message },
-      { status: 502 }
-    );
-  }
-
-  try {
-    // Update the row with both translation and ai_data
-    const { error: updateError } = await supabaseAdmin
-      .from("user_words")
-      .update({
-        translation: translation,
-        ai_data: aiData,
-      })
-      .eq("id", wordId)
-      .eq("user_id", userId);
-
-    if (updateError) {
-      throw updateError;
+    console.error("Raw AI response attempt:", bodyStr);
+    if (bodyStr.includes('"error": "Word not recognized"')) {
+      console.warn(
+        `AI indicated word "${wordText}" not recognized (parsing failed).`
+      );
+      return NextResponse.json(
+        {
+          error: `Word "${wordText}" not recognized or processable in ${languageName}.`,
+          code: "WORD_NOT_RECOGNIZED",
+        },
+        { status: 422 }
+      );
     }
-
-    return NextResponse.json({ success: true, aiData });
-  } catch (dbError: any) {
-    console.error("Supabase update error:", dbError);
     return NextResponse.json(
-      { error: "Failed to save AI data to database", details: dbError.message },
-      { status: 500 }
+      { error: "AI returned invalid data or failed", details: aiError.message },
+      { status: 502 }
     );
   }
 }
