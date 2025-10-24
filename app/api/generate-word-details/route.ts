@@ -15,9 +15,17 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { wordId, wordText, languageName, options, userId } = await req.json();
+  const { wordId, wordText, languageName, nativeLanguage, options, userId } =
+    await req.json();
 
-  if (!wordId || !wordText || !languageName || !options || !userId) {
+  if (
+    !wordId ||
+    !wordText ||
+    !languageName ||
+    !nativeLanguage ||
+    !options ||
+    !userId
+  ) {
     return NextResponse.json(
       { error: "Missing required parameters" },
       { status: 400 }
@@ -27,9 +35,15 @@ export async function POST(req: NextRequest) {
   const system = [
     `You are a language learning assistant.`,
     `For the ${languageName} word "${wordText}", provide only a JSON object matching the requested keys.`,
+    `The user's native language is ${nativeLanguage}.`,
 
-    `All explanations and examples should be tailored for a ${options.level} (CEFR) learner.`,
+    // Always include translation
+    `- "translation": (A string translating the word into ${nativeLanguage})`,
 
+    // Add other options conditionally
+    options.grammar || (options.examples ?? 0) > 0
+      ? `All explanations and examples should be tailored for a ${options.level} (CEFR) learner.`
+      : ``,
     options.grammar
       ? `- "grammar": (A string containing a concise grammar explanation for the word. For example, explain its type, conjugation pattern, or any relevant rules.)`
       : ``,
@@ -44,6 +58,7 @@ export async function POST(req: NextRequest) {
     .join("\n");
 
   let aiData: any;
+  let translation: string = "";
 
   try {
     const r = await generateText({
@@ -61,6 +76,13 @@ export async function POST(req: NextRequest) {
     const bodyStr = codeFence ? codeFence[1].trim() : raw;
 
     aiData = JSON.parse(bodyStr);
+
+    // Extract translation
+    if (aiData.translation && typeof aiData.translation === "string") {
+      translation = aiData.translation;
+    } else {
+      throw new Error("AI did not provide a valid translation string.");
+    }
   } catch (aiError: any) {
     console.error("AI Generation or JSON parse error:", aiError);
     return NextResponse.json(
@@ -70,9 +92,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Update the row with both translation and ai_data
     const { error: updateError } = await supabaseAdmin
       .from("user_words")
-      .update({ ai_data: aiData })
+      .update({
+        translation: translation,
+        ai_data: aiData,
+      })
       .eq("id", wordId)
       .eq("user_id", userId);
 

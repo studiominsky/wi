@@ -1,5 +1,5 @@
-import { AddLanguageDialog } from "@/components/AddLanguageDialog";
-import { AddWordDialog } from "@/components/AddWordDialog";
+import { AddLanguageDialog } from "@/components/add-language-dialog";
+import { AddWordDialog } from "@/components/add-word-dialog";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";

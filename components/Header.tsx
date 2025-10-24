@@ -7,6 +7,7 @@ import {
   LogOut,
   User as UserIcon,
   LayoutDashboard,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,12 @@ export default function Header() {
                 <Button variant="ghost" size="sm">
                   <LayoutDashboard className="h-4 w-4 mr-2" />
                   Dashboard
+                </Button>
+              </Link>
+              <Link href="/dashboard/settings">
+                <Button variant="ghost" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
                 </Button>
               </Link>
               <Link href="/dashboard/profile">
