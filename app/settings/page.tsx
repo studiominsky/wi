@@ -10,7 +10,7 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=/dashboard/settings");
+    redirect("/login?next=/inventory/settings");
   }
 
   const { data: profile } = await supabase

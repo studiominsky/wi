@@ -22,7 +22,7 @@ export default async function Home() {
                 The ultimate tool to collect, customize, and master vocabulary
                 in any language you're learning. Your words, your rules.
               </p>
-              <Link href={user ? "/dashboard" : "/login"}>
+              <Link href={user ? "/inventory" : "/login"}>
                 <Button size="lg">Get Started for Free</Button>
               </Link>
             </div>

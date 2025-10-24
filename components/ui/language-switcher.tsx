@@ -19,9 +19,9 @@ export default function LanguageSwitcher({ languages }: LanguageSwitcherProps) {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const langId = e.target.value;
     if (langId) {
-      router.push(`/dashboard?lang=${langId}`);
+      router.push(`/inventory?lang=${langId}`);
     } else {
-      router.push("/dashboard");
+      router.push("/inventory");
     }
   };
 

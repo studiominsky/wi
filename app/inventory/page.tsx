@@ -42,7 +42,7 @@ export default async function DashboardPage({
 
   const refreshData = async () => {
     "use server";
-    revalidatePath("/dashboard");
+    revalidatePath("/inventory");
   };
 
   return (

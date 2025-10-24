@@ -25,7 +25,7 @@ export default function LoginPage() {
       return;
     }
     const supabase = createClient();
-    const next = searchParams.get("next") || "/dashboard";
+    const next = searchParams.get("next") || "/inventory";
 
     const { error } = await supabase.auth.signInWithPassword({
       email,

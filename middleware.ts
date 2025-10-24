@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const authRoutes = ["/login", "/signup", "/forgot-password"];
-  const protectedRoutes = ["/dashboard", "/dashboard/profile"];
+  const protectedRoutes = ["/inventory", "/inventory/profile"];
 
   const isAuthRoute = authRoutes.some((path) => pathname.startsWith(path));
   const isProtectedRoute = protectedRoutes.some((path) =>
@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
     console.log(
       `Middleware: User logged in, accessing auth route ${pathname}. Redirecting to dashboard.`
     );
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/inventory", request.url));
   }
 
   return supabaseResponse;

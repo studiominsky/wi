@@ -23,7 +23,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace("/login?next=/dashboard/profile");
+      router.replace("/login?next=/inventory/profile");
     } else if (user) {
       const fetchProfile = async () => {
         setLoadingProfile(true);
