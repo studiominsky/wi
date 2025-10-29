@@ -151,10 +151,6 @@ export default async function WordDetailPage(props: {
           <AiDataSection title="Grammar Explanation" data={aiData.grammar} />
           <AiDataSection title="Example Sentences" data={aiData.examples} />
           <AiDataSection
-            title="Difficulty Estimation"
-            data={aiData.difficulty}
-          />
-          <AiDataSection
             title="Synonyms / Antonyms"
             data={aiData.synonyms_antonyms}
           />

@@ -113,13 +113,13 @@ export function AddWordDialog({
   const [loading, setLoading] = useState(false);
 
   const [genGrammar, setGenGrammar] = useState(true);
-  const [genExamples, setGenExamples] = useState(true);
-  const [genDifficulty, setGenDifficulty] = useState(true);
   const [genSynonyms, setGenSynonyms] = useState(true);
-  const [cefrLevel, setCefrLevel] = useState("B1");
   const [genMnemonic, setGenMnemonic] = useState(false);
   const [genPhrases, setGenPhrases] = useState(false);
   const [genEtymology, setGenEtymology] = useState(false);
+
+  const [examplesCount, setExamplesCount] = useState(3);
+  const [cefrLevel, setCefrLevel] = useState("B1");
 
   useEffect(() => {
     if (
@@ -137,12 +137,11 @@ export function AddWordDialog({
     setWord("");
     setNotes("");
     setSelectedColor(null);
+    setExamplesCount(3);
     setGenMnemonic(false);
     setGenPhrases(false);
     setGenEtymology(false);
     setGenGrammar(true);
-    setGenExamples(true);
-    setGenDifficulty(true);
     setGenSynonyms(true);
     setCefrLevel("B1");
     if (userLanguages.length > 0) {
@@ -178,9 +177,10 @@ export function AddWordDialog({
         translation: true,
         gender_verb_forms: true,
         grammar: genGrammar,
-        examples: genExamples ? 3 : 0,
+        // Using the new examplesCount state directly
+        examples: examplesCount,
         level: cefrLevel,
-        difficulty: genDifficulty,
+        // Removed difficulty option
         synonyms: genSynonyms,
         mnemonic: genMnemonic,
         phrases: genPhrases,
@@ -307,9 +307,8 @@ export function AddWordDialog({
   };
 
   const aiOptionsSelected =
+    examplesCount > 0 ||
     genGrammar ||
-    genExamples ||
-    genDifficulty ||
     genSynonyms ||
     genMnemonic ||
     genPhrases ||
@@ -442,18 +441,34 @@ export function AddWordDialog({
             </p>
             <div className="flex flex-wrap gap-2">
               {renderToggle("Grammar", genGrammar, setGenGrammar)}
-              {renderToggle("Examples", genExamples, setGenExamples)}
-              {renderToggle("Difficulty", genDifficulty, setGenDifficulty)}
-              {renderToggle("Synonyms", genSynonyms, setGenSynonyms)}
-            </div>
-            <div className="flex flex-wrap gap-2 pt-2 border-t mt-3">
-              <Label className="w-full text-xs text-muted-foreground mb-1">
-                More Options:
-              </Label>
+              {renderToggle("Synonyms/Antonyms", genSynonyms, setGenSynonyms)}
               {renderToggle("Mnemonic", genMnemonic, setGenMnemonic)}
-              {renderToggle("Phrases", genPhrases, setGenPhrases)}
+              {renderToggle("Phrases/Idioms", genPhrases, setGenPhrases)}
               {renderToggle("Etymology", genEtymology, setGenEtymology)}
             </div>
+
+            <div className="space-y-2 pt-3 border-t">
+              <Label htmlFor="examples-count">
+                Number of Examples (0 to 5)
+              </Label>
+              <Input
+                id="examples-count"
+                type="number"
+                min={0}
+                max={5}
+                value={examplesCount}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val)) {
+                    setExamplesCount(Math.max(0, Math.min(5, val)));
+                  }
+                }}
+                placeholder="3"
+                className="w-[100px]"
+                disabled={loading}
+              />
+            </div>
+
             {aiOptionsSelected && (
               <div className="space-y-2 pt-3 border-t">
                 <Label htmlFor="cefr-level">

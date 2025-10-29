@@ -20,30 +20,36 @@ export async function POST(req: NextRequest) {
 
   const requestedKeys = [
     `- "translation": (A string translating the word into ${nativeLanguage})`,
+
     options.gender_verb_forms
-      ? `- "gender": (Grammatical gender if noun and applicable, e.g., Masculine/Feminine/Neuter, otherwise null)`
+      ? `- "gender": (Grammatical gender if noun and applicable, e.g., Masculine/Feminine/Neuter, otherwise null. Must be in ${languageName} or English.)`
       : "",
     options.gender_verb_forms
-      ? `- "verb_forms": (Object with key verb forms like infinitive, past tense, present participle if verb and applicable, otherwise null)`
+      ? `- "verb_forms": (Object with key verb forms like infinitive, past tense, present participle if verb and applicable, otherwise null. Keys and values must be in ${languageName} or English.)`
       : "",
+
     options.grammar
-      ? `- "grammar": (A string containing a concise grammar explanation for the word.)`
+      ? `- "grammar": (A concise grammar explanation for the word. Must be fully in ${nativeLanguage}.)`
       : "",
+
     (options.examples ?? 0) > 0
-      ? `- "examples": (Array of ${options.examples} example sentences)`
+      ? `- "examples": (Array of ${options.examples} example sentences. Each array item must be a single string formatted as: "Target language sentence. (${nativeLanguage} translation.)")`
       : "",
-    options.difficulty ? `- "difficulty": (Easy|Medium|Hard)` : "",
+
     options.synonyms
-      ? `- "synonyms_antonyms": (Object with arrays "synonyms" and "antonyms")`
+      ? `- "synonyms_antonyms": (Object with arrays "synonyms" and "antonyms". The words in the arrays must be in ${languageName}.)`
       : "",
+
     options.mnemonic
-      ? `- "mnemonic": (A short, helpful memory aid string)`
+      ? `- "mnemonic": (A short, helpful memory aid string. Must be fully in ${nativeLanguage}.)`
       : "",
+
     options.phrases
-      ? `- "phrases": (Array of common phrases or idioms using the word)`
+      ? `- "phrases": (Array of common phrases or idioms using the word. Each item must be a single string formatted as: "Phrase in ${languageName} - Translation in ${nativeLanguage}")`
       : "",
+
     options.etymology
-      ? `- "etymology": (A brief string explaining the word's origin)`
+      ? `- "etymology": (A brief string explaining the word's origin. Must be fully in ${nativeLanguage}.)`
       : "",
   ].filter(Boolean);
 
@@ -52,13 +58,14 @@ export async function POST(req: NextRequest) {
     `For the ${languageName} word "${wordText}", provide only a JSON object matching the requested keys.`,
     `If the word "${wordText}" is not recognizable or appears to be nonsensical in ${languageName}, respond ONLY with the JSON: {"error": "Word not recognized"}.`,
     `The user's native language is ${nativeLanguage}.`,
+    `CRITICAL INSTRUCTION: All descriptive and explanatory fields (grammar, mnemonic, etymology) MUST be written entirely in ${nativeLanguage}. Example sentences and phrases must follow the required "Target - Native Translation" format.`,
     (options.grammar ||
       (options.examples ?? 0) > 0 ||
       options.mnemonic ||
       options.phrases ||
       options.etymology) &&
     options.level
-      ? `All explanations, examples, mnemonics, phrases, or etymology should be tailored for a ${options.level} (CEFR) learner.`
+      ? `All explanations, examples, mnemonics, phrases, or etymology MUST be tailored specifically for a ${options.level} (CEFR) learner. Examples must be grammatically correct but limited to the vocabulary and complexity expected for a ${options.level} user.`
       : "",
     `Requested keys:`,
     ...requestedKeys,
