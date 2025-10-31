@@ -1,3 +1,4 @@
+// studiominsky/wi/wi-6490d5e232baaf957c0eb90cafd653377333ef59/app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookText, PlusCircle, Settings2, BrainCircuit } from "lucide-react";

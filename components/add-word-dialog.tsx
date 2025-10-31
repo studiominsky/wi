@@ -1,6 +1,7 @@
+// studiominsky/wi/wi-6490d5e232baaf957c0eb90cafd653377333ef59/components/add-word-dialog.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import { PlusCircle, Check, Loader2 } from "lucide-react";
+import {
+  PlusCircle,
+  Check,
+  Loader2,
+  Image as ImageIcon,
+  Trash2,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -33,13 +40,13 @@ type UserLanguage = { id: string; language_name: string };
 
 type AddWordDialogProps = {
   userLanguages: UserLanguage[];
+  currentLanguageId: string;
   onWordAdded?: (wordId: number | string) => void;
 };
 
 const cefrLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const colorOptions = [
   { name: "Default", value: null, displayClass: "bg-transparent border-input" },
-
   {
     name: "Red",
     value:
@@ -47,7 +54,6 @@ const colorOptions = [
     displayClass:
       "bg-red-100 border-red-200 dark:bg-red-800/50 dark:border-red-700/60",
   },
-
   {
     name: "Blue",
     value:
@@ -55,7 +61,6 @@ const colorOptions = [
     displayClass:
       "bg-blue-100 border-blue-200 dark:bg-blue-800/50 dark:border-blue-700/60",
   },
-
   {
     name: "Green",
     value:
@@ -63,7 +68,6 @@ const colorOptions = [
     displayClass:
       "bg-green-100 border-green-200 dark:bg-green-800/50 dark:border-green-700/60",
   },
-
   {
     name: "Yellow",
     value:
@@ -71,7 +75,6 @@ const colorOptions = [
     displayClass:
       "bg-yellow-100 border-yellow-200 dark:bg-yellow-700/50 dark:border-yellow-600/60",
   },
-
   {
     name: "Purple",
     value:
@@ -79,7 +82,6 @@ const colorOptions = [
     displayClass:
       "bg-purple-100 border-purple-200 dark:bg-purple-800/50 dark:border-purple-700/60",
   },
-
   {
     name: "Pink",
     value:
@@ -87,7 +89,6 @@ const colorOptions = [
     displayClass:
       "bg-pink-100 border-pink-200 dark:bg-pink-800/50 dark:border-pink-700/60",
   },
-
   {
     name: "Indigo",
     value:
@@ -99,18 +100,19 @@ const colorOptions = [
 
 export function AddWordDialog({
   userLanguages,
+  currentLanguageId,
   onWordAdded,
 }: AddWordDialogProps) {
   const supabase = createClient();
   const { user, settings } = useAuth();
   const [open, setOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    userLanguages[0]?.id || ""
-  );
   const [word, setWord] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
   const [genGrammar, setGenGrammar] = useState(true);
   const [genSynonyms, setGenSynonyms] = useState(true);
@@ -121,17 +123,55 @@ export function AddWordDialog({
   const [examplesCount, setExamplesCount] = useState(3);
   const [cefrLevel, setCefrLevel] = useState("B1");
 
-  useEffect(() => {
-    if (
-      userLanguages.length > 0 &&
-      (!selectedLanguage ||
-        !userLanguages.some((l) => l.id === selectedLanguage))
-    ) {
-      setSelectedLanguage(userLanguages[0].id);
-    } else if (userLanguages.length === 0) {
-      setSelectedLanguage("");
+  const handleRemoveImage = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
     }
-  }, [userLanguages, selectedLanguage]);
+    setImageFile(null);
+    setImagePreviewUrl(null);
+  };
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
+  ) => {
+    const files =
+      "dataTransfer" in e
+        ? (e.dataTransfer.files as FileList)
+        : (e.target.files as FileList);
+
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith("image/")) {
+        handleRemoveImage();
+        setImageFile(file);
+        setImagePreviewUrl(URL.createObjectURL(file));
+      } else {
+        toast.error("Please select a valid image file.");
+      }
+    }
+    if ("target" in e && e.target instanceof HTMLInputElement) {
+      e.target.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.add("ring-2", "ring-primary", "ring-offset-2");
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove("ring-2", "ring-primary", "ring-offset-2");
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove("ring-2", "ring-primary", "ring-offset-2");
+    handleFileChange(e);
+  };
 
   const resetForm = () => {
     setWord("");
@@ -144,11 +184,7 @@ export function AddWordDialog({
     setGenGrammar(true);
     setGenSynonyms(true);
     setCefrLevel("B1");
-    if (userLanguages.length > 0) {
-      setSelectedLanguage(userLanguages[0].id);
-    } else {
-      setSelectedLanguage("");
-    }
+    handleRemoveImage();
   };
 
   const handleAddWord = async () => {
@@ -156,11 +192,49 @@ export function AddWordDialog({
       toast.error("You must be logged in.");
       return;
     }
-    if (!selectedLanguage || !word) {
-      toast.error("Please fill in language and word.");
+    if (!currentLanguageId || !word) {
+      toast.error(
+        currentLanguageId
+          ? "Please fill in the word field."
+          : "Language not selected. Please select a language in the inventory."
+      );
       return;
     }
     setLoading(true);
+
+    let image_url: string | null = null;
+    if (imageFile) {
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `${user.id}/${Date.now()}_${word}.${fileExt}`;
+
+      toast.loading("Uploading image...", { id: "image-upload" });
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("word_images")
+        .upload(fileName, imageFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        toast.error(`Image upload failed: ${uploadError.message}`, {
+          id: "image-upload",
+          duration: 6000,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("word_images")
+        .getPublicUrl(uploadData.path);
+
+      image_url = publicUrlData.publicUrl;
+      toast.success("Image uploaded successfully!", {
+        id: "image-upload",
+        duration: 1500,
+      });
+    }
+
     const toastId = toast.loading("Generating AI details for the word...");
 
     let aiDataResponse: {
@@ -177,10 +251,8 @@ export function AddWordDialog({
         translation: true,
         gender_verb_forms: true,
         grammar: genGrammar,
-        // Using the new examplesCount state directly
         examples: examplesCount,
         level: cefrLevel,
-        // Removed difficulty option
         synonyms: genSynonyms,
         mnemonic: genMnemonic,
         phrases: genPhrases,
@@ -188,7 +260,7 @@ export function AddWordDialog({
       };
 
       const languageName =
-        userLanguages.find((l) => l.id === selectedLanguage)?.language_name ||
+        userLanguages.find((l) => l.id === currentLanguageId)?.language_name ||
         "Selected Language";
 
       const res = await fetch("/api/generate-word-details", {
@@ -253,12 +325,13 @@ export function AddWordDialog({
           .from("user_words")
           .insert({
             user_id: user.id,
-            language_id: selectedLanguage,
+            language_id: currentLanguageId,
             word,
             translation: aiDataResponse.translation,
             ai_data: aiDataResponse.aiData,
             notes: notes || null,
             color: selectedColor,
+            image_url: image_url,
           })
           .select("id")
           .single();
@@ -338,13 +411,23 @@ export function AddWordDialog({
     </Toggle>
   );
 
+  const currentLangName =
+    userLanguages.find((l) => l.id === currentLanguageId)?.language_name ||
+    "Language";
+
+  const canAddWord = userLanguages.length > 0 && !!currentLanguageId && !!word;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
-          disabled={loading || userLanguages.length === 0}
+          disabled={loading || userLanguages.length === 0 || !currentLanguageId}
           title={
-            userLanguages.length === 0 ? "Add a language first" : "Add new word"
+            userLanguages.length === 0
+              ? "Add a language first"
+              : !currentLanguageId
+              ? "Select an inventory language first"
+              : `Add new word to ${currentLangName}`
           }
         >
           {loading ? (
@@ -357,45 +440,20 @@ export function AddWordDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Word</DialogTitle>
+          <DialogTitle>Add New Word to {currentLangName}</DialogTitle>
           <DialogDescription>
             Enter a word. AI will generate the translation and other details.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4 px-1 overflow-y-auto max-h-[70vh]">
           <div className="space-y-2">
-            <Label htmlFor="word-language">Language</Label>
-            <Select
-              value={selectedLanguage}
-              onValueChange={setSelectedLanguage}
-              disabled={loading || userLanguages.length === 0}
-            >
-              <SelectTrigger id="word-language">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {userLanguages.length === 0 ? (
-                  <SelectItem value="-" disabled>
-                    Add a language first
-                  </SelectItem>
-                ) : (
-                  userLanguages.map((lang) => (
-                    <SelectItem key={lang.id} value={lang.id}>
-                      {lang.language_name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="word-text">Word</Label>
             <Input
               id="word-text"
               value={word}
               onChange={(e) => setWord(e.target.value)}
-              placeholder="e.g., Olá"
-              disabled={loading}
+              placeholder={`e.g., Olá in ${currentLangName}`}
+              disabled={loading || !currentLanguageId}
             />
           </div>
           <div className="space-y-2">
@@ -409,6 +467,60 @@ export function AddWordDialog({
               disabled={loading}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label>Image (Optional)</Label>
+            {!imagePreviewUrl ? (
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={cn(
+                  "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
+                  loading && "pointer-events-none opacity-50"
+                )}
+              >
+                <input
+                  type="file"
+                  id="word-image"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="sr-only"
+                  disabled={loading}
+                />
+                <label
+                  htmlFor="word-image"
+                  className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
+                >
+                  <ImageIcon className="h-5 w-5" />
+                  <p>
+                    Drag & drop or{" "}
+                    <span className="text-primary hover:underline">browse</span>
+                  </p>
+                </label>
+              </div>
+            ) : (
+              <div className="relative h-48 w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imagePreviewUrl}
+                  alt="Word preview"
+                  className="h-full w-full rounded-md object-cover"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon-sm"
+                  onClick={handleRemoveImage}
+                  className="absolute top-2 right-2 size-7"
+                  disabled={loading}
+                  title="Remove image"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Color Tag (Optional)</Label>
             <div className="flex flex-wrap gap-2">
@@ -503,12 +615,7 @@ export function AddWordDialog({
           <Button
             type="button"
             onClick={handleAddWord}
-            disabled={
-              loading ||
-              userLanguages.length === 0 ||
-              !selectedLanguage ||
-              !word
-            }
+            disabled={loading || !canAddWord}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? "Processing..." : "Add Word"}
