@@ -6,8 +6,6 @@ import { BookOpen, ChevronRight } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { cn } from "@/lib/utils";
 import { SortControls } from "@/components/sort-controls";
-import { AddLanguageDialog } from "@/components/add-language-dialog";
-import LanguageSwitcher from "@/components/language-switcher";
 
 function getBgColorClass(colorString: null | undefined): string {
   if (!colorString) return "bg-transparent border-border";
@@ -110,15 +108,6 @@ export default async function LanguageInventoryPage({
         <h1 className="text-2xl md:text-3xl font-bold">{langDisplay}</h1>
         <div className="flex items-center gap-4">
           <SortControls currentPreference={currentSortPreference} />
-
-          {allUserLanguages.length > 0 && selectedLanguage?.iso_code && (
-            <LanguageSwitcher
-              languages={allUserLanguages as any[]}
-              currentLangSlug={selectedLanguage.iso_code}
-            />
-          )}
-
-          <AddLanguageDialog />
 
           <AddWordDialog
             userLanguages={allUserLanguages}
