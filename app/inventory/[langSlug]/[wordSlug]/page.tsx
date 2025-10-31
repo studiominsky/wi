@@ -1,4 +1,3 @@
-// studiominsky/wi/wi-6490d5e232baaf957c0eb90cafd653377333ef59/app/word/[slug]/page.tsx
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -88,22 +87,36 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
 }
 
 export default async function WordDetailPage(props: {
-  params: { slug: string };
+  params: { langSlug: string; wordSlug: string };
 }) {
-  const { slug } = props.params;
-  const decodedSlug = decodeURIComponent(slug);
+  const { langSlug, wordSlug } = await props.params;
+  const decodedWord = decodeURIComponent(wordSlug);
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/word/${slug}`);
+  if (!user) redirect(`/login?next=/inventory/${langSlug}/${wordSlug}`);
+
+  const { data: language } = await supabase
+    .from("user_languages")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("iso_code", langSlug)
+    .single();
+
+  if (!language) {
+    console.error(`Language not found for slug: ${langSlug}`);
+    notFound();
+  }
+
+  const languageId = language.id;
 
   const { data: word, error } = await supabase
     .from("user_words")
-    // MODIFIED: Added image_url to select statement
     .select("*, notes, ai_data, translation, color, image_url")
     .eq("user_id", user.id)
-    .eq("word", decodedSlug)
+    .eq("language_id", languageId)
+    .eq("word", decodedWord)
     .single();
 
   if (error || !word) notFound();
@@ -123,10 +136,8 @@ export default async function WordDetailPage(props: {
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
-      {/* NEW: Display the image if it exists */}
       {word.image_url && (
         <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-md">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={word.image_url}
             alt={`Image for the word ${word.word}`}
@@ -134,7 +145,6 @@ export default async function WordDetailPage(props: {
           />
         </div>
       )}
-      {/* END NEW: Display the image */}
 
       <div className={cn("p-4 ", word.color)}>
         <h1 className="text-4xl font-bold mb-2">{word.word}</h1>
