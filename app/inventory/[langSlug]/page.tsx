@@ -1,19 +1,18 @@
-// studiominsky/wi/wi-6490d5e232baaf957c0eb90cafd653377333ef59/app/inventory/[langSlug]/page.tsx
-import { AddLanguageDialog } from "@/components/add-language-dialog";
 import { AddWordDialog } from "@/components/add-word-dialog";
 import { createClient } from "../../../lib/supabase/server";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, ChevronRight } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { cn } from "@/lib/utils";
 import { SortControls } from "@/components/sort-controls";
-import { LanguageSelector } from "@/components/language-selector"; // Now pointing to the created component
 
-function getBgColorClass(colorString: string | null | undefined): string {
+function getBgColorClass(colorString: null | undefined): string {
   if (!colorString) return "bg-transparent border-border";
-  const lightBgMatch = colorString.match(/bg-([a-z]+)-[0-9]+/);
-  const darkBgMatch = colorString.match(/dark:bg-([a-z]+)-[0-9]+\/[0-9]+/);
+  const lightBgMatch = String(colorString).match(/bg-([a-z]+)-[0-9]+/);
+  const darkBgMatch = String(colorString).match(
+    /dark:bg-([a-z]+)-[0-9]+\/[0-9]+/
+  );
   let classes = "";
   if (lightBgMatch) classes += `${lightBgMatch[0]} `;
   if (darkBgMatch) classes += `${darkBgMatch[0]}`;
@@ -23,12 +22,12 @@ function getBgColorClass(colorString: string | null | undefined): string {
 
 type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
 
-export default async function InventoryPage({
+export default async function LanguageInventoryPage({
   params,
 }: {
-  params: { langSlug?: string };
+  params: { langSlug: string };
 }) {
-  const langSlug = params?.langSlug;
+  const { langSlug } = await params;
 
   const supabase = await createClient();
 
@@ -47,42 +46,20 @@ export default async function InventoryPage({
 
   const allUserLanguages = userLanguages || [];
 
-  let selectedLanguage: {
-    id: string;
-    iso_code: string;
-    language_name: string;
-  } | null = null;
-  let redirectPath: string | null = null;
+  const selectedLanguage = allUserLanguages.find(
+    (lang) => lang.iso_code?.toLowerCase() === langSlug.toLowerCase()
+  );
 
-  if (allUserLanguages.length === 0) {
-    // No languages added. This will trigger the empty state.
-  } else if (!langSlug || langSlug === "start") {
-    // Also handle the '/inventory/start' redirect
-    // If the path is /inventory (no slug), or the placeholder slug 'start', redirect to the first language's slug
-    const firstLanguage = allUserLanguages.find((l) => l.iso_code);
-    if (firstLanguage) {
-      redirectPath = `/inventory/${firstLanguage.iso_code}`;
-    }
-  } else {
-    // If langSlug is provided, find the language ID
-    const foundLanguage = allUserLanguages.find(
-      (lang) => lang.iso_code?.toLowerCase() === langSlug.toLowerCase()
-    );
-
-    if (foundLanguage) {
-      selectedLanguage = foundLanguage as any;
+  if (!selectedLanguage) {
+    if (allUserLanguages.length > 0) {
+      notFound();
     } else {
-      // If slug is invalid, redirect to the first valid language
-      const firstLanguage = allUserLanguages.find((l) => l.iso_code);
-      if (firstLanguage) {
-        redirectPath = `/inventory/${firstLanguage.iso_code}`;
-      }
+      redirect("/inventory");
     }
   }
 
-  if (redirectPath) {
-    redirect(redirectPath);
-  }
+  const currentLangId = selectedLanguage.id;
+  const currentLangName = selectedLanguage.language_name;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -96,11 +73,8 @@ export default async function InventoryPage({
   let query = supabase
     .from("user_words")
     .select("id, word, translation, color, ai_data")
-    .eq("user_id", user.id);
-
-  if (selectedLanguage) {
-    query = query.eq("language_id", selectedLanguage.id);
-  }
+    .eq("user_id", user.id)
+    .eq("language_id", currentLangId);
 
   switch (currentSortPreference) {
     case "date_asc":
@@ -122,17 +96,11 @@ export default async function InventoryPage({
 
   const refreshData = async () => {
     "use server";
-    revalidatePath(`/inventory/${langSlug || ""}`);
+    revalidatePath(`/inventory/${langSlug}`);
   };
 
-  const currentLangName = selectedLanguage?.language_name || "Language";
-  const currentLangId = selectedLanguage?.id || "";
-  const langDisplay = selectedLanguage
-    ? `Inventory: ${currentLangName}`
-    : "Your Word Inventory";
-  // The list should only show if a language is selected AND words are found.
-  // If no language is selected (e.g. if allUserLanguages.length === 0) or if words are empty.
-  const showList = selectedLanguage && words && words.length > 0;
+  const langDisplay = `Inventory: ${currentLangName}`;
+  const showList = words && words.length > 0;
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -140,15 +108,6 @@ export default async function InventoryPage({
         <h1 className="text-2xl md:text-3xl font-bold">{langDisplay}</h1>
         <div className="flex items-center gap-4">
           <SortControls currentPreference={currentSortPreference} />
-
-          {allUserLanguages.length > 0 && selectedLanguage?.iso_code && (
-            <LanguageSelector
-              userLanguages={allUserLanguages as any[]}
-              langSlug={selectedLanguage.iso_code}
-            />
-          )}
-
-          <AddLanguageDialog onLanguageAdded={refreshData} />
           <AddWordDialog
             userLanguages={allUserLanguages}
             currentLanguageId={currentLangId}
@@ -213,14 +172,10 @@ export default async function InventoryPage({
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
           <h2 className="mt-4 text-xl font-semibold">
-            {allUserLanguages.length === 0
-              ? "Add a language to get started!"
-              : `No words yet for ${currentLangName}!`}
+            No words yet for {currentLangName}!
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            {allUserLanguages.length === 0
-              ? "Click 'Add Language' above."
-              : `Click 'Add Word' above to add your first word to ${currentLangName}.`}
+            Click 'Add Word' above to add your first word to {currentLangName}.
           </p>
         </div>
       )}

@@ -1,4 +1,4 @@
-// studiominsky/wi/wi-6490d5e232baaf957c0eb90cafd653377333ef59/components/add-word-dialog.tsx
+// studiominsky/wi/wi-cf0e644c2c372b7c694b4a14dbb10011cca02a12/components/add-word-dialog.tsx
 "use client";
 
 import { useState } from "react";
@@ -71,7 +71,7 @@ const colorOptions = [
   {
     name: "Yellow",
     value:
-      "bg-yellow-100 border-yellow-200 text-yellow-800 dark:bg-yellow-700/50 dark:border-yellow-600/60 dark:text-yellow-200", // Used 700/600 for dark yellow
+      "bg-yellow-100 border-yellow-200 text-yellow-800 dark:bg-yellow-700/50 dark:border-yellow-600/60 dark:text-yellow-200",
     displayClass:
       "bg-yellow-100 border-yellow-200 dark:bg-yellow-700/50 dark:border-yellow-600/60",
   },
@@ -196,7 +196,7 @@ export function AddWordDialog({
       toast.error(
         currentLanguageId
           ? "Please fill in the word field."
-          : "Language not selected. Please select a language in the inventory."
+          : "Language not selected. Please navigate to a specific language inventory first."
       );
       return;
     }
@@ -415,7 +415,7 @@ export function AddWordDialog({
     userLanguages.find((l) => l.id === currentLanguageId)?.language_name ||
     "Language";
 
-  const canAddWord = userLanguages.length > 0 && !!currentLanguageId && !!word;
+  const canAddWord = !!currentLanguageId && !!word;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

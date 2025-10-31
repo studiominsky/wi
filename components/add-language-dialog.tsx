@@ -17,14 +17,12 @@ import {
 } from "@/components/ui/dialog";
 import { PlusCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
-type AddLanguageDialogProps = {
-  onLanguageAdded?: () => void;
-};
-
-export function AddLanguageDialog({ onLanguageAdded }: AddLanguageDialogProps) {
+export function AddLanguageDialog() {
   const supabase = createClient();
   const { user } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [isoCode, setIsoCode] = useState("");
@@ -48,7 +46,7 @@ export function AddLanguageDialog({ onLanguageAdded }: AddLanguageDialogProps) {
     const { error } = await supabase.from("user_languages").insert({
       user_id: user.id,
       language_name: name,
-      iso_code: isoCode || null,
+      iso_code: isoCode ? isoCode.toLowerCase().trim() : null,
     });
 
     setLoading(false);
@@ -60,10 +58,12 @@ export function AddLanguageDialog({ onLanguageAdded }: AddLanguageDialogProps) {
         setMessage(`Error: ${error.message}`);
       }
     } else {
-      setMessage("Success! Language added.");
+      setMessage("Success! Language added. Redirecting...");
       setName("");
       setIsoCode("");
-      onLanguageAdded?.();
+
+      router.push(`/inventory`);
+
       setTimeout(() => {
         setOpen(false);
         setMessage("");
@@ -118,7 +118,7 @@ export function AddLanguageDialog({ onLanguageAdded }: AddLanguageDialogProps) {
               value={isoCode}
               onChange={(e) => setIsoCode(e.target.value)}
               className="col-span-3"
-              placeholder="e.g., pt (Optional)"
+              placeholder="e.g., pt (Optional for hub card link)"
               maxLength={10}
               disabled={loading}
             />
