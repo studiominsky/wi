@@ -1,4 +1,3 @@
-// studiominsky/wi/wi-cf0e644c2c372b7c694b4a14dbb10011cca02a12/components/add-word-dialog.tsx
 "use client";
 
 import { useState } from "react";
@@ -116,9 +115,11 @@ export function AddWordDialog({
 
   const [genGrammar, setGenGrammar] = useState(true);
   const [genSynonyms, setGenSynonyms] = useState(true);
-  const [genMnemonic, setGenMnemonic] = useState(false);
-  const [genPhrases, setGenPhrases] = useState(false);
-  const [genEtymology, setGenEtymology] = useState(false);
+  const [genMnemonic, setGenMnemonic] = useState(true);
+  const [genPhrases, setGenPhrases] = useState(true);
+  const [genEtymology, setGenEtymology] = useState(true);
+  const [genDetailedGrammarTables, setGenDetailedGrammarTables] =
+    useState(true);
 
   const [examplesCount, setExamplesCount] = useState(3);
   const [cefrLevel, setCefrLevel] = useState("B1");
@@ -178,11 +179,12 @@ export function AddWordDialog({
     setNotes("");
     setSelectedColor(null);
     setExamplesCount(3);
-    setGenMnemonic(false);
-    setGenPhrases(false);
-    setGenEtymology(false);
-    setGenGrammar(true);
-    setGenSynonyms(true);
+    setGenMnemonic(true); // Reset to default true
+    setGenPhrases(true); // Reset to default true
+    setGenEtymology(true); // Reset to default true
+    setGenGrammar(true); // Reset to default true
+    setGenSynonyms(true); // Reset to default true
+    setGenDetailedGrammarTables(true); // Reset to default true
     setCefrLevel("B1");
     handleRemoveImage();
   };
@@ -257,6 +259,7 @@ export function AddWordDialog({
         mnemonic: genMnemonic,
         phrases: genPhrases,
         etymology: genEtymology,
+        detailed_grammar_tables: genDetailedGrammarTables,
       };
 
       const languageName =
@@ -385,7 +388,8 @@ export function AddWordDialog({
     genSynonyms ||
     genMnemonic ||
     genPhrases ||
-    genEtymology;
+    genEtymology ||
+    genDetailedGrammarTables;
 
   const renderToggle = (
     label: string,
@@ -557,6 +561,11 @@ export function AddWordDialog({
               {renderToggle("Mnemonic", genMnemonic, setGenMnemonic)}
               {renderToggle("Phrases/Idioms", genPhrases, setGenPhrases)}
               {renderToggle("Etymology", genEtymology, setGenEtymology)}
+              {renderToggle(
+                "Detailed Grammar Tables",
+                genDetailedGrammarTables,
+                setGenDetailedGrammarTables
+              )}
             </div>
 
             <div className="space-y-2 pt-3 border-t">

@@ -28,6 +28,15 @@ export async function POST(req: NextRequest) {
       ? `- "verb_forms": (Object with key verb forms like infinitive, past tense, present participle if verb and applicable, otherwise null. Keys and values must be in ${languageName} or English.)`
       : "",
 
+    `- "full_conjugation_table": (Full verb conjugation, including all common tenses and moods (e.g., Present, Past, Perfect, Future, Subjunctive, Passive) in a structured JSON object, only if the word is a verb. The object should use keys for tenses/moods (e.g., "Present Tense") and values as an object/array containing the conjugated forms. Otherwise null.)`,
+
+    options.detailed_grammar_tables
+      ? `- "noun_declension_table": (A detailed structured JSON object showing the word's declension for Singular and Plural. Must include the cases: **Nominative, Accusative, Dative, Genitive** in that specific order, with definite articles (e.g., der/die/das). Only if the word is a noun and the language supports declension. Otherwise null.)`
+      : "",
+    options.detailed_grammar_tables
+      ? `- "adjective_declension_example": (A structured JSON object providing an example of an adjective modifying the noun in all cases: **Nominative, Accusative, Dative, Genitive, Plural**. Use a common adjective (e.g., "schöne Frau" for "Frau"). Structure this as a table/object showing the adjective + noun combination for all cases/articles. Only if applicable. Otherwise null.)`
+      : "",
+
     options.grammar
       ? `- "grammar": (A concise grammar explanation for the word. Must be fully in ${nativeLanguage}.)`
       : "",
@@ -69,7 +78,7 @@ export async function POST(req: NextRequest) {
       : "",
     `Requested keys:`,
     ...requestedKeys,
-    `Provide null for keys that are not applicable (e.g., gender for a verb, verb_forms for a noun).`,
+    `Provide null for keys that are not applicable (e.g., gender for a verb, noun_declension_table for a verb).`,
     `Do not include any text outside the JSON object. Ensure the JSON is valid.`,
   ]
     .filter(Boolean)
@@ -87,7 +96,7 @@ export async function POST(req: NextRequest) {
         { role: "user", content: "Respond with the JSON object only." },
       ],
       temperature: 0.3,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1500,
     });
 
     const raw = r.text?.trim() || "";

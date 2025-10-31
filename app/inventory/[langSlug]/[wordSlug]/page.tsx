@@ -2,6 +2,37 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+function GrammarTable({ data }: { data: any }) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+
+  return (
+    <div className="bg-background/50 rounded-md p-2 text-sm space-y-2 mt-2 border border-border">
+      {Object.entries(data).map(([key, value]) => (
+        <div key={key} className="border-b border-muted last:border-b-0 pb-1">
+          <strong className="block text-primary/80 capitalize font-medium">
+            {key.replace(/_/g, " ")}:
+          </strong>
+          {typeof value === "string" ? (
+            <p className="pl-2 italic">{value}</p>
+          ) : Array.isArray(value) ? (
+            <ul className="list-disc list-inside pl-4">
+              {(value as any[]).map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          ) : typeof value === "object" && value !== null ? (
+            <div className="pl-2 space-y-1">
+              <GrammarTable data={value} />
+            </div>
+          ) : (
+            <p className="pl-2">{String(value)}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function VerbFormsSection({ data }: { data: any }) {
   if (!data || typeof data !== "object" || Object.keys(data).length === 0)
     return null;
@@ -21,7 +52,13 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   if (data === null || data === undefined || data === "") return null;
 
   let content;
-  if (title === "Key Verb Forms" && typeof data === "object") {
+  if (
+    title === "Full Verb Conjugation" ||
+    title === "Noun Declension Table" ||
+    title === "Adjective Declension Example"
+  ) {
+    content = <GrammarTable data={data} />;
+  } else if (title === "Key Verb Forms" && typeof data === "object") {
     content = <VerbFormsSection data={data} />;
   } else if (typeof data === "string") {
     content = <p className="text-sm whitespace-pre-wrap">{data}</p>;
@@ -79,8 +116,8 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   if (!content) return null;
 
   return (
-    <div className="border-t pt-4 first:border-t-0">
-      <h3 className="text-md font-semibold mb-2">{title}</h3>
+    <div className="border-t border-blue-200 dark:border-blue-700 pt-4 first:border-t-0">
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
       {content}
     </div>
   );
@@ -134,6 +171,10 @@ export default async function WordDetailPage(props: {
       : word.ai_data
     : null;
 
+  const fullConjugationTable = aiData?.full_conjugation_table;
+  const nounDeclensionTable = aiData?.noun_declension_table;
+  const adjectiveDeclensionExample = aiData?.adjective_declension_example;
+
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
       {word.image_url && (
@@ -172,6 +213,21 @@ export default async function WordDetailPage(props: {
           <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
             AI Generated Details
           </h2>
+          {/* NEW SECTIONS - Displayed first for primary grammatical data */}
+          <AiDataSection
+            title="Full Verb Conjugation"
+            data={fullConjugationTable}
+          />
+          <AiDataSection
+            title="Noun Declension Table"
+            data={nounDeclensionTable}
+          />
+          <AiDataSection
+            title="Adjective Declension Example"
+            data={adjectiveDeclensionExample}
+          />
+
+          {/* Existing Sections */}
           <AiDataSection title="Key Verb Forms" data={aiData.verb_forms} />
           <AiDataSection title="Grammar Explanation" data={aiData.grammar} />
           <AiDataSection title="Example Sentences" data={aiData.examples} />
