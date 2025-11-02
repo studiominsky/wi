@@ -115,13 +115,13 @@ export function AddWordDialog({
 
   const [genGrammar, setGenGrammar] = useState(true);
   const [genSynonyms, setGenSynonyms] = useState(true);
-  const [genMnemonic, setGenMnemonic] = useState(true);
+  // Removed state for mnemonics and etymology
   const [genPhrases, setGenPhrases] = useState(true);
-  const [genEtymology, setGenEtymology] = useState(true);
   const [genDetailedGrammarTables, setGenDetailedGrammarTables] =
     useState(true);
 
   const [examplesCount, setExamplesCount] = useState(3);
+  // Set default level to B1 as requested
   const [cefrLevel, setCefrLevel] = useState("B1");
 
   const handleRemoveImage = () => {
@@ -179,12 +179,11 @@ export function AddWordDialog({
     setNotes("");
     setSelectedColor(null);
     setExamplesCount(3);
-    setGenMnemonic(true); // Reset to default true
     setGenPhrases(true); // Reset to default true
-    setGenEtymology(true); // Reset to default true
     setGenGrammar(true); // Reset to default true
     setGenSynonyms(true); // Reset to default true
     setGenDetailedGrammarTables(true); // Reset to default true
+    // Mnemonic and Etymology removed from reset
     setCefrLevel("B1");
     handleRemoveImage();
   };
@@ -256,9 +255,8 @@ export function AddWordDialog({
         examples: examplesCount,
         level: cefrLevel,
         synonyms: genSynonyms,
-        mnemonic: genMnemonic,
         phrases: genPhrases,
-        etymology: genEtymology,
+        // Removed mnemonic and etymology options
         detailed_grammar_tables: genDetailedGrammarTables,
       };
 
@@ -386,10 +384,8 @@ export function AddWordDialog({
     examplesCount > 0 ||
     genGrammar ||
     genSynonyms ||
-    genMnemonic ||
     genPhrases ||
-    genEtymology ||
-    genDetailedGrammarTables;
+    genDetailedGrammarTables; // Removed mnemonic and etymology checks
 
   const renderToggle = (
     label: string,
@@ -557,10 +553,8 @@ export function AddWordDialog({
             </p>
             <div className="flex flex-wrap gap-2">
               {renderToggle("Grammar", genGrammar, setGenGrammar)}
-              {renderToggle("Synonyms/Antonyms", genSynonyms, setGenSynonyms)}
-              {renderToggle("Mnemonic", genMnemonic, setGenMnemonic)}
+              {renderToggle("Synonyms", genSynonyms, setGenSynonyms)}
               {renderToggle("Phrases/Idioms", genPhrases, setGenPhrases)}
-              {renderToggle("Etymology", genEtymology, setGenEtymology)}
               {renderToggle(
                 "Detailed Grammar Tables",
                 genDetailedGrammarTables,
