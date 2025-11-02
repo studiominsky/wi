@@ -2,33 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const PRONOUN_ORDER_CANONICAL = [
-  "i",
-  "ich",
-  "yo",
-  "je",
-  "you",
-  "du",
-  "tú",
-  "vous",
-  "tu",
-  "he/she/it",
-  "er/sie/es",
-  "él/ella/ud",
-  "il/elle",
-  "we",
-  "wir",
-  "nosotros",
-  "nous",
-  "you all",
-  "ihr",
-  "vosotros",
-  "ustedes",
-  "vous",
-  "they",
-  "sie",
-  "ellos/ellas",
-  "ils/elles",
+const CASE_ORDER_CANONICAL_CAPS = [
+  "Nominative",
+  "Accusative",
+  "Dative",
+  "Genitive",
+  "Plural",
 ];
 
 const formatKey = (key: string) =>
@@ -39,11 +18,11 @@ const renderArticleForm = (cell: any) => {
   if (typeof cell === "string") return cell;
 
   if (typeof cell === "object" && cell !== null) {
-    if (cell.form) return String(cell.form);
-    if (cell.example) return String(cell.example);
+    if ((cell as any).form) return String((cell as any).form);
+    if ((cell as any).example) return String((cell as any).example);
 
-    const a = cell.article ? String(cell.article) : "";
-    const f = cell.form ? String(cell.form) : "";
+    const a = (cell as any).article ? String((cell as any).article) : "";
+    const f = (cell as any).form ? String((cell as any).form) : "";
     return a && f ? `${a} ${f}` : a || f || "";
   }
   return String(cell);
@@ -53,7 +32,9 @@ const isNounDeclensionTable = (data: any) =>
   data &&
   typeof data === "object" &&
   !Array.isArray(data) &&
-  (Array.isArray(data.Singular) || Array.isArray(data.Plural));
+  data.Singular &&
+  data.Plural &&
+  typeof data.Singular === "object";
 
 const isConjugationTable = (data: any) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) return false;
@@ -78,50 +59,51 @@ function DataDisplay({ data }: { data: any }) {
   let isNounDeclension = false;
   let isAdjectiveDeclension = false;
 
+  if (isConjugationTable(processedData)) {
+    isVerbTable = true;
+  }
   if (isNounDeclensionTable(processedData)) {
     isNounDeclension = true;
-  } else if (
-    Array.isArray(processedData) &&
-    processedData.some((item: any) => item.example && item.case)
-  ) {
-    isAdjectiveDeclension = true;
-  } else if (isConjugationTable(processedData)) {
-    isVerbTable = true;
+  } else {
+    const potentialCaseKeys = Object.keys(processedData).filter((k) =>
+      CASE_ORDER_CANONICAL_CAPS.map((c) => c.toLowerCase()).includes(
+        k.toLowerCase()
+      )
+    );
+    if (potentialCaseKeys.length > 2) {
+      isAdjectiveDeclension = true;
+    }
   }
 
   if (isNounDeclension || isAdjectiveDeclension || isVerbTable) {
     let orderedColKeys: string[] = [];
     let finalRowKeys: string[] = [];
-    let rowsData: any[] = [];
     let firstHeader = "Category";
 
     if (isNounDeclension) {
       orderedColKeys = ["Singular", "Plural"].filter(
-        (k) => processedData[k] && processedData[k].length > 0
+        (k) => processedData[k] && typeof processedData[k] === "object"
       );
-      rowsData = processedData.Singular;
-      finalRowKeys = rowsData.map((item: any) => item.case);
+      finalRowKeys = Object.keys(processedData[orderedColKeys[0]] || {});
       firstHeader = "Case";
     } else if (isAdjectiveDeclension) {
       orderedColKeys = ["Example"];
-      rowsData = processedData;
-      finalRowKeys = rowsData.map((item: any) => item.case);
+      finalRowKeys = Object.keys(processedData);
       firstHeader = "Case";
+      processedData = { Example: processedData };
     } else if (isVerbTable) {
       const colKeys = Object.keys(processedData);
-
       const columnOrderPriority = {
         present: 10,
         preterit: 11,
-        future: 12,
-        perfect: 13,
-        past: 14,
+        perfect: 12,
+        future: 13,
+        "past perfect": 14,
       };
 
       orderedColKeys = [...colKeys].sort((a, b) => {
-        const aLower = a.toLowerCase().split(" ")[0];
-        const bLower = b.toLowerCase().split(" ")[0];
-
+        const aLower = a.toLowerCase();
+        const bLower = b.toLowerCase();
         const aPriority =
           columnOrderPriority[aLower as keyof typeof columnOrderPriority] || 90;
         const bPriority =
@@ -131,52 +113,65 @@ function DataDisplay({ data }: { data: any }) {
         return a.localeCompare(b);
       });
 
-      const allRowKeysSet = new Set<string>();
-      orderedColKeys.forEach((colKey) => {
-        const colData = processedData[colKey];
-        if (colData && typeof colData === "object") {
-          Object.keys(colData).forEach((rowKey) => allRowKeysSet.add(rowKey));
-        }
-      });
-      const potentialRowKeys = Array.from(allRowKeysSet);
+      const potentialRowKeys = Object.keys(
+        processedData[orderedColKeys[0]] || {}
+      );
+
+      const GERMAN_PRONOUN_ORDER = [
+        "ich",
+        "du",
+        "er/sie/es",
+        "wir",
+        "ihr",
+        "sie",
+      ];
 
       const foundPronounsMap = new Map<string, string>();
-
-      PRONOUN_ORDER_CANONICAL.forEach((canonical) => {
-        const canonicalClean = canonical.replace(/\s/g, "");
-        const matchingOriginalKey = potentialRowKeys.find((original) =>
-          original.toLowerCase().replace(/\s/g, "").includes(canonicalClean)
+      GERMAN_PRONOUN_ORDER.forEach((canonical) => {
+        const matchingOriginalKey = potentialRowKeys.find(
+          (original) =>
+            original.toLowerCase().replace(/\s/g, "") ===
+            canonical.toLowerCase().replace(/\s/g, "")
         );
-        if (
-          matchingOriginalKey &&
-          !Array.from(foundPronounsMap.values()).includes(matchingOriginalKey)
-        ) {
-          foundPronounsMap.set(canonicalClean, matchingOriginalKey);
+        if (matchingOriginalKey) {
+          foundPronounsMap.set(canonical, matchingOriginalKey);
         }
       });
 
-      const usedKeys = new Set<string>();
-      PRONOUN_ORDER_CANONICAL.forEach((canonical) => {
-        const canonicalClean = canonical.replace(/\s/g, "");
-        if (foundPronounsMap.has(canonicalClean)) {
-          const originalKey = foundPronounsMap.get(canonicalClean)!;
-          if (!usedKeys.has(originalKey)) {
-            finalRowKeys.push(originalKey);
-            usedKeys.add(originalKey);
-          }
+      finalRowKeys = GERMAN_PRONOUN_ORDER.map((c) =>
+        foundPronounsMap.get(c)
+      ).filter((k): k is string => k !== undefined);
+
+      potentialRowKeys.forEach((key) => {
+        if (!finalRowKeys.includes(key)) {
+          finalRowKeys.push(key);
         }
       });
 
-      potentialRowKeys.forEach((originalKey) => {
-        if (!usedKeys.has(originalKey)) {
-          finalRowKeys.push(originalKey);
-        }
-      });
-
-      if (finalRowKeys.length === 0 && potentialRowKeys.length > 0) {
-        finalRowKeys = potentialRowKeys;
-      }
       firstHeader = "Pronoun";
+    }
+
+    if (firstHeader === "Case") {
+      const originalKeys = finalRowKeys;
+      const canonicalToOriginal = new Map<string, string>();
+
+      originalKeys.forEach((original) => {
+        const lowerKey = original.toLowerCase().split(" ")[0];
+        const match = CASE_ORDER_CANONICAL_CAPS.find(
+          (c) => c.toLowerCase() === lowerKey
+        );
+        if (match && !canonicalToOriginal.has(match)) {
+          canonicalToOriginal.set(match, original);
+        }
+      });
+
+      finalRowKeys = CASE_ORDER_CANONICAL_CAPS.map((c) =>
+        canonicalToOriginal.get(c)
+      ).filter((k): k is string => k !== undefined);
+
+      originalKeys.forEach((k) => {
+        if (!finalRowKeys.includes(k)) finalRowKeys.push(k);
+      });
     }
 
     if (finalRowKeys.length > 0 && orderedColKeys.length > 0) {
@@ -198,24 +193,16 @@ function DataDisplay({ data }: { data: any }) {
               </tr>
             </thead>
             <tbody>
-              {finalRowKeys.map((rowKey, rowIndex) => (
+              {finalRowKeys.map((rowKey) => (
                 <tr
                   key={rowKey}
                   className="border-b border-border last:border-b-0 hover:bg-muted/30"
                 >
-                  <td className="px-3 py-2 font-medium text-sm text-primary/80 capitalize">
-                    {formatKey(rowKey)}
+                  <td className="px-3 py-2 font-medium text-sm text-primary/80">
+                    {isVerbTable ? String(rowKey) : formatKey(rowKey)}
                   </td>
                   {orderedColKeys.map((colKey, colIndex) => {
-                    let cellValue: any;
-
-                    if (isNounDeclension) {
-                      cellValue = processedData[colKey]?.[rowIndex] ?? "";
-                    } else if (isAdjectiveDeclension) {
-                      cellValue = processedData[rowIndex] ?? "";
-                    } else {
-                      cellValue = processedData[colKey]?.[rowKey] ?? "";
-                    }
+                    const cellValue = processedData[colKey]?.[rowKey] ?? "";
 
                     return (
                       <td key={colIndex} className="px-3 py-2 text-sm">
@@ -297,6 +284,8 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
     content = <GrammarTable data={data} />;
   } else if (title === "Key Verb Forms" && typeof data === "object") {
     content = <VerbFormsSection data={data} />;
+  } else if (title === "Passive Voice Forms") {
+    content = <p className="text-sm whitespace-pre-wrap">{String(data)}</p>;
   } else if (typeof data === "string") {
     content = <p className="text-sm whitespace-pre-wrap">{data}</p>;
   } else if (Array.isArray(data)) {
