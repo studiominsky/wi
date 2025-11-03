@@ -9,9 +9,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { wordText, languageName, nativeLanguage, options } = await req.json();
+  const { wordText, nativeLanguage, options } = await req.json();
+  const languageName = "German";
 
-  if (!wordText || !languageName || !nativeLanguage || !options) {
+  if (!wordText || !nativeLanguage || !options) {
     return NextResponse.json(
       { error: "Missing required parameters" },
       { status: 400 }

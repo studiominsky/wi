@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const authRoutes = ["/login", "/signup", "/forgot-password"];
-  const protectedRoutes = ["/inventory", "/inventory/profile"];
+  const protectedRoutes = ["/inventory", "/profile"];
 
   const isAuthRoute = authRoutes.some((path) => pathname.startsWith(path));
   const isProtectedRoute = protectedRoutes.some((path) =>

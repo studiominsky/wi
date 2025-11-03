@@ -10,6 +10,15 @@ const CASE_ORDER_CANONICAL_CAPS = [
   "Plural",
 ];
 
+const CANONICAL_VERB_PRONOUN_ORDER = [
+  "ich",
+  "du",
+  "er/sie/es",
+  "wir",
+  "ihr",
+  "sie",
+];
+
 const formatKey = (key: string) =>
   key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -50,6 +59,23 @@ const isConjugationTable = (data: any) => {
     );
   });
 };
+
+async function getGermanLanguageId(userId: string) {
+  const supabase = await createClient();
+  const GERMAN_LANGUAGE_NAME = "German";
+
+  const { data } = await supabase
+    .from("user_languages")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("language_name", GERMAN_LANGUAGE_NAME)
+    .single();
+
+  if (!data) {
+    notFound();
+  }
+  return data.id;
+}
 
 function DataDisplay({ data }: { data: any }) {
   if (data == null) return null;
@@ -117,17 +143,8 @@ function DataDisplay({ data }: { data: any }) {
         processedData[orderedColKeys[0]] || {}
       );
 
-      const GERMAN_PRONOUN_ORDER = [
-        "ich",
-        "du",
-        "er/sie/es",
-        "wir",
-        "ihr",
-        "sie",
-      ];
-
       const foundPronounsMap = new Map<string, string>();
-      GERMAN_PRONOUN_ORDER.forEach((canonical) => {
+      CANONICAL_VERB_PRONOUN_ORDER.forEach((canonical) => {
         const matchingOriginalKey = potentialRowKeys.find(
           (original) =>
             original.toLowerCase().replace(/\s/g, "") ===
@@ -138,7 +155,7 @@ function DataDisplay({ data }: { data: any }) {
         }
       });
 
-      finalRowKeys = GERMAN_PRONOUN_ORDER.map((c) =>
+      finalRowKeys = CANONICAL_VERB_PRONOUN_ORDER.map((c) =>
         foundPronounsMap.get(c)
       ).filter((k): k is string => k !== undefined);
 
@@ -342,30 +359,18 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
 export default async function WordDetailPage({
   params,
 }: {
-  params: Promise<{ langSlug: string; wordSlug: string }>;
+  params: Promise<{ wordSlug: string }>;
 }) {
-  const { langSlug, wordSlug } = await params;
+  const { wordSlug } = await params;
   const decodedWord = decodeURIComponent(wordSlug);
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/inventory/${langSlug}/${wordSlug}`);
+  if (!user) redirect(`/login?next=/inventory/${wordSlug}`);
 
-  const { data: language } = await supabase
-    .from("user_languages")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("iso_code", langSlug)
-    .single();
-
-  if (!language) {
-    console.error(`Language not found for slug: ${langSlug}`);
-    notFound();
-  }
-
-  const languageId = language.id;
+  const languageId = await getGermanLanguageId(user.id);
 
   const { data: word, error } = await supabase
     .from("user_words")

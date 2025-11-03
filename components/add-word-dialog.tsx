@@ -109,19 +109,15 @@ export function AddWordDialog({
   const [notes, setNotes] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-
   const [genGrammar, setGenGrammar] = useState(true);
   const [genSynonyms, setGenSynonyms] = useState(true);
-  // Removed state for mnemonics and etymology
   const [genPhrases, setGenPhrases] = useState(true);
   const [genDetailedGrammarTables, setGenDetailedGrammarTables] =
     useState(true);
 
   const [examplesCount, setExamplesCount] = useState(3);
-  // Set default level to B1 as requested
   const [cefrLevel, setCefrLevel] = useState("B1");
 
   const handleRemoveImage = () => {
@@ -179,11 +175,10 @@ export function AddWordDialog({
     setNotes("");
     setSelectedColor(null);
     setExamplesCount(3);
-    setGenPhrases(true); // Reset to default true
-    setGenGrammar(true); // Reset to default true
-    setGenSynonyms(true); // Reset to default true
-    setGenDetailedGrammarTables(true); // Reset to default true
-    // Mnemonic and Etymology removed from reset
+    setGenPhrases(true);
+    setGenGrammar(true);
+    setGenSynonyms(true);
+    setGenDetailedGrammarTables(true);
     setCefrLevel("B1");
     handleRemoveImage();
   };
@@ -256,13 +251,10 @@ export function AddWordDialog({
         level: cefrLevel,
         synonyms: genSynonyms,
         phrases: genPhrases,
-        // Removed mnemonic and etymology options
         detailed_grammar_tables: genDetailedGrammarTables,
       };
 
-      const languageName =
-        userLanguages.find((l) => l.id === currentLanguageId)?.language_name ||
-        "Selected Language";
+      const languageName = "German";
 
       const res = await fetch("/api/generate-word-details", {
         method: "POST",
@@ -385,7 +377,7 @@ export function AddWordDialog({
     genGrammar ||
     genSynonyms ||
     genPhrases ||
-    genDetailedGrammarTables; // Removed mnemonic and etymology checks
+    genDetailedGrammarTables;
 
   const renderToggle = (
     label: string,
@@ -452,7 +444,7 @@ export function AddWordDialog({
               id="word-text"
               value={word}
               onChange={(e) => setWord(e.target.value)}
-              placeholder={`e.g., Olá in ${currentLangName}`}
+              placeholder={`e.g., Haus in ${currentLangName}`}
               disabled={loading || !currentLanguageId}
             />
           </div>
@@ -501,11 +493,10 @@ export function AddWordDialog({
               </div>
             ) : (
               <div className="relative h-48 w-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreviewUrl}
                   alt="Word preview"
-                  className="h-full w-full rounded-md object-cover"
+                  className="h-full w-full object-cover"
                 />
                 <Button
                   variant="destructive"
