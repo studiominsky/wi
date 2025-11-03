@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 
 export const runtime = "edge";
@@ -108,7 +108,7 @@ Use a common adjective (e.g., "schöne" for "Frau"). Only if applicable. Otherwi
 
   try {
     const r = await generateText({
-      model: openai(process.env.OPENAI_MODEL || "gpt-4o-mini"),
+      model: google(process.env.GEMINI_MODEL || "gemini-2.5-flash"),
       messages: [
         { role: "system", content: system },
         { role: "user", content: "Respond with the JSON object only." },
