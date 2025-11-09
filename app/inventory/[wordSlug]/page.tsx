@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const CASE_ORDER_CANONICAL_CAPS = [
   "Nominative",
@@ -399,6 +400,48 @@ export default async function WordDetailPage({
   const nounDeclensionTable = aiData?.noun_declension_table;
   const adjectiveDeclensionExample = aiData?.adjective_declension_example;
   const passiveForms = aiData?.passive_forms;
+  const category = aiData?.category;
+
+  let pluralForm: string | null = null;
+  let singularNominativeForm: string | null = null;
+  let gender: string | null = aiData?.gender || null;
+
+  if (nounDeclensionTable) {
+    if (
+      nounDeclensionTable.Singular &&
+      typeof nounDeclensionTable.Singular.Nominative === "string"
+    ) {
+      singularNominativeForm = nounDeclensionTable.Singular.Nominative.trim();
+    }
+
+    if (
+      nounDeclensionTable.Plural &&
+      typeof nounDeclensionTable.Plural.Nominative === "string"
+    ) {
+      const nominativePlural = nounDeclensionTable.Plural.Nominative.trim();
+      if (nominativePlural.toLowerCase().startsWith("die ")) {
+        pluralForm = nominativePlural.substring(4).trim();
+      } else {
+        pluralForm = nominativePlural;
+      }
+
+      if (pluralForm?.toLowerCase() === decodedWord.toLowerCase()) {
+        pluralForm = null;
+      }
+    }
+  }
+
+  let genderAndSingularDisplay: string | null = null;
+
+  if (gender) {
+    if (singularNominativeForm) {
+      genderAndSingularDisplay = `${gender}, ${singularNominativeForm}`;
+    } else {
+      genderAndSingularDisplay = gender;
+    }
+  } else if (singularNominativeForm) {
+    genderAndSingularDisplay = singularNominativeForm;
+  }
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
@@ -413,15 +456,30 @@ export default async function WordDetailPage({
       )}
 
       <div className={cn("p-4 ", word.color)}>
-        <h1 className="text-4xl font-bold mb-2">{word.word}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-4xl font-bold">{decodedWord}</h1>
+          {category && (
+            <Badge variant="outline" className="capitalize shrink-0">
+              {category}
+            </Badge>
+          )}
+        </div>
+
         <p className="text-xl text-muted-foreground">
           {word.translation || "Translation not generated yet."}
         </p>
-        {aiData?.gender && (
-          <p className="text-sm text-muted-foreground italic mt-1">
-            {aiData.gender}
-          </p>
-        )}
+
+        <div className="mt-3 space-y-1 text-base italic text-muted-foreground">
+          {genderAndSingularDisplay && (
+            <p className="capitalize">{genderAndSingularDisplay}</p>
+          )}
+
+          {pluralForm && (
+            <p>
+              <span className="font-semibold">Plural:</span> {pluralForm}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="bg-muted p-4 ">
