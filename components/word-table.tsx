@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { SortControls } from "@/components/sort-controls";
 
 interface Word {
   id: number;
@@ -31,9 +32,11 @@ interface Word {
   colorClass: string;
 }
 
+type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
+
 interface WordTableProps {
   words: Word[];
-  currentSortPreference: string;
+  currentSortPreference: SortPreference;
 }
 
 export function WordTable({ words, currentSortPreference }: WordTableProps) {
@@ -80,26 +83,30 @@ export function WordTable({ words, currentSortPreference }: WordTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          placeholder="Search word or translation..."
-          className="max-w-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            placeholder="Search word or translation..."
+            className="max-w-xs flex-grow md:flex-grow-0"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger id="category-filter" className="w-[180px]">
-            <SelectValue placeholder="Filter by Category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categoryOptions.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger id="category-filter" className="w-[180px]">
+              <SelectValue placeholder="Filter by Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <SortControls currentPreference={currentSortPreference} />
       </div>
 
       <div className="border rounded-md">

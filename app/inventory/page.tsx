@@ -3,7 +3,6 @@ import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import { revalidatePath } from "next/cache";
-import { SortControls } from "@/components/sort-controls";
 import { WordTable } from "@/components/word-table";
 
 function getBgColorClass(colorString: null | undefined): string {
@@ -154,8 +153,6 @@ export default async function GermanInventoryPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">{langDisplay}</h1>
         <div className="flex items-center gap-4">
-          <SortControls currentPreference={currentSortPreference} />
-
           <AddWordDialog
             userLanguages={userLanguages}
             currentLanguageId={currentLangId}

@@ -33,6 +33,18 @@ export function SortControls({ currentPreference }: SortControlsProps) {
     });
   };
 
+  const itemClasses = `
+    h-7 px-3 rounded-md transition-colors whitespace-nowrap
+    border-none bg-transparent shadow-none
+    text-muted-foreground
+    hover:bg-accent/50
+    data-[state=on]:bg-primary 
+    data-[state=on]:text-primary-foreground 
+    data-[state=on]:shadow-sm
+    data-[state=on]:font-semibold
+    data-[state=on]:hover:bg-primary
+  `;
+
   return (
     <ToggleGroup
       type="single"
@@ -40,19 +52,35 @@ export function SortControls({ currentPreference }: SortControlsProps) {
       onValueChange={handleValueChange}
       aria-label="Sort words"
       size="sm"
-      className="gap-0.5 border bg-muted p-1"
+      className="gap-1 p-0 border-none bg-transparent"
       disabled={isPending}
     >
-      <ToggleGroupItem value="date_desc" aria-label="Sort by date descending">
+      <ToggleGroupItem
+        value="date_desc"
+        aria-label="Sort by date descending"
+        className={itemClasses}
+      >
         <ArrowDown className="h-4 w-4 mr-1" /> Newest
       </ToggleGroupItem>
-      <ToggleGroupItem value="date_asc" aria-label="Sort by date ascending">
+      <ToggleGroupItem
+        value="date_asc"
+        aria-label="Sort by date ascending"
+        className={itemClasses}
+      >
         <Clock className="h-4 w-4 mr-1" /> Oldest
       </ToggleGroupItem>
-      <ToggleGroupItem value="alpha_asc" aria-label="Sort alphabetically A-Z">
+      <ToggleGroupItem
+        value="alpha_asc"
+        aria-label="Sort alphabetically A-Z"
+        className={itemClasses}
+      >
         <ArrowDownAZ className="h-4 w-4 mr-1" /> A-Z
       </ToggleGroupItem>
-      <ToggleGroupItem value="alpha_desc" aria-label="Sort alphabetically Z-A">
+      <ToggleGroupItem
+        value="alpha_desc"
+        aria-label="Sort alphabetically Z-A"
+        className={itemClasses}
+      >
         <ArrowUpAZ className="h-4 w-4 mr-1" /> Z-A
       </ToggleGroupItem>
     </ToggleGroup>
