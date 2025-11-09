@@ -1,11 +1,10 @@
 import { AddWordDialog } from "@/components/add-word-dialog";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { revalidatePath } from "next/cache";
-import { cn } from "@/lib/utils";
 import { SortControls } from "@/components/sort-controls";
+import { WordTable } from "@/components/word-table";
 
 function getBgColorClass(colorString: null | undefined): string {
   if (!colorString) return "bg-transparent border-border";
@@ -115,8 +114,38 @@ export default async function GermanInventoryPage() {
     revalidatePath(`/inventory`);
   };
 
+  const formattedWords =
+    words?.map((word) => {
+      let gender: string | null = null;
+      let category: string | null = null;
+      let colorClass: string = getBgColorClass(word.color);
+
+      if (word.ai_data) {
+        try {
+          const aiData =
+            typeof word.ai_data === "string"
+              ? JSON.parse(word.ai_data)
+              : word.ai_data;
+          gender = aiData?.gender || null;
+          category = aiData?.category || null;
+        } catch (e) {
+          console.error("Failed to parse ai_data for word:", word.word, e);
+        }
+      }
+
+      return {
+        id: word.id,
+        word: word.word,
+        translation: word.translation || "...",
+        color: word.color,
+        category: category,
+        gender: gender,
+        colorClass: colorClass,
+      };
+    }) || [];
+
   const langDisplay = `Inventory`;
-  const showList = words && words.length > 0;
+  const showList = formattedWords.length > 0;
 
   const userLanguages = [germanLanguage];
 
@@ -136,57 +165,10 @@ export default async function GermanInventoryPage() {
       </div>
 
       {showList ? (
-        <div className="border rounded-md">
-          {words.map((word, index) => {
-            let gender: string | null = null;
-            if (word.ai_data) {
-              try {
-                const aiData =
-                  typeof word.ai_data === "string"
-                    ? JSON.parse(word.ai_data)
-                    : word.ai_data;
-                gender = aiData?.gender || null;
-              } catch (e) {
-                console.error(
-                  "Failed to parse ai_data for word:",
-                  word.word,
-                  e
-                );
-              }
-            }
-            const colorClass = getBgColorClass(word.color);
-
-            return (
-              <Link
-                href={`/inventory/${encodeURIComponent(word.word)}`}
-                key={word.id}
-                className={cn(
-                  "group flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors",
-                  index < words.length - 1 && "border-b"
-                )}
-              >
-                <span
-                  className={cn(
-                    "size-3 rounded-full shrink-0 border",
-                    colorClass
-                  )}
-                />
-                <div className="flex items-baseline gap-2 flex-1 min-w-0">
-                  <span className="font-semibold truncate">{word.word}</span>
-                  {gender && (
-                    <span className="text-xs text-muted-foreground italic shrink-0">
-                      ({gender})
-                    </span>
-                  )}
-                </div>
-                <span className="text-sm text-muted-foreground truncate hidden sm:block w-1/4">
-                  {word.translation || "..."}
-                </span>
-                <ChevronRight className="size-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />
-              </Link>
-            );
-          })}
-        </div>
+        <WordTable
+          words={formattedWords}
+          currentSortPreference={currentSortPreference}
+        />
       ) : (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
