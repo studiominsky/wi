@@ -20,7 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { SortControls } from "@/components/sort-controls";
+import { Search } from "lucide-react";
 
 interface Word {
   id: string | number;
@@ -49,81 +51,86 @@ export function WordTable({
   const [selectedCategory, setSelectedCategory] = React.useState("All");
 
   const categoryOptions = React.useMemo(() => {
-    const uniqueCategories = new Set<string>();
-    words.forEach((word) => {
-      if (word.category) {
-        uniqueCategories.add(word.category);
-      }
-    });
-
-    const sortedCategories = Array.from(uniqueCategories).sort();
-
-    return ["All", ...sortedCategories];
+    const unique = new Set<string>();
+    for (const w of words) if (w.category) unique.add(w.category);
+    return ["All", ...Array.from(unique).sort()];
   }, [words]);
 
   React.useEffect(() => {
-    if (!categoryOptions.includes(selectedCategory)) {
-      setSelectedCategory("All");
-    }
+    if (!categoryOptions.includes(selectedCategory)) setSelectedCategory("All");
   }, [categoryOptions, selectedCategory]);
 
   const filteredWords = React.useMemo(() => {
-    let filtered = words;
-
+    let data = words;
     if (selectedCategory !== "All") {
-      filtered = filtered.filter((word) => word.category === selectedCategory);
+      data = data.filter((w) => w.category === selectedCategory);
     }
-
     if (searchTerm.trim() !== "") {
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (word) =>
-          word.word.toLowerCase().includes(lowerSearchTerm) ||
-          word.translation?.toLowerCase().includes(lowerSearchTerm)
+      const q = searchTerm.toLowerCase();
+      data = data.filter(
+        (w) =>
+          w.word.toLowerCase().includes(q) ||
+          (w.translation ? w.translation.toLowerCase().includes(q) : false)
       );
     }
-
-    return filtered;
+    return data;
   }, [words, searchTerm, selectedCategory]);
 
-  const getLinkHref = (word: Word) => {
-    if (isNativeInventory) {
-      return `/translations/${word.id}`;
-    }
-    return `/inventory/${encodeURIComponent(word.word)}`;
-  };
+  const getLinkHref = (word: Word) =>
+    isNativeInventory
+      ? `/translations/${word.id}`
+      : `/inventory/${encodeURIComponent(word.word)}`;
+
+  const searchPlaceholder = isNativeInventory
+    ? "Search phrase or translation..."
+    : "Search word or translation...";
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center rounded-md border bg-card dark:bg-card dark:border-border/50 p-1 gap-1 flex-wrap">
-        <Input
-          placeholder="Search word..."
-          className="h-7 px-3 py-0 border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:border-transparent text-foreground flex-grow max-w-xs"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex items-center gap-2 flex-wrap rounded-lg border bg-card p-2">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            aria-label="Search"
+            placeholder={searchPlaceholder}
+            className="pl-8 h-9"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="h-7 border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:border-transparent w-auto px-3 p-0 text-muted-foreground hover:bg-accent/50 rounded-md">
-            <SelectValue placeholder="Filter" />
-          </SelectTrigger>
-          <SelectContent>
-            {categoryOptions.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Separator orientation="vertical" className="hidden sm:flex h-6" />
 
-        <SortControls currentPreference={currentSortPreference} />
+        <div className="flex items-center gap-2">
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger
+              aria-label="Filter by category"
+              className="h-9 min-w-[10rem]"
+            >
+              <SelectValue placeholder="Filter category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Separator orientation="vertical" className="hidden sm:flex h-6" />
+
+        <div className="ml-auto">
+          <SortControls currentPreference={currentSortPreference} />
+        </div>
       </div>
 
-      <div className="border rounded-md">
+      <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-1/12">#</TableHead>
+              <TableHead className="w-1/12">Color</TableHead>
               <TableHead className="w-4/12">
                 {isNativeInventory ? "Native Phrase" : "Word"}
               </TableHead>
@@ -138,13 +145,11 @@ export function WordTable({
               filteredWords.map((word) => {
                 const isNoun = word.category === "Noun";
                 const badgeVariant = isNoun ? "outline" : "grammar";
-
                 const badgeText = word.category;
-
                 const secondaryText =
                   isNoun && word.gender ? `(${word.gender})` : "";
-
                 const href = getLinkHref(word);
+
                 return (
                   <TableRow key={word.id} className="relative cursor-pointer">
                     <TableCell className="w-1/12 py-2">

@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { ArrowDown, ArrowDownAZ, ArrowUpAZ, Clock } from "lucide-react";
 import { updateSortPreference } from "@/app/actions";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
+import { Toggle } from "@/components/ui/toggle";
+import { cn } from "@/lib/utils";
 
 type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
 
@@ -17,72 +18,89 @@ export function SortControls({ currentPreference }: SortControlsProps) {
     useState<SortPreference>(currentPreference);
   const [isPending, startTransition] = useTransition();
 
-  const handleValueChange = (value: string) => {
-    if (!value) return;
-
-    const newPreference = value as SortPreference;
-    setPreference(newPreference);
-
+  const setSort = (value: SortPreference) => {
+    if (isPending) return;
+    setPreference(value);
     startTransition(async () => {
-      const result = await updateSortPreference(newPreference);
+      const result = await updateSortPreference(value);
       if (result?.error) {
         toast.error(`Failed to save sort preference: ${result.error}`);
         setPreference(currentPreference);
-      } else {
       }
     });
   };
 
-  const itemClasses = `
-    h-7 px-3 rounded-md transition-colors whitespace-nowrap
-    border-none bg-transparent shadow-none
-    text-muted-foreground
-    hover:bg-accent/50
-    data-[state=on]:bg-primary 
-    data-[state=on]:text-primary-foreground 
-    data-[state=on]:shadow-sm
-    data-[state=on]:font-semibold
-    data-[state=on]:hover:bg-primary
-  `;
+  const iconBase = "absolute left-2 size-4 transition-all duration-200";
 
   return (
-    <ToggleGroup
-      type="single"
-      value={preference}
-      onValueChange={handleValueChange}
-      aria-label="Sort words"
-      size="sm"
-      className="gap-1 p-0 border-none bg-transparent"
-      disabled={isPending}
-    >
-      <ToggleGroupItem
-        value="date_desc"
-        aria-label="Sort by date descending"
-        className={itemClasses}
+    <div className="flex items-center gap-1">
+      <Toggle
+        size="sm"
+        pressed={preference === "date_desc"}
+        onPressedChange={() => setSort("date_desc")}
+        aria-label="Sort by newest first"
       >
-        <ArrowDown className="h-4 w-4 mr-1" /> Newest
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="date_asc"
-        aria-label="Sort by date ascending"
-        className={itemClasses}
+        <ArrowDown
+          className={cn(
+            iconBase,
+            preference === "date_desc"
+              ? "opacity-100 scale-100 translate-x-0"
+              : "opacity-0 scale-75 -translate-x-1"
+          )}
+        />
+        Newest
+      </Toggle>
+
+      <Toggle
+        size="sm"
+        pressed={preference === "date_asc"}
+        onPressedChange={() => setSort("date_asc")}
+        aria-label="Sort by oldest first"
       >
-        <Clock className="h-4 w-4 mr-1" /> Oldest
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="alpha_asc"
-        aria-label="Sort alphabetically A-Z"
-        className={itemClasses}
+        <Clock
+          className={cn(
+            iconBase,
+            preference === "date_asc"
+              ? "opacity-100 scale-100 translate-x-0"
+              : "opacity-0 scale-75 -translate-x-1"
+          )}
+        />
+        Oldest
+      </Toggle>
+
+      <Toggle
+        size="sm"
+        pressed={preference === "alpha_asc"}
+        onPressedChange={() => setSort("alpha_asc")}
+        aria-label="Sort A–Z"
       >
-        <ArrowDownAZ className="h-4 w-4 mr-1" /> A-Z
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="alpha_desc"
-        aria-label="Sort alphabetically Z-A"
-        className={itemClasses}
+        <ArrowDownAZ
+          className={cn(
+            iconBase,
+            preference === "alpha_asc"
+              ? "opacity-100 scale-100 translate-x-0"
+              : "opacity-0 scale-75 -translate-x-1"
+          )}
+        />
+        A–Z
+      </Toggle>
+
+      <Toggle
+        size="sm"
+        pressed={preference === "alpha_desc"}
+        onPressedChange={() => setSort("alpha_desc")}
+        aria-label="Sort Z–A"
       >
-        <ArrowUpAZ className="h-4 w-4 mr-1" /> Z-A
-      </ToggleGroupItem>
-    </ToggleGroup>
+        <ArrowUpAZ
+          className={cn(
+            iconBase,
+            preference === "alpha_desc"
+              ? "opacity-100 scale-100 translate-x-0"
+              : "opacity-0 scale-75 -translate-x-1"
+          )}
+        />
+        Z–A
+      </Toggle>
+    </div>
   );
 }
