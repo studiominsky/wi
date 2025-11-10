@@ -12,17 +12,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SortControls } from "@/components/sort-controls";
-import { Search } from "lucide-react";
+import { Search, Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 interface Word {
   id: string | number;
@@ -40,6 +47,65 @@ interface WordTableProps {
   words: Word[];
   currentSortPreference: SortPreference;
   isNativeInventory?: boolean;
+}
+
+function CategoryCombobox({
+  value,
+  onChange,
+  options,
+  ariaLabel = "Filter by category",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  ariaLabel?: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-label={ariaLabel}
+          aria-expanded={open}
+          className="h-9 min-w-[10rem] justify-between"
+        >
+          <span className="truncate">{value ? value : "Select category"}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[220px]" align="start">
+        <Command>
+          <CommandInput placeholder="Search categories..." className="h-9" />
+          <CommandList>
+            <CommandEmpty>No categories found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option}
+                  value={option}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      option === value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function WordTable({
@@ -102,21 +168,12 @@ export function WordTable({
         <Separator orientation="vertical" className="hidden sm:flex h-6" />
 
         <div className="flex items-center gap-2">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger
-              aria-label="Filter by category"
-              className="h-9 min-w-[10rem]"
-            >
-              <SelectValue placeholder="Filter category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryOptions.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CategoryCombobox
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            options={categoryOptions}
+            ariaLabel="Filter by category"
+          />
         </div>
 
         <Separator orientation="vertical" className="hidden sm:flex h-6" />
@@ -144,7 +201,7 @@ export function WordTable({
             {filteredWords.length > 0 ? (
               filteredWords.map((word) => {
                 const isNoun = word.category === "Noun";
-                const badgeVariant = isNoun ? "outline" : "grammar";
+                const badgeVariant = isNoun ? "outline" : ("grammar" as const);
                 const badgeText = word.category;
                 const secondaryText =
                   isNoun && word.gender ? `(${word.gender})` : "";
