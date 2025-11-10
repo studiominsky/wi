@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { SortControls } from "@/components/sort-controls";
 
 interface Word {
-  id: number;
+  id: string | number;
   word: string;
   translation: string | null;
   color: string | null;
@@ -37,9 +37,14 @@ type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
 interface WordTableProps {
   words: Word[];
   currentSortPreference: SortPreference;
+  isNativeInventory?: boolean;
 }
 
-export function WordTable({ words, currentSortPreference }: WordTableProps) {
+export function WordTable({
+  words,
+  currentSortPreference,
+  isNativeInventory = false,
+}: WordTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("All");
 
@@ -81,30 +86,35 @@ export function WordTable({ words, currentSortPreference }: WordTableProps) {
     return filtered;
   }, [words, searchTerm, selectedCategory]);
 
+  const getLinkHref = (word: Word) => {
+    if (isNativeInventory) {
+      return `/translations/${word.id}`;
+    }
+    return `/inventory/${encodeURIComponent(word.word)}`;
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <Input
-            placeholder="Search word or translation..."
-            className="max-w-xs flex-grow md:flex-grow-0"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="flex items-center rounded-md border bg-card dark:bg-card dark:border-border/50 p-1 gap-1 flex-wrap">
+        <Input
+          placeholder="Search word..."
+          className="h-7 px-3 py-0 border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:border-transparent text-foreground flex-grow max-w-xs"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger id="category-filter" className="w-[180px]">
-              <SelectValue placeholder="Filter by Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryOptions.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="h-7 border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:border-transparent w-auto px-3 p-0 text-muted-foreground hover:bg-accent/50 rounded-md">
+            <SelectValue placeholder="Filter" />
+          </SelectTrigger>
+          <SelectContent>
+            {categoryOptions.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <SortControls currentPreference={currentSortPreference} />
       </div>
@@ -114,9 +124,11 @@ export function WordTable({ words, currentSortPreference }: WordTableProps) {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-1/12">#</TableHead>
-              <TableHead className="w-4/12">Word</TableHead>
+              <TableHead className="w-4/12">
+                {isNativeInventory ? "Native Phrase" : "Word"}
+              </TableHead>
               <TableHead className="w-4/12 hidden sm:table-cell">
-                Translation
+                {isNativeInventory ? "Translation (German)" : "Translation"}
               </TableHead>
               <TableHead className="w-3/12">Category / Details</TableHead>
             </TableRow>
@@ -132,6 +144,7 @@ export function WordTable({ words, currentSortPreference }: WordTableProps) {
                 const secondaryText =
                   isNoun && word.gender ? `(${word.gender})` : "";
 
+                const href = getLinkHref(word);
                 return (
                   <TableRow key={word.id} className="relative cursor-pointer">
                     <TableCell className="w-1/12 py-2">
@@ -144,17 +157,14 @@ export function WordTable({ words, currentSortPreference }: WordTableProps) {
                     </TableCell>
                     <TableCell className="font-medium truncate max-w-[200px] w-4/12 pr-2">
                       <Link
-                        href={`/inventory/${encodeURIComponent(word.word)}`}
+                        href={href}
                         className="hover:underline hover:text-primary/90 block w-full"
                       >
                         {word.word}
                       </Link>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground truncate hidden sm:table-cell w-4/12 pr-2">
-                      <Link
-                        href={`/inventory/${encodeURIComponent(word.word)}`}
-                        className="block w-full"
-                      >
+                      <Link href={href} className="block w-full">
                         {word.translation}
                       </Link>
                     </TableCell>
@@ -173,7 +183,7 @@ export function WordTable({ words, currentSortPreference }: WordTableProps) {
                         </span>
                       )}
                       <Link
-                        href={`/inventory/${encodeURIComponent(word.word)}`}
+                        href={href}
                         className="absolute inset-0"
                         aria-label={`View ${word.word}`}
                       />

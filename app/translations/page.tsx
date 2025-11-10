@@ -1,10 +1,8 @@
-// studiominsky/wi/wi-6b1ab7f757390abcd616d584b9abe297665b8164/app/inventory/page.tsx
 import { AddWordDialog } from "@/components/add-word-dialog";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import { revalidatePath } from "next/cache";
-import { SortControls } from "@/components/sort-controls";
 import { WordTable } from "@/components/word-table";
 
 function getBgColorClass(colorString: null | undefined): string {
@@ -57,14 +55,14 @@ async function getOrCreateGermanLanguage(userId: string) {
   return newLang;
 }
 
-export default async function GermanInventoryPage() {
+export default async function NativeTranslationInventoryPage() {
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login?next=/inventory");
+    redirect("/login?next=/translations");
   }
 
   let germanLanguage;
@@ -87,11 +85,10 @@ export default async function GermanInventoryPage() {
     "date_desc") as SortPreference;
 
   let query = supabase
-    .from("user_words") // TARGETING ORIGINAL TABLE
+    .from("user_translations")
     .select("id, word, translation, color, ai_data")
     .eq("user_id", user.id)
     .eq("language_id", currentLangId);
-  // COMPLEX EXCLUSION FILTER REMOVED
 
   switch (currentSortPreference) {
     case "date_asc":
@@ -113,7 +110,7 @@ export default async function GermanInventoryPage() {
 
   const refreshData = async () => {
     "use server";
-    revalidatePath(`/inventory`);
+    revalidatePath(`/translations`);
   };
 
   const formattedWords =
@@ -129,7 +126,7 @@ export default async function GermanInventoryPage() {
               ? JSON.parse(word.ai_data)
               : word.ai_data;
           gender = aiData?.gender || null;
-          category = aiData?.category || null;
+          category = "Native Translation";
         } catch (e) {
           console.error("Failed to parse ai_data for word:", word.word, e);
         }
@@ -146,7 +143,7 @@ export default async function GermanInventoryPage() {
       };
     }) || [];
 
-  const langDisplay = `Inventory`;
+  const langDisplay = `Native Translations to ${currentLangName}`;
   const showList = formattedWords.length > 0;
 
   const userLanguages = [germanLanguage];
@@ -160,6 +157,7 @@ export default async function GermanInventoryPage() {
             userLanguages={userLanguages}
             currentLanguageId={currentLangId}
             onWordAdded={refreshData}
+            isNativePhrase={true}
           />
         </div>
       </div>
@@ -168,15 +166,18 @@ export default async function GermanInventoryPage() {
         <WordTable
           words={formattedWords}
           currentSortPreference={currentSortPreference}
+          isNativeInventory={true}
         />
       ) : (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
           <h2 className="mt-4 text-xl font-semibold">
-            No words yet for {currentLangName}!
+            No native translations recorded yet!
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Click 'Add Word' above to add your first word to {currentLangName}.
+            Click 'Add Translation' above and enter a phrase in your native
+            language (e.g., "I'm going running tomorrow morning") to get the
+            German translation.
           </p>
         </div>
       )}

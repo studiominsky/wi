@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +35,12 @@ export default function Header() {
                 <Button variant="ghost" size="sm">
                   <LayoutDashboard className="h-4 w-4 mr-2" />
                   Inventory
+                </Button>
+              </Link>
+              <Link href="/translations">
+                <Button variant="ghost" size="sm">
+                  <BookText className="h-4 w-4 mr-2" />
+                  Translations
                 </Button>
               </Link>
               <Link href="/settings">

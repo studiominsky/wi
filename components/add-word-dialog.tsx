@@ -41,6 +41,7 @@ type AddWordDialogProps = {
   userLanguages: UserLanguage[];
   currentLanguageId: string;
   onWordAdded?: (wordId: number | string) => void;
+  isNativePhrase?: boolean;
 };
 
 const cefrLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
@@ -101,6 +102,7 @@ export function AddWordDialog({
   userLanguages,
   currentLanguageId,
   onWordAdded,
+  isNativePhrase = false,
 }: AddWordDialogProps) {
   const supabase = createClient();
   const { user, settings } = useAuth();
@@ -231,7 +233,11 @@ export function AddWordDialog({
       });
     }
 
-    const toastId = toast.loading("Generating AI details for the word...");
+    const toastId = toast.loading(
+      `Generating AI details for the ${
+        isNativePhrase ? "translation" : "word"
+      }...`
+    );
 
     let aiDataResponse: {
       success: boolean;
@@ -256,15 +262,18 @@ export function AddWordDialog({
 
       const languageName = "German";
 
+      const payload = {
+        wordText: word,
+        languageName: languageName,
+        nativeLanguage: settings.native_language,
+        options: aiOptions,
+        isNativePhrase: isNativePhrase,
+      };
+
       const res = await fetch("/api/generate-word-details", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          wordText: word,
-          languageName: languageName,
-          nativeLanguage: settings.native_language,
-          options: aiOptions,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const contentType = res.headers.get("content-type") || "";
@@ -279,7 +288,9 @@ export function AddWordDialog({
 
           if (res.status === 422 && errJson?.code === "WORD_NOT_RECOGNIZED") {
             toast.warning(
-              `"${word}" might not be a valid word in ${languageName}, or AI couldn't process it. Word not added.`,
+              `"${word}" might not be a valid ${
+                isNativePhrase ? "translation source" : "word"
+              }, or AI couldn't process it. Entry not added.`,
               { id: toastId, duration: 6000 }
             );
             setLoading(false);
@@ -314,14 +325,21 @@ export function AddWordDialog({
         toast.message("AI details generated, saving word...", { id: toastId });
         dbErrorOccurred = true;
 
+        const targetTable = isNativePhrase ? "user_translations" : "user_words";
+
+        let aiDataToSave = aiDataResponse.aiData;
+        if (isNativePhrase) {
+          delete aiDataToSave.isNativePhrase;
+        }
+
         const { data: newWordData, error: insertError } = await supabase
-          .from("user_words")
+          .from(targetTable)
           .insert({
             user_id: user.id,
             language_id: currentLanguageId,
             word,
             translation: aiDataResponse.translation,
-            ai_data: aiDataResponse.aiData,
+            ai_data: aiDataToSave,
             notes: notes || null,
             color: selectedColor,
             image_url: image_url,
@@ -341,7 +359,7 @@ export function AddWordDialog({
         }
         insertedWordId = newWordData.id;
 
-        toast.success("Word added & AI details saved!", { id: toastId });
+        toast.success("Entry added & AI details saved!", { id: toastId });
         resetForm();
         if (insertedWordId !== null) {
           onWordAdded?.(insertedWordId);
@@ -353,8 +371,8 @@ export function AddWordDialog({
     } catch (e: any) {
       console.error("Error in handleAddWord:", e);
       const messagePrefix = dbErrorOccurred
-        ? "Failed to save word after getting AI data:"
-        : "Error processing word:";
+        ? "Failed to save entry after getting AI data:"
+        : "Error processing entry:";
       toast.error(
         `${messagePrefix} ${e.message || "An unexpected error occurred."}`,
         { id: toastId }
@@ -409,6 +427,10 @@ export function AddWordDialog({
 
   const canAddWord = !!currentLanguageId && !!word;
 
+  const wordInputPlaceholder = isNativePhrase
+    ? `e.g., I'm going running tomorrow morning`
+    : `e.g., Haus in ${currentLangName}`;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -419,7 +441,9 @@ export function AddWordDialog({
               ? "Add a language first"
               : !currentLanguageId
               ? "Select an inventory language first"
-              : `Add new word to ${currentLangName}`
+              : `Add new ${
+                  isNativePhrase ? "translation" : "word"
+                } to ${currentLangName}`
           }
         >
           {loading ? (
@@ -427,24 +451,32 @@ export function AddWordDialog({
           ) : (
             <PlusCircle className="mr-2 h-4 w-4" />
           )}
-          Add Word
+          {isNativePhrase ? "Add Translation" : "Add Word"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Word to {currentLangName}</DialogTitle>
+          <DialogTitle>
+            Add New {isNativePhrase ? "Native Translation" : "Word"}
+          </DialogTitle>
           <DialogDescription>
-            Enter a word. AI will generate the translation and other details.
+            {isNativePhrase
+              ? `Enter a phrase in your native language (e.g., English). AI will provide the German translation and grammar.`
+              : `Enter a word in ${currentLangName}. AI will generate the translation and other details.`}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4 px-1 overflow-y-auto max-h-[70vh]">
           <div className="space-y-2">
-            <Label htmlFor="word-text">Word</Label>
+            <Label htmlFor="word-text">
+              {isNativePhrase
+                ? `${settings?.native_language} Phrase`
+                : `${currentLangName} Word`}
+            </Label>
             <Input
               id="word-text"
               value={word}
               onChange={(e) => setWord(e.target.value)}
-              placeholder={`e.g., Haus in ${currentLangName}`}
+              placeholder={wordInputPlaceholder}
               disabled={loading || !currentLanguageId}
             />
           </div>
@@ -462,54 +494,34 @@ export function AddWordDialog({
 
           <div className="space-y-2">
             <Label>Image (Optional)</Label>
-            {!imagePreviewUrl ? (
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={cn(
-                  "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
-                  loading && "pointer-events-none opacity-50"
-                )}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={cn(
+                "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
+                loading && "pointer-events-none opacity-50"
+              )}
+            >
+              <input
+                type="file"
+                id="word-image"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="sr-only"
+                disabled={loading}
+              />
+              <label
+                htmlFor="word-image"
+                className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
               >
-                <input
-                  type="file"
-                  id="word-image"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="sr-only"
-                  disabled={loading}
-                />
-                <label
-                  htmlFor="word-image"
-                  className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
-                >
-                  <ImageIcon className="h-5 w-5" />
-                  <p>
-                    Drag & drop or{" "}
-                    <span className="text-primary hover:underline">browse</span>
-                  </p>
-                </label>
-              </div>
-            ) : (
-              <div className="relative h-48 w-full">
-                <img
-                  src={imagePreviewUrl}
-                  alt="Word preview"
-                  className="h-full w-full object-cover"
-                />
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 size-7"
-                  disabled={loading}
-                  title="Remove image"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            )}
+                <ImageIcon className="h-5 w-5" />
+                <p>
+                  Drag & drop or{" "}
+                  <span className="text-primary hover:underline">browse</span>
+                </p>
+              </label>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -539,18 +551,18 @@ export function AddWordDialog({
               AI Enhancements
             </h4>
             <p className="text-sm text-muted-foreground">
-              Translation, Gender/Verb Forms are always included (if
-              applicable). Select optional details:
+              Translation is always included. Select optional details:
             </p>
             <div className="flex flex-wrap gap-2">
               {renderToggle("Grammar", genGrammar, setGenGrammar)}
               {renderToggle("Synonyms", genSynonyms, setGenSynonyms)}
               {renderToggle("Phrases/Idioms", genPhrases, setGenPhrases)}
-              {renderToggle(
-                "Detailed Grammar Tables",
-                genDetailedGrammarTables,
-                setGenDetailedGrammarTables
-              )}
+              {!isNativePhrase &&
+                renderToggle(
+                  "Detailed Grammar Tables",
+                  genDetailedGrammarTables,
+                  setGenDetailedGrammarTables
+                )}
             </div>
 
             <div className="space-y-2 pt-3 border-t">
@@ -612,7 +624,11 @@ export function AddWordDialog({
             disabled={loading || !canAddWord}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {loading ? "Processing..." : "Add Word"}
+            {loading
+              ? "Processing..."
+              : isNativePhrase
+              ? "Add Translation"
+              : "Add Word"}
           </Button>
         </DialogFooter>
       </DialogContent>
