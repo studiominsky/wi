@@ -30,6 +30,8 @@ import {
   Loader2,
   Image as ImageIcon,
   Trash2,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -123,9 +125,7 @@ export function AddWordDialog({
   const [cefrLevel, setCefrLevel] = useState("B1");
 
   const handleRemoveImage = () => {
-    if (imagePreviewUrl) {
-      URL.revokeObjectURL(imagePreviewUrl);
-    }
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     setImageFile(null);
     setImagePreviewUrl(null);
   };
@@ -317,9 +317,7 @@ export function AddWordDialog({
         }
       }
 
-      if (apiError) {
-        throw apiError;
-      }
+      if (apiError) throw apiError;
 
       if (aiDataResponse?.success) {
         toast.message("AI details generated, saving word...", { id: toastId });
@@ -328,9 +326,7 @@ export function AddWordDialog({
         const targetTable = isNativePhrase ? "user_translations" : "user_words";
 
         let aiDataToSave = aiDataResponse.aiData;
-        if (isNativePhrase) {
-          delete aiDataToSave.isNativePhrase;
-        }
+        if (isNativePhrase) delete aiDataToSave.isNativePhrase;
 
         const { data: newWordData, error: insertError } = await supabase
           .from(targetTable)
@@ -361,9 +357,7 @@ export function AddWordDialog({
 
         toast.success("Entry added & AI details saved!", { id: toastId });
         resetForm();
-        if (insertedWordId !== null) {
-          onWordAdded?.(insertedWordId);
-        }
+        if (insertedWordId !== null) onWordAdded?.(insertedWordId);
         setTimeout(() => setOpen(false), 1500);
       } else {
         throw new Error("AI processing failed silently.");
@@ -375,7 +369,9 @@ export function AddWordDialog({
         : "Error processing entry:";
       toast.error(
         `${messagePrefix} ${e.message || "An unexpected error occurred."}`,
-        { id: toastId }
+        {
+          id: toastId,
+        }
       );
     } finally {
       setLoading(false);
@@ -430,6 +426,9 @@ export function AddWordDialog({
   const wordInputPlaceholder = isNativePhrase
     ? `e.g., I'm going running tomorrow morning`
     : `e.g., Haus in ${currentLangName}`;
+
+  const adjustExamples = (delta: number) =>
+    setExamplesCount((prev) => Math.max(0, Math.min(10, prev + delta)));
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -546,6 +545,7 @@ export function AddWordDialog({
               ))}
             </div>
           </div>
+
           <div className="space-y-4 border-t pt-4">
             <h4 className="font-medium text-sm text-muted-foreground">
               AI Enhancements
@@ -565,26 +565,40 @@ export function AddWordDialog({
                 )}
             </div>
 
-            <div className="space-y-2 pt-3 border-t">
-              <Label htmlFor="examples-count">
-                Number of Examples (0 to 5)
-              </Label>
-              <Input
-                id="examples-count"
-                type="number"
-                min={0}
-                max={5}
-                value={examplesCount}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (!isNaN(val)) {
-                    setExamplesCount(Math.max(0, Math.min(5, val)));
-                  }
-                }}
-                placeholder="3"
-                className="w-[100px]"
-                disabled={loading}
-              />
+            <div className="space-y-3 pt-3 border-t">
+              <Label id="examples-count-label">Number of Examples</Label>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => adjustExamples(-1)}
+                  disabled={loading || examplesCount <= 0}
+                  aria-label="Decrease examples"
+                  aria-describedby="examples-count-label"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="flex-1 text-center">
+                  <div className="text-4xl font-bold tracking-tight">
+                    {examplesCount}
+                  </div>
+                  <div className="text-muted-foreground text-[0.70rem] uppercase">
+                    Examples
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => adjustExamples(1)}
+                  disabled={loading || examplesCount >= 10}
+                  aria-label="Increase examples"
+                  aria-describedby="examples-count-label"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             {aiOptionsSelected && (
