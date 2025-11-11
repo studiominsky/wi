@@ -152,7 +152,13 @@ export default async function NativeTranslationInventoryPage() {
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">{langDisplay}</h1>
+        <div className="flex flex-col gap-3">
+          <h1 className="text-2xl font-grotesk md:text-3xl">{langDisplay}</h1>
+          <p className="text-sans text-foreground/60">
+            Inventory for your native language sentances and phrases translated
+            to {currentLangName}.
+          </p>
+        </div>
         <div className="flex items-center gap-4">
           <AddWordDialog
             userLanguages={userLanguages}

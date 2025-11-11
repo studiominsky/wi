@@ -47,7 +47,6 @@ import {
   PaginationItem,
   PaginationNext,
   PaginationPrevious,
-  PaginationLink,
 } from "@/components/ui/pagination";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { useRouter } from "next/navigation";

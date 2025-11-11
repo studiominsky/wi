@@ -11,32 +11,37 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 text-center px-5 mx-auto w-full max-w-screen-lg md:px-7">
+      <div className="flex-1 bg-[#011C42] dark:bg-background">
+        <section className="w-full  py-12 md:py-24 lg:py-32 xl:py-48 text-center px-5 mx-auto w-full max-w-screen-lg md:px-7">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                Build Your Personal Language Library
+              <h1 className="font-grotesk text-white leading-19 text-[72px] !tracking-[-0.123rem] tracking-tighter">
+                Inventory for your Language Learning Journey
               </h1>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-[700px] text-white text-foreground md:text-xl">
                 The ultimate tool to collect, customize, and master vocabulary
-                in any language you're learning. Your words, your rules.
+                in German language learning.
               </p>
               <Link href={user ? "/inventory" : "/login"}>
-                <Button size="lg">Get Started for Free</Button>
+                <Button
+                  className="bg-[#52eec8] text-black hover:bg-[#52eec8]/90"
+                  size="lg"
+                >
+                  Get Started for Free
+                </Button>
               </Link>
             </div>
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+        <section className="w-full bg-background py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6 px-5 mx-auto w-full max-w-screen-lg md:px-7">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+              <h2 className="text-3xl font-grotesk tracking-tighter sm:text-5xl">
                 How It Works
               </h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                A simple, powerful system designed for serious language
+                A simple, powerful system designed for serious German language
                 learners.
               </p>
             </div>
@@ -45,10 +50,10 @@ export default async function Home() {
                 <div className="p-4 bg-background rounded-full border">
                   <PlusIcon size={32} />
                 </div>
-                <h3 className="text-xl font-bold">Add Words Easily</h3>
+                <h3 className="text-xl font-bold">Add Words and Phrases</h3>
                 <p className="text-sm text-muted-foreground">
                   Quickly add new words, translations, and notes to your
-                  personal inventory for any language.
+                  personal inventory.
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-2 text-center p-4">
@@ -74,7 +79,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }
