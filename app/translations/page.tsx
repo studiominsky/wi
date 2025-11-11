@@ -86,7 +86,7 @@ export default async function NativeTranslationInventoryPage() {
 
   let query = supabase
     .from("user_translations")
-    .select("id, word, translation, color, ai_data")
+    .select("id, word, translation, color, ai_data, notes, image_url")
     .eq("user_id", user.id)
     .eq("language_id", currentLangId);
 
@@ -140,6 +140,8 @@ export default async function NativeTranslationInventoryPage() {
         category: category,
         gender: gender,
         colorClass: colorClass,
+        notes: word.notes,
+        image_url: word.image_url,
       };
     }) || [];
 

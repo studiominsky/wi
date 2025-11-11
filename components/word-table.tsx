@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SortControls } from "@/components/sort-controls";
-import { Search, Check, ChevronsUpDown } from "lucide-react";
+import { Search, Check, ChevronsUpDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -45,15 +45,19 @@ import {
   PaginationPrevious,
   PaginationLink,
 } from "@/components/ui/pagination";
+import { EditWordDialog } from "@/components/edit-word-dialog";
+import { useRouter } from "next/navigation";
 
 interface Word {
   id: string | number;
   word: string;
-  translation: string | null;
+  translation: string;
   color: string | null;
   category: string | null;
   gender: string | null;
   colorClass: string;
+  notes: string | null;
+  image_url: string | null;
 }
 
 type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
@@ -87,7 +91,9 @@ function CategoryCombobox({
           aria-expanded={open}
           className="h-9 min-w-[10rem] justify-between"
         >
-          <span className="truncate">{value ? value : "Select category"}</span>
+          <span className="truncate">
+            {value !== "All" ? value : "All Categories"}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -124,10 +130,12 @@ function CategoryCombobox({
 }
 
 export function WordTable({
-  words,
+  words: initialWords,
   currentSortPreference,
   isNativeInventory = false,
 }: WordTableProps) {
+  const router = useRouter();
+  const [words, setWords] = React.useState(initialWords);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("All");
 
@@ -135,6 +143,10 @@ export function WordTable({
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   const itemsPerPageOptions = [10, 25, 50, 100];
+
+  React.useEffect(() => {
+    setWords(initialWords);
+  }, [initialWords]);
 
   const categoryOptions = React.useMemo(() => {
     const unique = new Set<string>();
@@ -242,7 +254,8 @@ export function WordTable({
               <TableHead className="w-4/12 hidden sm:table-cell">
                 {isNativeInventory ? "Translation (German)" : "Translation"}
               </TableHead>
-              <TableHead className="w-3/12">Category / Details</TableHead>
+              <TableHead className="w-2/12">Category / Details</TableHead>
+              <TableHead className="w-1/12 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -255,20 +268,31 @@ export function WordTable({
                   isNoun && word.gender ? `(${word.gender})` : "";
                 const href = getLinkHref(word);
 
+                const entryData = {
+                  id: word.id,
+                  word: word.word,
+                  translation: word.translation,
+                  notes: word.notes,
+                  color: word.color,
+                  image_url: word.image_url,
+                };
+
                 return (
-                  <TableRow key={word.id} className="relative cursor-pointer">
+                  <TableRow key={word.id} className="relative group/row">
                     <TableCell className="w-1/12 py-2">
-                      <span
+                      <Link
+                        href={href}
                         className={cn(
-                          "size-3 rounded-full shrink-0 border",
+                          "size-3 rounded-full shrink-0 border block",
                           word.colorClass
                         )}
+                        aria-label={`View ${word.word}`}
                       />
                     </TableCell>
                     <TableCell className="font-medium truncate max-w-[200px] w-4/12 pr-2">
                       <Link
                         href={href}
-                        className="hover:underline hover:text-primary/90 block w-full"
+                        className="hover:text-primary/90 block w-full"
                       >
                         {word.word}
                       </Link>
@@ -278,7 +302,7 @@ export function WordTable({
                         {word.translation}
                       </Link>
                     </TableCell>
-                    <TableCell className="flex items-center gap-2 w-3/12 pr-2">
+                    <TableCell className="flex items-center gap-2 w-2/12 pr-2">
                       {word.category && (
                         <Badge
                           variant={badgeVariant}
@@ -292,10 +316,22 @@ export function WordTable({
                           {secondaryText}
                         </span>
                       )}
-                      <Link
-                        href={href}
-                        className="absolute inset-0"
-                        aria-label={`View ${word.word}`}
+                    </TableCell>
+                    <TableCell className="w-1/12 text-right">
+                      <EditWordDialog
+                        entry={entryData}
+                        isNativePhrase={isNativeInventory}
+                        onEntryUpdated={router.refresh}
+                        triggerAsChild={
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="opacity-0 group-hover/row:opacity-100 transition-opacity"
+                            aria-label={`Edit ${word.word}`}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        }
                       />
                     </TableCell>
                   </TableRow>
@@ -304,7 +340,7 @@ export function WordTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   No words found matching your filters.

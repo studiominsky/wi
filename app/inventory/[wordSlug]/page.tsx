@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { EditWordDialog } from "@/components/edit-word-dialog";
+import { revalidatePath } from "next/cache";
 
 const CASE_ORDER_CANONICAL_CAPS = [
   "Nominative",
@@ -375,7 +377,7 @@ export default async function WordDetailPage({
 
   const { data: word, error } = await supabase
     .from("user_words")
-    .select("*, notes, ai_data, translation, color, image_url")
+    .select("*, notes, ai_data, translation, color, image_url, id")
     .eq("user_id", user.id)
     .eq("language_id", languageId)
     .eq("word", decodedWord)
@@ -443,14 +445,43 @@ export default async function WordDetailPage({
     genderAndSingularDisplay = singularNominativeForm;
   }
 
+  const handleEntryUpdate = async (id: string | number) => {
+    "use server";
+    // We revalidate the current path to re-fetch data without needing navigation.
+    revalidatePath(`/inventory/${wordSlug}`);
+  };
+
+  const entryForEdit = {
+    id: word.id,
+    word: word.word,
+    translation: word.translation,
+    notes: word.notes,
+    color: word.color,
+    image_url: word.image_url,
+  };
+
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
+      <div className="flex justify-end sticky top-20 z-10 -mt-20">
+        <EditWordDialog
+          entry={entryForEdit}
+          isNativePhrase={false}
+          onEntryUpdated={handleEntryUpdate}
+        />
+      </div>
+
       {word.image_url && (
         <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-md">
           <img
             src={word.image_url}
             alt={`Image for the word ${word.word}`}
             className="h-full w-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src =
+                "https://placehold.co/600x400/e0e0e0/000?text=Image+Load+Error";
+              target.onerror = null;
+            }}
           />
         </div>
       )}
@@ -492,7 +523,7 @@ export default async function WordDetailPage({
       </div>
 
       {aiData && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4  space-y-4">
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 space-y-4">
           <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
             AI Generated Details
           </h2>

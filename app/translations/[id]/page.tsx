@@ -2,24 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
-const formatKey = (key: string) =>
-  key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-async function getGermanLanguageId(userId: string) {
-  const supabase = await createClient();
-  const GERMAN_LANGUAGE_NAME = "German";
-
-  const { data } = await supabase
-    .from("user_languages")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("language_name", GERMAN_LANGUAGE_NAME)
-    .single();
-
-  if (!data) notFound();
-  return data.id;
-}
+import { EditWordDialog } from "@/components/edit-word-dialog";
+import { revalidatePath } from "next/cache";
 
 function AiDataSection({ title, data }: { title: string; data: any }) {
   if (data === null || data === undefined || data === "") return null;
@@ -38,7 +22,7 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
       </ul>
     );
   } else if (typeof data === "object") {
-    if (title === "Synonyms" && (data as any).synonyms?.length > 0) {
+    if (title === "Equivalent Phrases" && (data as any).synonyms?.length > 0) {
       content = (
         <div className="text-sm space-y-1">
           <p>
@@ -109,14 +93,42 @@ export default async function TranslationDetailPage({
   const germanTranslation = translationEntry.translation;
   const originalLanguage = aiData?.original_phrase_language;
 
+  const handleEntryUpdate = async (id: string | number) => {
+    "use server";
+    revalidatePath(`/translations/${id}`);
+  };
+
+  const entryForEdit = {
+    id: translationEntry.id,
+    word: nativePhrase,
+    translation: germanTranslation,
+    notes: translationEntry.notes,
+    color: translationEntry.color,
+    image_url: translationEntry.image_url,
+  };
+
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
+      <div className="flex justify-end sticky top-20 z-10 -mt-20">
+        <EditWordDialog
+          entry={entryForEdit}
+          isNativePhrase={true}
+          onEntryUpdated={handleEntryUpdate}
+        />
+      </div>
+
       {translationEntry.image_url && (
         <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-md">
           <img
             src={translationEntry.image_url}
             alt={`Image for the translation`}
             className="h-full w-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src =
+                "https://placehold.co/600x400/e0e0e0/000?text=Image+Load+Error";
+              target.onerror = null;
+            }}
           />
         </div>
       )}
