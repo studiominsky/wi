@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ArrowDown, ArrowDownAZ, ArrowUpAZ, Clock } from "lucide-react";
+import {
+  ArrowDownIcon,
+  SortAscendingIcon,
+  SortDescendingIcon,
+  ClockIcon,
+} from "@phosphor-icons/react";
 import { updateSortPreference } from "@/app/actions";
 import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
@@ -40,7 +45,7 @@ export function SortControls({ currentPreference }: SortControlsProps) {
         onPressedChange={() => setSort("date_desc")}
         aria-label="Sort by newest first"
       >
-        <ArrowDown
+        <ArrowDownIcon
           className={cn(
             iconBase,
             preference === "date_desc"
@@ -57,7 +62,7 @@ export function SortControls({ currentPreference }: SortControlsProps) {
         onPressedChange={() => setSort("date_asc")}
         aria-label="Sort by oldest first"
       >
-        <Clock
+        <ClockIcon
           className={cn(
             iconBase,
             preference === "date_asc"
@@ -74,7 +79,7 @@ export function SortControls({ currentPreference }: SortControlsProps) {
         onPressedChange={() => setSort("alpha_asc")}
         aria-label="Sort A–Z"
       >
-        <ArrowDownAZ
+        <SortAscendingIcon
           className={cn(
             iconBase,
             preference === "alpha_asc"
@@ -91,7 +96,7 @@ export function SortControls({ currentPreference }: SortControlsProps) {
         onPressedChange={() => setSort("alpha_desc")}
         aria-label="Sort Z–A"
       >
-        <ArrowUpAZ
+        <SortDescendingIcon
           className={cn(
             iconBase,
             preference === "alpha_desc"

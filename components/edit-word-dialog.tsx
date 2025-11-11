@@ -22,19 +22,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Loader2,
-  Image as ImageIcon,
-  Trash2,
-  Pencil,
-  MoreHorizontal,
-  Edit,
-} from "lucide-react";
+  CircleNotchIcon,
+  ImageIcon,
+  TrashIcon,
+  PencilIcon,
+  DotsThreeIcon,
+  PencilSimpleIcon,
+} from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { updateWordEntry, deleteWordEntry } from "@/app/actions";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 
 type WordEntry = {
   id: string | number;
@@ -290,7 +289,7 @@ export function EditWordDialog({
           triggerAsChild
         ) : (
           <Button size="sm" variant="outline">
-            <Pencil className="mr-2 h-4 w-4" /> Edit
+            <PencilIcon className="mr-2 h-4 w-4" /> Edit
           </Button>
         )}
       </DialogTrigger>
@@ -394,7 +393,7 @@ export function EditWordDialog({
                   disabled={loading}
                   className="text-destructive hover:text-destructive/80"
                 >
-                  <Trash2 className="size-4" />
+                  <TrashIcon className="size-4" />
                 </Button>
               </div>
             )}
@@ -447,9 +446,9 @@ export function EditWordDialog({
             disabled={loading || !hasUnsavedChanges}
           >
             {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Pencil className="mr-2 h-4 w-4" />
+              <PencilIcon className="mr-2 h-4 w-4" />
             )}
             {loading ? "Saving..." : "Save Changes"}
           </Button>
@@ -510,9 +509,9 @@ export function EntryActionMenu({
             disabled={loading}
           >
             {loading ? (
-              <Loader2 className="size-4 animate-spin" />
+              <CircleNotchIcon className="size-4 animate-spin" />
             ) : (
-              <MoreHorizontal className="size-4" />
+              <DotsThreeIcon className="size-6" />
             )}
           </Button>
         </PopoverTrigger>
@@ -530,7 +529,7 @@ export function EntryActionMenu({
                 className="w-full justify-start h-8 text-sm"
                 size="sm"
               >
-                <Edit className="mr-2 h-4 w-4" />
+                <PencilSimpleIcon className="mr-2 h-4 w-4" />
                 Edit
               </Button>
             }
@@ -545,7 +544,7 @@ export function EntryActionMenu({
                 setDeleteConfirmOpen(true);
               }}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <TrashIcon className="mr-2 h-4 w-4" />
               Delete
             </Button>
           </DialogTrigger>

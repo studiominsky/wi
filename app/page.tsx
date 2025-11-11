@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Settings2, BrainCircuit } from "lucide-react";
+import { PlusIcon, WrenchIcon, BrainIcon } from "@phosphor-icons/react/ssr";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -43,7 +43,7 @@ export default async function Home() {
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:grid-cols-3">
               <div className="flex flex-col items-center space-y-2 text-center p-4">
                 <div className="p-4 bg-background rounded-full border">
-                  <PlusCircle className="h-8 w-8 text-primary" />
+                  <PlusIcon size={32} />
                 </div>
                 <h3 className="text-xl font-bold">Add Words Easily</h3>
                 <p className="text-sm text-muted-foreground">
@@ -53,7 +53,7 @@ export default async function Home() {
               </div>
               <div className="flex flex-col items-center space-y-2 text-center p-4">
                 <div className="p-4 bg-background rounded-full border">
-                  <Settings2 className="h-8 w-8 text-primary" />
+                  <WrenchIcon size={32} />
                 </div>
                 <h3 className="text-xl font-bold">Filter & Organize</h3>
                 <p className="text-sm text-muted-foreground">
@@ -63,7 +63,7 @@ export default async function Home() {
               </div>
               <div className="flex flex-col items-center space-y-2 text-center p-4">
                 <div className="p-4 bg-background rounded-full border">
-                  <BrainCircuit className="h-8 w-8 text-primary" />
+                  <BrainIcon size={32} />
                 </div>
                 <h3 className="text-xl font-bold">Master Your Vocabulary</h3>
                 <p className="text-sm text-muted-foreground">

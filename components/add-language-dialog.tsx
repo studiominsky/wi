@@ -15,7 +15,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+import { PlusCircleIcon } from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -85,7 +85,7 @@ export function AddLanguageDialog() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Language
+          <PlusCircleIcon className="mr-2 h-4 w-4" /> Add Language
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

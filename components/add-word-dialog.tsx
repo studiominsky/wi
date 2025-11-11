@@ -25,14 +25,14 @@ import {
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
 import {
-  PlusCircle,
-  Check,
-  Loader2,
-  Image as ImageIcon,
-  Trash2,
-  Minus,
-  Plus,
-} from "lucide-react";
+  PlusCircleIcon,
+  CheckIcon,
+  CircleNotchIcon,
+  ImageIcon,
+  TrashIcon,
+  MinusIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -393,7 +393,7 @@ export function AddWordDialog({
       disabled={loading}
       aria-label={`Toggle ${label}`}
     >
-      <Check
+      <CheckIcon
         className={cn(
           "absolute left-2 size-4 transition-all duration-200",
           pressed
@@ -436,9 +436,9 @@ export function AddWordDialog({
           }
         >
           {loading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <PlusCircle className="mr-2 h-4 w-4" />
+            <PlusCircleIcon className="mr-2 h-4 w-4" />
           )}
           {isNativePhrase ? "Add Translation" : "Add Word"}
         </Button>
@@ -547,7 +547,7 @@ export function AddWordDialog({
                     disabled={loading}
                     className="text-destructive hover:text-destructive/80"
                   >
-                    <Trash2 className="size-4" />
+                    <TrashIcon className="size-4" />
                   </Button>
                 </div>
               )}
@@ -609,7 +609,7 @@ export function AddWordDialog({
                   aria-label="Decrease examples"
                   aria-describedby="examples-count-label"
                 >
-                  <Minus className="h-4 w-4" />
+                  <MinusIcon className="h-4 w-4" />
                 </Button>
                 <div className="flex-1 text-center">
                   <div className="text-4xl font-bold tracking-tight">
@@ -628,7 +628,7 @@ export function AddWordDialog({
                   aria-label="Increase examples"
                   aria-describedby="examples-count-label"
                 >
-                  <Plus className="h-4 w-4" />
+                  <PlusIcon className="h-4 w-4" />
                 </Button>
               </div>
 
@@ -670,7 +670,9 @@ export function AddWordDialog({
             onClick={handleAddWord}
             disabled={loading || !canAddWord}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && (
+              <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
+            )}
             {loading
               ? "Processing..."
               : isNativePhrase

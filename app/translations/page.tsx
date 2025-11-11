@@ -1,7 +1,6 @@
 import { AddWordDialog } from "@/components/add-word-dialog";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
-import { BookOpen } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { WordTable } from "@/components/word-table";
 
@@ -172,7 +171,6 @@ export default async function NativeTranslationInventoryPage() {
         />
       ) : (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
           <h2 className="mt-4 text-xl font-semibold">
             No native translations recorded yet!
           </h2>

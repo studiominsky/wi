@@ -6,7 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Moon, Sun, Laptop, Check, ChevronsUpDown } from "lucide-react";
+import {
+  MoonIcon,
+  SunIcon,
+  MonitorIcon,
+  CheckIcon,
+  CaretUpDownIcon,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -106,7 +112,7 @@ function LanguageCombobox({
           disabled={!!disabled}
         >
           <span className="truncate">{display}</span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <CaretUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[280px]" align="start">
@@ -124,7 +130,7 @@ function LanguageCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check
+                  <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
                       opt === value ? "opacity-100" : "opacity-0"
@@ -220,7 +226,7 @@ export function SettingsForm({
             onClick={() => handleThemeChange("light")}
             aria-pressed={isLightActive}
           >
-            <Sun className="size-4" />
+            <SunIcon className="size-4" />
           </Button>
           <Button
             variant={isDarkActive ? "default" : "outline"}
@@ -228,7 +234,7 @@ export function SettingsForm({
             onClick={() => handleThemeChange("dark")}
             aria-pressed={isDarkActive}
           >
-            <Moon className="size-4" />
+            <MoonIcon className="size-4" />
           </Button>
           <Button
             variant={isSystemActive ? "default" : "outline"}
@@ -236,7 +242,7 @@ export function SettingsForm({
             onClick={() => handleThemeChange("system")}
             aria-pressed={isSystemActive}
           >
-            <Laptop className="size-4" />
+            <MonitorIcon className="size-4" />
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">

@@ -15,7 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SortControls } from "@/components/sort-controls";
-import { Search, Check, ChevronsUpDown } from "lucide-react";
+import {
+  MagnifyingGlassIcon,
+  CheckIcon,
+  CaretUpDownIcon,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -94,7 +98,7 @@ function CategoryCombobox({
           <span className="truncate">
             {value !== "All" ? value : "All Categories"}
           </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <CaretUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[220px]" align="start">
@@ -112,7 +116,7 @@ function CategoryCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check
+                  <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
                       option === value ? "opacity-100" : "opacity-0"
@@ -215,7 +219,7 @@ export function WordTable({
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative w-full sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             aria-label="Search"
             placeholder={searchPlaceholder}
