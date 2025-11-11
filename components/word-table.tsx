@@ -30,6 +30,21 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationLink,
+} from "@/components/ui/pagination";
 
 interface Word {
   id: string | number;
@@ -116,6 +131,11 @@ export function WordTable({
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("All");
 
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+
+  const itemsPerPageOptions = [10, 25, 50, 100];
+
   const categoryOptions = React.useMemo(() => {
     const unique = new Set<string>();
     for (const w of words) if (w.category) unique.add(w.category);
@@ -124,7 +144,12 @@ export function WordTable({
 
   React.useEffect(() => {
     if (!categoryOptions.includes(selectedCategory)) setSelectedCategory("All");
+    setCurrentPage(1);
   }, [categoryOptions, selectedCategory]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const filteredWords = React.useMemo(() => {
     let data = words;
@@ -141,6 +166,29 @@ export function WordTable({
     }
     return data;
   }, [words, searchTerm, selectedCategory]);
+
+  const totalItems = filteredWords.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const endIdx = startIdx + itemsPerPage;
+
+  const paginatedWords = React.useMemo(() => {
+    return filteredWords.slice(startIdx, endIdx);
+  }, [filteredWords, startIdx, endIdx]);
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const goToPrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = Number(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
 
   const getLinkHref = (word: Word) =>
     isNativeInventory
@@ -198,8 +246,8 @@ export function WordTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredWords.length > 0 ? (
-              filteredWords.map((word) => {
+            {paginatedWords.length > 0 ? (
+              paginatedWords.map((word) => {
                 const isNoun = word.category === "Noun";
                 const badgeVariant = isNoun ? "outline" : ("grammar" as const);
                 const badgeText = word.category;
@@ -266,6 +314,53 @@ export function WordTable({
           </TableBody>
         </Table>
       </div>
+
+      {totalItems > 0 && (
+        <div className="flex items-center justify-between text-sm py-2">
+          <div className="flex items-center space-x-2">
+            <p className="text-muted-foreground hidden sm:block">
+              Rows per page
+            </p>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={handleItemsPerPageChange}
+            >
+              <SelectTrigger size="sm" className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {itemsPerPageOptions.map((count) => (
+                  <SelectItem key={count} value={String(count)}>
+                    {count}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground hidden sm:block">
+              Showing {Math.min(startIdx + 1, totalItems)} to{" "}
+              {Math.min(endIdx, totalItems)} of {totalItems} entries
+            </p>
+          </div>
+
+          <Pagination className="mx-0 w-auto">
+            <PaginationContent>
+              <PaginationPrevious
+                onClick={goToPrevPage}
+                disabled={currentPage <= 1}
+              />
+              <PaginationItem className="hidden sm:block">
+                <p className="text-sm font-medium px-4">
+                  Page {currentPage} of {totalPages}
+                </p>
+              </PaginationItem>
+              <PaginationNext
+                onClick={goToNextPage}
+                disabled={currentPage >= totalPages}
+              />
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

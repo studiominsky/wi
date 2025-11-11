@@ -7,12 +7,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const toggleVariants = cva(
-  "relative inline-flex items-center justify-center rounded-full text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-transparent shadow-xs hover:bg-muted/50 text-muted-foreground opacity-80",
+  "relative inline-flex items-center justify-center rounded-full text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-transparent hover:bg-muted/50 text-muted-foreground opacity-80",
   {
     variants: {
       variant: {
         default:
-          "data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:text-foreground data-[state=on]:opacity-100",
+          "data-[state=on]:border-primary data-[state=on]:text-foreground data-[state=on]:opacity-100",
       },
       size: {
         default: "h-9 px-4 data-[state=on]:pl-9 gap-1.5",

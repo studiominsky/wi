@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
@@ -6,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/header";
+import Footer from "@/components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +32,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <ThemeProvider>
-            <Header />
-            <main>{children}</main>
-            <Toaster richColors closeButton position="bottom-right" />{" "}
-          </ThemeProvider>
-        </AuthProvider>
+        <div className="flex min-h-screen flex-col">
+          <AuthProvider>
+            <ThemeProvider>
+              <Header />
+              <main className="flex-1 bg-[#fbfbfb] dark:bg-[#000] text-foreground">
+                {children}
+              </main>
+              <Footer />
+              <Toaster richColors closeButton position="bottom-right" />
+            </ThemeProvider>
+          </AuthProvider>
+        </div>
       </body>
     </html>
   );

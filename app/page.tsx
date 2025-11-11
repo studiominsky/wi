@@ -1,7 +1,6 @@
-// studiominsky/wi/wi-6490d5e232baaf957c0eb90cafd653377333ef59/app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BookText, PlusCircle, Settings2, BrainCircuit } from "lucide-react";
+import { PlusCircle, Settings2, BrainCircuit } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -76,14 +75,6 @@ export default async function Home() {
           </div>
         </section>
       </main>
-
-      <footer className="w-full shrink-0 px-5 text-center">
-        <div className="container flex flex-col items-center justify-center mx-auto w-full max-w-screen-lg md:px-7gap-2 py-6 px-4 sm:flex-row md:px-6">
-          <p className="text-xs text-muted-foreground">
-            &copy; 2025 Word Inventory. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

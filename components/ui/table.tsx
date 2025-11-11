@@ -7,7 +7,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto "
     >
       <table
         data-slot="table"
@@ -31,7 +31,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
-      data-slot="table-body"
+      data-slot="table-bodybg-white"
       className={cn("[&_tr:last-child]:border-0", className)}
       {...props}
     />
