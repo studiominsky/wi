@@ -36,6 +36,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 type UserLanguage = { id: string; language_name: string };
 
@@ -120,7 +121,6 @@ export function AddWordDialog({
   const [genPhrases, setGenPhrases] = useState(true);
   const [genDetailedGrammarTables, setGenDetailedGrammarTables] =
     useState(true);
-
   const [examplesCount, setExamplesCount] = useState(3);
   const [cefrLevel, setCefrLevel] = useState("B1");
 
@@ -137,7 +137,6 @@ export function AddWordDialog({
       "dataTransfer" in e
         ? (e.dataTransfer.files as FileList)
         : (e.target.files as FileList);
-
     if (files && files.length > 0) {
       const file = files[0];
       if (file.type.startsWith("image/")) {
@@ -204,7 +203,6 @@ export function AddWordDialog({
     if (imageFile) {
       const fileExt = imageFile.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}_${word}.${fileExt}`;
-
       toast.loading("Uploading image...", { id: "image-upload" });
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("word_images")
@@ -212,7 +210,6 @@ export function AddWordDialog({
           cacheControl: "3600",
           upsert: false,
         });
-
       if (uploadError) {
         toast.error(`Image upload failed: ${uploadError.message}`, {
           id: "image-upload",
@@ -221,11 +218,9 @@ export function AddWordDialog({
         setLoading(false);
         return;
       }
-
       const { data: publicUrlData } = supabase.storage
         .from("word_images")
         .getPublicUrl(uploadData.path);
-
       image_url = publicUrlData.publicUrl;
       toast.success("Image uploaded successfully!", {
         id: "image-upload",
@@ -285,7 +280,6 @@ export function AddWordDialog({
             errJson = await res.json();
             errorMsg = errJson.error || errorMsg;
           } catch {}
-
           if (res.status === 422 && errJson?.code === "WORD_NOT_RECOGNIZED") {
             toast.warning(
               `"${word}" might not be a valid ${
@@ -349,11 +343,8 @@ export function AddWordDialog({
               `Failed to save: You've already added "${word}" for this language.`
             );
           }
-          throw new Error(
-            `Failed to save word: ${insertError?.message || "Unknown DB error"}`
-          );
         }
-        insertedWordId = newWordData.id;
+        insertedWordId = newWordData?.id ?? null;
 
         toast.success("Entry added & AI details saved!", { id: toastId });
         resetForm();
@@ -363,15 +354,12 @@ export function AddWordDialog({
         throw new Error("AI processing failed silently.");
       }
     } catch (e: any) {
-      console.error("Error in handleAddWord:", e);
       const messagePrefix = dbErrorOccurred
         ? "Failed to save entry after getting AI data:"
         : "Error processing entry:";
       toast.error(
         `${messagePrefix} ${e.message || "An unexpected error occurred."}`,
-        {
-          id: toastId,
-        }
+        { id: toastId }
       );
     } finally {
       setLoading(false);
@@ -430,6 +418,8 @@ export function AddWordDialog({
   const adjustExamples = (delta: number) =>
     setExamplesCount((prev) => Math.max(0, Math.min(10, prev + delta)));
 
+  const imageAdded = Boolean(imagePreviewUrl);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -453,105 +443,147 @@ export function AddWordDialog({
           {isNativePhrase ? "Add Translation" : "Add Word"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-3xl sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>
-            Add New {isNativePhrase ? "Native Translation" : "Word"}
-          </DialogTitle>
-          <DialogDescription>
-            {isNativePhrase
-              ? `Enter a phrase in your native language (e.g., English). AI will provide the German translation and grammar.`
-              : `Enter a word in ${currentLangName}. AI will generate the translation and other details.`}
-          </DialogDescription>
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <DialogTitle>
+                Add New {isNativePhrase ? "Native Translation" : "Word"}
+              </DialogTitle>
+              <DialogDescription>
+                {isNativePhrase
+                  ? `Enter a phrase in your native language (e.g., English). AI will provide the German translation and grammar.`
+                  : `Enter a word in ${currentLangName}. AI will generate the translation and other details.`}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4 px-1 overflow-y-auto max-h-[70vh]">
-          <div className="space-y-2">
-            <Label htmlFor="word-text">
-              {isNativePhrase
-                ? `${settings?.native_language} Phrase`
-                : `${currentLangName} Word`}
-            </Label>
-            <Input
-              id="word-text"
-              value={word}
-              onChange={(e) => setWord(e.target.value)}
-              placeholder={wordInputPlaceholder}
-              disabled={loading || !currentLanguageId}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="word-notes">Notes (Optional)</Label>
-            <Textarea
-              id="word-notes"
-              placeholder="e.g., Personal reminder..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[60px]"
-              disabled={loading}
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label>Image (Optional)</Label>
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={cn(
-                "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
-                loading && "pointer-events-none opacity-50"
-              )}
-            >
-              <input
-                type="file"
-                id="word-image"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="sr-only"
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6 py-2 px-1 overflow-y-auto max-h-[70vh]">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="word-text">
+                {isNativePhrase
+                  ? `${settings?.native_language} Phrase`
+                  : `${currentLangName} Word`}
+              </Label>
+              <Input
+                id="word-text"
+                value={word}
+                onChange={(e) => setWord(e.target.value)}
+                placeholder={wordInputPlaceholder}
+                disabled={loading || !currentLanguageId}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="word-notes">Notes</Label>
+              <Textarea
+                id="word-notes"
+                placeholder="e.g., Personal reminder..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="min-h-[120px]"
                 disabled={loading}
               />
-              <label
-                htmlFor="word-image"
-                className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
-              >
-                <ImageIcon className="h-5 w-5" />
-                <p>
-                  Drag & drop or{" "}
-                  <span className="text-primary hover:underline">browse</span>
-                </p>
-              </label>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Color Tag (Optional)</Label>
-            <div className="flex flex-wrap gap-2">
-              {colorOptions.map((color) => (
-                <button
-                  key={color.name}
-                  type="button"
-                  onClick={() => setSelectedColor(color.value)}
-                  disabled={loading}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Image</Label>
+              </div>
+
+              {!imagePreviewUrl ? (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                   className={cn(
-                    "h-8 w-8 rounded-full border-2 transition-all",
-                    color.value ?? "bg-transparent border-input",
-                    color.value,
-                    selectedColor === color.value
-                      ? "ring-2 ring-ring ring-offset-2 border-primary"
-                      : "border-transparent hover:border-muted-foreground/50"
+                    "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
+                    loading && "pointer-events-none opacity-50"
                   )}
-                  aria-label={`Select color ${color.name}`}
-                />
-              ))}
+                >
+                  <input
+                    type="file"
+                    id="word-image"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="sr-only"
+                    disabled={loading}
+                  />
+                  <label
+                    htmlFor="word-image"
+                    className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                    <p>
+                      Drag & drop or{" "}
+                      <span className="text-primary hover:underline">
+                        browse
+                      </span>
+                    </p>
+                  </label>
+                </div>
+              ) : (
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={imagePreviewUrl}
+                      alt="Preview"
+                      className="h-16 w-16 rounded-md object-cover border"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Preview</span>
+                      <span className="text-xs text-muted-foreground">
+                        Ready to upload
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={handleRemoveImage}
+                    disabled={loading}
+                    className="text-destructive hover:text-destructive/80"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Color Tag</Label>
+              <div className="flex flex-wrap gap-2">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color.name}
+                    type="button"
+                    onClick={() => setSelectedColor(color.value)}
+                    disabled={loading}
+                    className={cn(
+                      "h-8 w-8 rounded-full border-2 transition-all",
+                      color.value ?? "bg-transparent border-input",
+                      color.value,
+                      selectedColor === color.value
+                        ? "ring-2 ring-ring ring-offset-2 border-primary"
+                        : "border-transparent hover:border-muted-foreground/50"
+                    )}
+                    aria-label={`Select color ${color.name}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4 border-t pt-4">
+          <div className="space-y-4 border rounded-lg p-4 bg-card">
             <h4 className="font-medium text-sm text-muted-foreground">
-              AI Enhancements
+              AI Generated Details
             </h4>
-            <p className="text-sm text-muted-foreground">
-              Translation is always included. Select optional details:
+            <p className="text-xs text-muted-foreground">
+              AI can make mistakes. Review generated details after adding the
+              word.
             </p>
             <div className="flex flex-wrap gap-2">
               {renderToggle("Grammar", genGrammar, setGenGrammar)}
@@ -599,33 +631,34 @@ export function AddWordDialog({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
 
-            {aiOptionsSelected && (
-              <div className="space-y-2 pt-3 border-t">
-                <Label htmlFor="cefr-level">
-                  Explanation/Example Level (CEFR)
-                </Label>
-                <Select
-                  value={cefrLevel}
-                  onValueChange={setCefrLevel}
-                  disabled={loading}
-                >
-                  <SelectTrigger id="cefr-level" className="w-[180px]">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cefrLevels.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+              {aiOptionsSelected && (
+                <div className="space-y-2 pt-3 border-t">
+                  <Label htmlFor="cefr-level">
+                    Explanation/Example Level (CEFR)
+                  </Label>
+                  <Select
+                    value={cefrLevel}
+                    onValueChange={setCefrLevel}
+                    disabled={loading}
+                  >
+                    <SelectTrigger id="cefr-level" className="w-full">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cefrLevels.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline" disabled={loading}>

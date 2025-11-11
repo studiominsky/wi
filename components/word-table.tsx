@@ -213,7 +213,7 @@ export function WordTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 flex-wrap rounded-lg border bg-card p-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <div className="relative w-full sm:max-w-xs">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -243,105 +243,100 @@ export function WordTable({
         </div>
       </div>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-1/12">Color</TableHead>
-              <TableHead className="w-4/12">
-                {isNativeInventory ? "Native Phrase" : "Word"}
-              </TableHead>
-              <TableHead className="w-4/12 hidden sm:table-cell">
-                {isNativeInventory ? "Translation (German)" : "Translation"}
-              </TableHead>
-              <TableHead className="w-3/12">Category / Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedWords.length > 0 ? (
-              paginatedWords.map((word) => {
-                const isNoun = word.category === "Noun";
-                const badgeVariant = isNoun ? "outline" : ("grammar" as const);
-                const badgeText = word.category;
-                const secondaryText =
-                  isNoun && word.gender ? `(${word.gender})` : "";
-                const href = getLinkHref(word);
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-1/12">Color</TableHead>
+            <TableHead className="w-4/12">
+              {isNativeInventory ? "Native Phrase" : "Word"}
+            </TableHead>
+            <TableHead className="w-4/12 hidden sm:table-cell">
+              {isNativeInventory ? "Translation (German)" : "Translation"}
+            </TableHead>
+            <TableHead className="w-3/12">Category / Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedWords.length > 0 ? (
+            paginatedWords.map((word) => {
+              const isNoun = word.category === "Noun";
+              const badgeVariant = isNoun ? "outline" : ("grammar" as const);
+              const badgeText = word.category;
+              const secondaryText =
+                isNoun && word.gender ? `(${word.gender})` : "";
+              const href = getLinkHref(word);
 
-                const entryData = {
-                  id: word.id,
-                  word: word.word,
-                  translation: word.translation,
-                  notes: word.notes,
-                  color: word.color,
-                  image_url: word.image_url,
-                };
+              const entryData = {
+                id: word.id,
+                word: word.word,
+                translation: word.translation,
+                notes: word.notes,
+                color: word.color,
+                image_url: word.image_url,
+              };
 
-                return (
-                  <TableRow key={word.id} className="relative group/row">
-                    <TableCell className="w-1/12 py-2">
-                      <Link
-                        href={href}
-                        className={cn(
-                          "size-3 rounded-full shrink-0 border block",
-                          word.colorClass
+              return (
+                <TableRow key={word.id} className="relative group/row">
+                  <TableCell className="w-1/12 py-2">
+                    <Link
+                      href={href}
+                      className={cn(
+                        "size-3 rounded-full shrink-0 border block",
+                        word.colorClass
+                      )}
+                      aria-label={`View ${word.word}`}
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium truncate max-w-[200px] w-4/12 pr-2">
+                    <Link href={href} className="block w-full">
+                      {word.word}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground truncate hidden sm:table-cell w-4/12 pr-2">
+                    <Link href={href} className="block w-full">
+                      {word.translation}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="w-3/12 pr-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {word.category && (
+                          <Badge
+                            variant={badgeVariant}
+                            className="capitalize shrink-0"
+                          >
+                            {badgeText}
+                          </Badge>
                         )}
-                        aria-label={`View ${word.word}`}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium truncate max-w-[200px] w-4/12 pr-2">
-                      <Link
-                        href={href}
-                        className="hover:text-primary/90 block w-full"
-                      >
-                        {word.word}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground truncate hidden sm:table-cell w-4/12 pr-2">
-                      <Link href={href} className="block w-full">
-                        {word.translation}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="w-3/12 pr-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {word.category && (
-                            <Badge
-                              variant={badgeVariant}
-                              className="capitalize shrink-0"
-                            >
-                              {badgeText}
-                            </Badge>
-                          )}
-                          {secondaryText && (
-                            <span className="text-xs text-muted-foreground italic shrink-0">
-                              {secondaryText}
-                            </span>
-                          )}
-                        </div>
-                        <div className="shrink-0">
-                          <EntryActionMenu
-                            entry={entryData}
-                            isNativePhrase={isNativeInventory}
-                          />
-                        </div>
+                        {secondaryText && (
+                          <span className="text-xs text-muted-foreground italic shrink-0">
+                            {secondaryText}
+                          </span>
+                        )}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No words found matching your filters.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                      <div className="shrink-0">
+                        <EntryActionMenu
+                          entry={entryData}
+                          isNativePhrase={isNativeInventory}
+                        />
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                className="h-24 text-center text-muted-foreground"
+              >
+                No words found matching your filters.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       {totalItems > 0 && (
         <div className="flex items-center justify-between text-sm py-2">

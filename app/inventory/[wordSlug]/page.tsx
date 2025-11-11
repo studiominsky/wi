@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
+import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 
 const CASE_ORDER_CANONICAL_CAPS = [
   "Nominative",
@@ -20,6 +21,16 @@ const CANONICAL_VERB_PRONOUN_ORDER = [
   "ihr",
   "sie",
 ];
+
+const TENSE_ORDER = [
+  "Present",
+  "Preterit",
+  "Perfect",
+  "Future",
+  "Past Perfect",
+];
+
+const PRONOUN_ORDER_FOR_SORT = ["ich", "du", "er/sie/es", "wir", "ihr", "sie"];
 
 const formatKey = (key: string) =>
   key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -238,9 +249,49 @@ function DataDisplay({ data }: { data: any }) {
     }
   }
 
+  const rawEntries = Object.entries(data);
+  let entries = rawEntries;
+
+  const isTenseObject = rawEntries.some(([key]) =>
+    TENSE_ORDER.some((t) => t.toLowerCase() === key.toLowerCase())
+  );
+  const isPronounObject =
+    rawEntries.length > 0 &&
+    rawEntries.every(([key]) =>
+      PRONOUN_ORDER_FOR_SORT.some(
+        (p) => p.replace(/\s/g, "") === key.toLowerCase().replace(/\s/g, "")
+      )
+    );
+
+  if (isTenseObject) {
+    entries = rawEntries.sort(([keyA], [keyB]) => {
+      const indexA = TENSE_ORDER.findIndex(
+        (t) => t.toLowerCase() === keyA.toLowerCase()
+      );
+      const indexB = TENSE_ORDER.findIndex(
+        (t) => t.toLowerCase() === keyB.toLowerCase()
+      );
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      return 0;
+    });
+  } else if (isPronounObject) {
+    entries = rawEntries.sort(([keyA], [keyB]) => {
+      const cleanA = keyA.toLowerCase().replace(/\s/g, "");
+      const cleanB = keyB.toLowerCase().replace(/\s/g, "");
+      const indexA = PRONOUN_ORDER_FOR_SORT.findIndex(
+        (p) => p.replace(/\s/g, "") === cleanA
+      );
+      const indexB = PRONOUN_ORDER_FOR_SORT.findIndex(
+        (p) => p.replace(/\s/g, "") === cleanB
+      );
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      return 0;
+    });
+  }
+
   return (
     <div className="bg-background/50 rounded-md p-2 text-sm space-y-2 mt-2 border border-border">
-      {Object.entries(data).map(([key, value]) => (
+      {entries.map(([key, value]) => (
         <div key={key} className="border-b border-muted last:border-b-0 pb-1">
           <strong className="block text-primary/80 capitalize font-medium">
             {formatKey(key)}:
@@ -454,27 +505,20 @@ export default async function WordDetailPage({
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
-      <div className="flex justify-end sticky top-20 z-10 -mt-20">
+      <div className="flex justify-end sticky top-20 z-10 mt-0">
         <EntryActionMenu entry={entryForEdit} isNativePhrase={false} />
       </div>
 
       {word.image_url && (
         <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-md">
-          <img
+          <ImageWithErrorBoundary
             src={word.image_url}
             alt={`Image for the word ${word.word}`}
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src =
-                "https://placehold.co/600x400/e0e0e0/000?text=Image+Load+Error";
-              target.onerror = null;
-            }}
           />
         </div>
       )}
 
-      <div className={cn("p-4 ", word.color)}>
+      <div className={cn("p-4", word.color)}>
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-4xl font-bold">{decodedWord}</h1>
           {category && (

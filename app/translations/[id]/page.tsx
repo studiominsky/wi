@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
+import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 
 function AiDataSection({ title, data }: { title: string; data: any }) {
   if (data === null || data === undefined || data === "") return null;
@@ -99,22 +100,15 @@ export default async function TranslationDetailPage({
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
-      <div className="flex justify-end sticky top-20 z-10 -mt-20">
+      <div className="flex justify-end sticky top-20 z-10 mt-0">
         <EntryActionMenu entry={entryForEdit} isNativePhrase={true} />
       </div>
 
       {translationEntry.image_url && (
         <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-md">
-          <img
+          <ImageWithErrorBoundary
             src={translationEntry.image_url}
             alt={`Image for the translation`}
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src =
-                "https://placehold.co/600x400/e0e0e0/000?text=Image+Load+Error";
-              target.onerror = null;
-            }}
           />
         </div>
       )}

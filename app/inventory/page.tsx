@@ -1,10 +1,8 @@
-// studiominsky/wi/wi-6b1ab7f757390abcd616d584b9abe297665b8164/app/inventory/page.tsx
 import { AddWordDialog } from "@/components/add-word-dialog";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import { revalidatePath } from "next/cache";
-import { SortControls } from "@/components/sort-controls";
 import { WordTable } from "@/components/word-table";
 
 function getBgColorClass(colorString: null | undefined): string {
@@ -87,11 +85,10 @@ export default async function GermanInventoryPage() {
     "date_desc") as SortPreference;
 
   let query = supabase
-    .from("user_words") // TARGETING ORIGINAL TABLE
-    .select("id, word, translation, color, ai_data")
+    .from("user_words")
+    .select("id, word, translation, color, ai_data, notes, image_url")
     .eq("user_id", user.id)
     .eq("language_id", currentLangId);
-  // COMPLEX EXCLUSION FILTER REMOVED
 
   switch (currentSortPreference) {
     case "date_asc":
@@ -143,6 +140,8 @@ export default async function GermanInventoryPage() {
         category: category,
         gender: gender,
         colorClass: colorClass,
+        notes: word.notes,
+        image_url: word.image_url,
       };
     }) || [];
 

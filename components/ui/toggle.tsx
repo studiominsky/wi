@@ -12,7 +12,7 @@ const toggleVariants = cva(
     variants: {
       variant: {
         default:
-          "data-[state=on]:border-primary data-[state=on]:text-foreground data-[state=on]:opacity-100",
+          "data-[state=on]:border-primary data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:opacity-100",
       },
       size: {
         default: "h-9 px-4 data-[state=on]:pl-9 gap-1.5",

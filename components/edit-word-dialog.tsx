@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { updateWordEntry, deleteWordEntry } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 type WordEntry = {
   id: string | number;
@@ -227,9 +228,6 @@ export function EditWordDialog({
       newImageUrl = publicUrlData.publicUrl;
     }
 
-    if (entry.image_url && !imageFile && !currentImageUrl) {
-    }
-
     const table = isNativePhrase ? "user_translations" : "user_words";
 
     const result = await updateWordEntry({
@@ -283,6 +281,8 @@ export function EditWordDialog({
     currentImageUrl !== entry.image_url ||
     imageFile !== null;
 
+  const imageAdded = Boolean(currentImageUrl || imagePreviewUrl);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -296,10 +296,14 @@ export function EditWordDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Entry: {entry.word}</DialogTitle>
-          <DialogDescription>
-            Modify the base word, translation, notes, color, or image.
-          </DialogDescription>
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <DialogTitle>Edit Entry: {entry.word}</DialogTitle>
+              <DialogDescription>
+                Modify the base word, translation, notes, color, or image.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4 px-1 overflow-y-auto max-h-[70vh]">
           <div className="space-y-2">
@@ -324,7 +328,80 @@ export function EditWordDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="word-notes">Notes (Optional)</Label>
+            <div className="flex items-center justify-between">
+              <Label>Image</Label>
+            </div>
+
+            {!imageAdded ? (
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={cn(
+                  "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
+                  loading && "pointer-events-none opacity-50"
+                )}
+              >
+                <input
+                  type="file"
+                  id="word-image-edit"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="sr-only"
+                  disabled={loading}
+                />
+                <label
+                  htmlFor="word-image-edit"
+                  className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
+                >
+                  <ImageIcon className="h-5 w-5" />
+                  <p>
+                    Drag & drop or{" "}
+                    <span className="text-primary hover:underline">browse</span>
+                  </p>
+                </label>
+              </div>
+            ) : (
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={imagePreviewUrl || currentImageUrl || ""}
+                    alt="Preview"
+                    className="h-16 w-16 rounded-md object-cover border"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src =
+                        "https://placehold.co/100x100/e0e0e0/000?text=Preview";
+                      target.onerror = null;
+                    }}
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">Preview</span>
+                    <span className="text-xs text-muted-foreground">
+                      {imagePreviewUrl ? "Ready to upload" : "Saved image"}
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleRemoveImage();
+                  }}
+                  disabled={loading}
+                  className="text-destructive hover:text-destructive/80"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="word-notes">Notes</Label>
             <Textarea
               id="word-notes"
               placeholder="e.g., Personal reminder..."
@@ -336,81 +413,7 @@ export function EditWordDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Image (Optional)</Label>
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={cn(
-                "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
-                loading && "pointer-events-none opacity-50"
-              )}
-            >
-              <input
-                type="file"
-                id="word-image-edit"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="sr-only"
-                disabled={loading}
-              />
-              <label
-                htmlFor="word-image-edit"
-                className="flex flex-col items-center gap-1 cursor-pointer p-4 h-full w-full"
-              >
-                {currentImageUrl || imagePreviewUrl ? (
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5" />
-                    <span className="text-primary">
-                      Image selected/uploaded
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        handleRemoveImage();
-                      }}
-                      disabled={loading}
-                      className="text-destructive hover:text-destructive/80"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <ImageIcon className="h-5 w-5" />
-                    <p>
-                      Drag & drop or{" "}
-                      <span className="text-primary hover:underline">
-                        browse
-                      </span>
-                    </p>
-                  </>
-                )}
-              </label>
-            </div>
-            {(currentImageUrl || imagePreviewUrl) && (
-              <div className="mt-2 flex justify-center">
-                <img
-                  src={imagePreviewUrl || currentImageUrl || ""}
-                  alt="Preview"
-                  className="max-h-24 w-auto rounded-md object-cover border"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src =
-                      "https://placehold.co/100x100/e0e0e0/000?text=Preview";
-                    target.onerror = null;
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Color Tag (Optional)</Label>
+            <Label>Color Tag</Label>
             <div className="flex flex-wrap gap-2">
               {colorOptions.map((color) => (
                 <button
@@ -475,20 +478,16 @@ export function EntryActionMenu({
 
   const handleConfirmDelete = async () => {
     if (loading) return;
-
     setLoading(true);
     setDeleteConfirmOpen(false);
     setMenuOpen(false);
     const toastId = toast.loading("Deleting entry...");
-
     const table = isNativePhrase ? "user_translations" : "user_words";
-
     const result = await deleteWordEntry({
       id: entry.id,
       table: table,
       word: entry.word,
     });
-
     if (result.error) {
       toast.error(`Deletion failed: ${result.error}`, { id: toastId });
     } else {
@@ -496,7 +495,6 @@ export function EntryActionMenu({
       router.push(isNativePhrase ? "/translations" : "/inventory");
       router.refresh();
     }
-
     setLoading(false);
   };
 
