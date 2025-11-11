@@ -51,7 +51,7 @@ function PaginationLink({
         aria-current={isActive ? "page" : undefined}
         variant={isActive ? "default" : "ghost"}
         size={size}
-        className={cn("h-9 w-9", className)}
+        className={cn("h-9 cursor-pointer", className)}
         {...props}
       />
     </PaginationItem>

@@ -563,7 +563,7 @@ export function AddWordDialog({
                     onClick={() => setSelectedColor(color.value)}
                     disabled={loading}
                     className={cn(
-                      "h-8 w-8 rounded-full border-2 transition-all",
+                      "cursor-pointer h-8 w-8 rounded-full border-2 transition-all",
                       color.value ?? "bg-transparent border-input",
                       color.value,
                       selectedColor === color.value
