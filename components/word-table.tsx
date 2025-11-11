@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SortControls } from "@/components/sort-controls";
-import { Search, Check, ChevronsUpDown, Pencil } from "lucide-react";
+import { Search, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -45,7 +45,7 @@ import {
   PaginationPrevious,
   PaginationLink,
 } from "@/components/ui/pagination";
-import { EditWordDialog } from "@/components/edit-word-dialog";
+import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { useRouter } from "next/navigation";
 
 interface Word {
@@ -254,8 +254,7 @@ export function WordTable({
               <TableHead className="w-4/12 hidden sm:table-cell">
                 {isNativeInventory ? "Translation (German)" : "Translation"}
               </TableHead>
-              <TableHead className="w-2/12">Category / Details</TableHead>
-              <TableHead className="w-1/12 text-right">Actions</TableHead>
+              <TableHead className="w-3/12">Category / Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -302,37 +301,30 @@ export function WordTable({
                         {word.translation}
                       </Link>
                     </TableCell>
-                    <TableCell className="flex items-center gap-2 w-2/12 pr-2">
-                      {word.category && (
-                        <Badge
-                          variant={badgeVariant}
-                          className="capitalize shrink-0"
-                        >
-                          {badgeText}
-                        </Badge>
-                      )}
-                      {secondaryText && (
-                        <span className="text-xs text-muted-foreground italic shrink-0">
-                          {secondaryText}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="w-1/12 text-right">
-                      <EditWordDialog
-                        entry={entryData}
-                        isNativePhrase={isNativeInventory}
-                        onEntryUpdated={router.refresh}
-                        triggerAsChild={
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="opacity-0 group-hover/row:opacity-100 transition-opacity"
-                            aria-label={`Edit ${word.word}`}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                        }
-                      />
+                    <TableCell className="w-3/12 pr-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {word.category && (
+                            <Badge
+                              variant={badgeVariant}
+                              className="capitalize shrink-0"
+                            >
+                              {badgeText}
+                            </Badge>
+                          )}
+                          {secondaryText && (
+                            <span className="text-xs text-muted-foreground italic shrink-0">
+                              {secondaryText}
+                            </span>
+                          )}
+                        </div>
+                        <div className="shrink-0">
+                          <EntryActionMenu
+                            entry={entryData}
+                            isNativePhrase={isNativeInventory}
+                          />
+                        </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -340,7 +332,7 @@ export function WordTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={4}
                   className="h-24 text-center text-muted-foreground"
                 >
                   No words found matching your filters.

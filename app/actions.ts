@@ -15,16 +15,11 @@ export async function updateSortPreference(newSortPreference: string) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    console.error("Update sort preference: User not found");
     return { error: "User not authenticated" };
   }
 
   const validPreferences = ["date_desc", "date_asc", "alpha_asc", "alpha_desc"];
   if (!validPreferences.includes(newSortPreference)) {
-    console.error(
-      "Update sort preference: Invalid preference value",
-      newSortPreference
-    );
     return { error: "Invalid sort preference value" };
   }
 
@@ -37,7 +32,6 @@ export async function updateSortPreference(newSortPreference: string) {
     .eq("id", user.id);
 
   if (error) {
-    console.error("Error updating sort preference:", error);
     return { error: `Database error: ${error.message}` };
   }
 
@@ -77,7 +71,6 @@ export async function updateWordEntry({
     return { error: "Word and translation cannot be empty." };
   }
 
-  // Fetch the current entry to preserve immutable fields like ai_data
   const { data: currentData, error: fetchError } = await supabase
     .from(table)
     .select("id, word, translation, notes, color, image_url, ai_data")
@@ -96,7 +89,6 @@ export async function updateWordEntry({
     color,
     image_url,
     updated_at: new Date().toISOString(),
-    // Keep original ai_data and language_id
   };
 
   const { error: updateError } = await supabase
@@ -109,10 +101,50 @@ export async function updateWordEntry({
     return { error: `Database update failed: ${updateError.message}` };
   }
 
-  // Revalidate the pages
   const revalidatePathname =
     table === "user_words"
       ? `/inventory/${encodeURIComponent(word.trim())}`
+      : `/translations/${id}`;
+
+  revalidatePath(revalidatePathname);
+  revalidatePath(table === "user_words" ? "/inventory" : "/translations");
+
+  return { success: true };
+}
+
+export async function deleteWordEntry({
+  id,
+  table,
+  word,
+}: {
+  id: string | number;
+  table: "user_words" | "user_translations";
+  word: string;
+}) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login");
+  }
+
+  const { error: deleteError } = await supabase
+    .from(table)
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    return { error: `Database deletion failed: ${deleteError.message}` };
+  }
+
+  const revalidatePathname =
+    table === "user_words"
+      ? `/inventory/${encodeURIComponent(word)}`
       : `/translations/${id}`;
 
   revalidatePath(revalidatePathname);

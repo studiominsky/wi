@@ -16,11 +16,23 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Loader2, Image as ImageIcon, Trash2, Pencil } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Loader2,
+  Image as ImageIcon,
+  Trash2,
+  Pencil,
+  MoreHorizontal,
+  Edit,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { updateWordEntry } from "@/app/actions";
+import { updateWordEntry, deleteWordEntry } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
 type WordEntry = {
@@ -188,7 +200,6 @@ export function EditWordDialog({
 
     let newImageUrl = currentImageUrl;
 
-    // 1. Handle new image upload
     if (imageFile) {
       const fileExt = imageFile.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}_${word}.${fileExt}`;
@@ -235,7 +246,7 @@ export function EditWordDialog({
       toast.error(`Update failed: ${result.error}`, { id: toastId });
     } else {
       toast.success("Entry updated successfully!", { id: toastId });
-      onEntryUpdated(entry.id); // Notify parent component (detail page) to revalidate
+      onEntryUpdated(entry.id);
       setTimeout(() => setOpen(false), 1500);
     }
 
@@ -245,7 +256,6 @@ export function EditWordDialog({
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      // Reset local state to match the prop state on close, discarding unsaved changes
       setWord(entry.word);
       setTranslation(entry.translation);
       setNotes(entry.notes || "");
@@ -358,7 +368,11 @@ export function EditWordDialog({
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      onClick={handleRemoveImage}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleRemoveImage();
+                      }}
                       disabled={loading}
                       className="text-destructive hover:text-destructive/80"
                     >
@@ -435,6 +449,133 @@ export function EditWordDialog({
               <Pencil className="mr-2 h-4 w-4" />
             )}
             {loading ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function EntryActionMenu({
+  entry,
+  isNativePhrase,
+}: {
+  entry: WordEntry;
+  isNativePhrase: boolean;
+}) {
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleEntryUpdated = () => {
+    setMenuOpen(false);
+    router.refresh();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (loading) return;
+
+    setLoading(true);
+    setDeleteConfirmOpen(false);
+    setMenuOpen(false);
+    const toastId = toast.loading("Deleting entry...");
+
+    const table = isNativePhrase ? "user_translations" : "user_words";
+
+    const result = await deleteWordEntry({
+      id: entry.id,
+      table: table,
+      word: entry.word,
+    });
+
+    if (result.error) {
+      toast.error(`Deletion failed: ${result.error}`, { id: toastId });
+    } else {
+      toast.success("Entry deleted successfully!", { id: toastId });
+      router.push(isNativePhrase ? "/translations" : "/inventory");
+      router.refresh();
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Actions for ${entry.word}`}
+            className="size-8 shrink-0"
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <MoreHorizontal className="size-4" />
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-40 p-1 flex flex-col space-y-1"
+          align="end"
+        >
+          <EditWordDialog
+            entry={entry}
+            isNativePhrase={isNativePhrase}
+            onEntryUpdated={handleEntryUpdated}
+            triggerAsChild={
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-8 text-sm"
+                size="sm"
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            }
+          />
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive h-8 text-sm"
+              size="sm"
+              onClick={() => {
+                setMenuOpen(false);
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </DialogTrigger>
+        </PopoverContent>
+      </Popover>
+
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete the entry for "
+            <span className="font-semibold">{entry.word}</span>"? This action
+            cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="sm:justify-between flex-row">
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleConfirmDelete}
+            disabled={loading}
+          >
+            Delete
           </Button>
         </DialogFooter>
       </DialogContent>

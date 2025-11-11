@@ -2,8 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { EditWordDialog } from "@/components/edit-word-dialog";
-import { revalidatePath } from "next/cache";
+import { EntryActionMenu } from "@/components/edit-word-dialog";
 
 function AiDataSection({ title, data }: { title: string; data: any }) {
   if (data === null || data === undefined || data === "") return null;
@@ -79,10 +78,6 @@ export default async function TranslationDetailPage({
           try {
             return JSON.parse(translationEntry.ai_data);
           } catch {
-            console.error(
-              "Failed to parse ai_data string:",
-              translationEntry.ai_data
-            );
             return null;
           }
         })()
@@ -92,11 +87,6 @@ export default async function TranslationDetailPage({
   const nativePhrase = translationEntry.word;
   const germanTranslation = translationEntry.translation;
   const originalLanguage = aiData?.original_phrase_language;
-
-  const handleEntryUpdate = async (id: string | number) => {
-    "use server";
-    revalidatePath(`/translations/${id}`);
-  };
 
   const entryForEdit = {
     id: translationEntry.id,
@@ -110,11 +100,7 @@ export default async function TranslationDetailPage({
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
       <div className="flex justify-end sticky top-20 z-10 -mt-20">
-        <EditWordDialog
-          entry={entryForEdit}
-          isNativePhrase={true}
-          onEntryUpdated={handleEntryUpdate}
-        />
+        <EntryActionMenu entry={entryForEdit} isNativePhrase={true} />
       </div>
 
       {translationEntry.image_url && (

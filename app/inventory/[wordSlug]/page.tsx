@@ -2,8 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { EditWordDialog } from "@/components/edit-word-dialog";
-import { revalidatePath } from "next/cache";
+import { EntryActionMenu } from "@/components/edit-word-dialog";
 
 const CASE_ORDER_CANONICAL_CAPS = [
   "Nominative",
@@ -391,7 +390,6 @@ export default async function WordDetailPage({
           try {
             return JSON.parse(word.ai_data);
           } catch {
-            console.error("Failed to parse ai_data string:", word.ai_data);
             return null;
           }
         })()
@@ -445,12 +443,6 @@ export default async function WordDetailPage({
     genderAndSingularDisplay = singularNominativeForm;
   }
 
-  const handleEntryUpdate = async (id: string | number) => {
-    "use server";
-    // We revalidate the current path to re-fetch data without needing navigation.
-    revalidatePath(`/inventory/${wordSlug}`);
-  };
-
   const entryForEdit = {
     id: word.id,
     word: word.word,
@@ -463,11 +455,7 @@ export default async function WordDetailPage({
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
       <div className="flex justify-end sticky top-20 z-10 -mt-20">
-        <EditWordDialog
-          entry={entryForEdit}
-          isNativePhrase={false}
-          onEntryUpdated={handleEntryUpdate}
-        />
+        <EntryActionMenu entry={entryForEdit} isNativePhrase={false} />
       </div>
 
       {word.image_url && (
