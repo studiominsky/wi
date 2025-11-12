@@ -256,7 +256,7 @@ export function WordTable({
             <TableHead className="w-4/12 hidden sm:table-cell">
               {isNativeInventory ? "Translation (German)" : "Translation"}
             </TableHead>
-            <TableHead className="w-3/12">Category / Actions</TableHead>
+            <TableHead className="w-3/12">Category</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -285,7 +285,7 @@ export function WordTable({
                       href={href}
                       className={cn(
                         "size-3 rounded-full shrink-0 border block",
-                        word.colorClass
+                        word.color || "bg-transparent border-input"
                       )}
                       aria-label={`View ${word.word}`}
                     />

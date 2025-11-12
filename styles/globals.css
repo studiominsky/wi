@@ -130,4 +130,92 @@
   .rounded-card {
     border-radius: var(--radius);
   }
+
+  .tag-color-red {
+    --tag-bg: #ffcccc;
+    --tag-border: #840000;
+    --tag-text: #840000;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+  .dark .tag-color-red {
+    --tag-bg: #a42424;
+    --tag-border: #5c0b0b;
+    --tag-text: #fdd;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .tag-color-blue {
+    --tag-bg: #d3ddff;
+    --tag-border: #082684;
+    --tag-text: #082684;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+  .dark .tag-color-blue {
+    --tag-bg: #1c3987;
+    --tag-border: #0a45c4;
+    --tag-text: #bdd2ff;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .tag-color-orange {
+    --tag-bg: #ffe0c0;
+    --tag-border: #b35900;
+    --tag-text: #8a4603;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .dark .tag-color-orange {
+    --tag-bg: #994d00;
+    --tag-border: #bc6c0a;
+    --tag-text: #f0c187;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .tag-color-purple {
+    --tag-bg: #eed3ff;
+    --tag-border: #660884;
+    --tag-text: #660884;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .dark .tag-color-purple {
+    --tag-bg: #751296;
+    --tag-border: #9a3dec;
+    --tag-text: #ddbbfb;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .tag-color-teal {
+    --tag-bg: #b9f5e6;
+    --tag-border: #008080;
+    --tag-text: #035959;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .dark .tag-color-teal {
+    --tag-bg: #006666;
+    --tag-border: #049595;
+    --tag-text: rgba(30, 232, 232, 1);
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
 }
