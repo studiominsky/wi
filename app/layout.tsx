@@ -53,7 +53,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
-              <Toaster richColors closeButton position="bottom-right" />
+              <Toaster richColors closeButton={false} position="bottom-right" />
             </ThemeProvider>
           </AuthProvider>
         </div>
