@@ -1,7 +1,13 @@
 "use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { UserIcon, SignOutIcon } from "@phosphor-icons/react";
+import {
+  UserIcon,
+  SignOutIcon,
+  MoonIcon,
+  SunIcon,
+  HouseLineIcon,
+} from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -13,7 +19,7 @@ export default function Header() {
   const { user, signOut, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
+  const { resolvedTheme, theme, setTheme } = useTheme();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -60,10 +66,37 @@ export default function Header() {
     </Link>
   );
 
+  const ThemeToggle = () => {
+    if (!mounted) return null;
+
+    const handleToggle = () => {
+      setTheme(theme === "dark" ? "light" : "dark");
+    };
+
+    const Icon = resolvedTheme === "dark" ? SunIcon : MoonIcon;
+
+    const toggleClasses = cn(
+      "hover:bg-transparent h-9 w-9",
+      isHomePage ? "text-white hover:text-white/80" : "text-foreground"
+    );
+
+    return (
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={handleToggle}
+        aria-label="Toggle theme"
+        className={toggleClasses}
+      >
+        <Icon className="size-5" />
+      </Button>
+    );
+  };
+
   return (
     <header
       className={cn(
-        "w-full border-b sticky top-0 backdrop-blur z-10 py-5",
+        "w-full border-b sticky top-0 backdrop-blur z-10 py-7",
         dynamicHeaderClasses
       )}
     >
@@ -75,7 +108,12 @@ export default function Header() {
             <div className="h-9 w-20 animate-pulse bg-muted rounded-md" />
           ) : user ? (
             <>
-              {navItem("/inventory", "Inventory")}
+              <Link href="/inventory">
+                <Button size="lg" className="shrink-0" title="Go to Inventory">
+                  <HouseLineIcon className="h-4 w-4 mr-2" />
+                  Go to Inventory
+                </Button>
+              </Link>
               {navItem("/translations", "Translations")}
               {navItem("/settings", "Settings")}
               <Link href="/profile">
@@ -94,16 +132,32 @@ export default function Header() {
                   Profile
                 </Button>
               </Link>
-
-              <Button onClick={handleSignOut} size="lg">
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                size="lg"
+                className={cn(
+                  isHomePage &&
+                    "bg-transparent text-white border-white hover:bg-white/10"
+                )}
+              >
                 <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
                 Logout
               </Button>
             </>
           ) : (
-            <Link href="/login">
-              <Button size="lg">Login</Button>
-            </Link>
+            <>
+              {navItem("/#how-it-works", "How It Works")}
+              {navItem("/blog", "Blog")}
+              {navItem("/pricing", "Pricing")}
+              <ThemeToggle />
+
+              <Link href="/login">
+                <Button size="lg" className="shrink-0">
+                  Login
+                </Button>
+              </Link>
+            </>
           )}
         </nav>
       </div>

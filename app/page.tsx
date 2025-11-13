@@ -33,23 +33,39 @@ export default async function Home() {
                 The ultimate tool to collect, customize, and master vocabulary
                 in German language learning.
               </p>
-              <Link
-                href={user ? "/inventory" : "/login"}
-                className="pointer-events-auto"
-              >
-                <Button
-                  className="bg-[#52eec8] text-black hover:bg-[#52eec8]/90"
-                  size="lg"
+              <div className="flex items-center gap-4 pt-4">
+                <Link
+                  href={user ? "/inventory" : "/login"}
+                  className="pointer-events-auto"
                 >
-                  Get Started for Free
-                </Button>
-              </Link>
+                  <Button
+                    className="bg-[#52eec8] text-black hover:bg-[#52eec8]/90"
+                    size="lg"
+                  >
+                    {user ? "Go to Inventory" : "Get Started for Free"}
+                  </Button>
+                </Link>
+                <Link
+                  href={"#how-it-works"}
+                  className="pointer-events-auto scroll-smooth"
+                >
+                  <Button
+                    className="text-white text-sm bg-[#1B3355] hover:bg-[#1B3355]/90"
+                    size="lg"
+                  >
+                    Discover More
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       </div>
 
-      <section className="w-full bg-background py-12 md:py-24 lg:py-32">
+      <section
+        id="how-it-works"
+        className="w-full bg-background py-12 md:py-24 lg:py-32"
+      >
         <div className="container px-4 md:px-6 px-5 mx-auto w-full max-w-screen-lg md:px-7">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
             <h2 className="text-3xl font-grotesk tracking-tighter sm:text-5xl">
