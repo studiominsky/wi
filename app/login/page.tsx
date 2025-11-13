@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="grid place-items-center min-h-screen p-8">
+    <div className="grid place-items-center h-full p-8 mt-10 sm:mt-40">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-bold text-center">Log In</h1>
 
@@ -101,6 +101,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

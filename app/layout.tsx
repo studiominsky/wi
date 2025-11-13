@@ -44,14 +44,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${tomatoGrotesk.variable} ${dmSans.variable} ${dmMono.variable}`}
     >
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-[#fbfbfb] dark:bg-[#000]">
         <div className="flex min-h-screen flex-col">
           <AuthProvider>
             <ThemeProvider>
               <Header />
-              <main className="flex-1 bg-[#fbfbfb] dark:bg-[#000] text-foreground">
-                {children}
-              </main>
+              <main className="flex-1 text-foreground">{children}</main>
               <Footer />
               <Toaster richColors closeButton={false} position="bottom-right" />
             </ThemeProvider>

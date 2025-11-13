@@ -6,7 +6,6 @@ import {
   SignOutIcon,
   MoonIcon,
   SunIcon,
-  HouseLineIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -108,12 +107,6 @@ export default function Header() {
             <div className="h-9 w-20 animate-pulse bg-muted rounded-md" />
           ) : user ? (
             <>
-              <Link href="/inventory">
-                <Button size="lg" className="shrink-0" title="Go to Inventory">
-                  <HouseLineIcon className="h-4 w-4 mr-2" />
-                  Go to Inventory
-                </Button>
-              </Link>
               {navItem("/translations", "Translations")}
               {navItem("/settings", "Settings")}
               <Link href="/profile">
@@ -134,12 +127,9 @@ export default function Header() {
               </Link>
               <Button
                 onClick={handleSignOut}
-                variant="outline"
-                size="lg"
-                className={cn(
-                  isHomePage &&
-                    "bg-transparent text-white border-white hover:bg-white/10"
-                )}
+                variant="link"
+                size="link"
+                className={cn(isHomePage && "bg-transparent text-white")}
               >
                 <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
                 Logout
