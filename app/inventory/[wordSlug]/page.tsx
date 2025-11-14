@@ -4,15 +4,22 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
+import Link from "next/link";
 
 function TagsDisplay({ tags }: { tags: string[] | null }) {
   if (!tags || tags.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-2 pt-4 border-t border-muted">
       {tags.map((tag) => (
-        <Badge key={tag} variant="secondary" className="capitalize">
-          {tag}
-        </Badge>
+        <Link
+          key={tag}
+          href={`/tags/${encodeURIComponent(tag)}`}
+          className="hover:opacity-80 transition-opacity"
+        >
+          <Badge variant="secondary" className="capitalize cursor-pointer">
+            {tag}
+          </Badge>
+        </Link>
       ))}
     </div>
   );

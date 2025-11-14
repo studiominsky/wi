@@ -77,7 +77,6 @@ export function EditTagDialog({
   const [loading, setLoading] = useState(false);
   const [selectedIconName, setSelectedIconName] = useState(tag.icon_name);
   const [selectedColor, setSelectedColor] = useState(tag.color_class);
-
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const SelectedIcon = iconComponentMap[selectedIconName] || TagIcon;
@@ -122,6 +121,7 @@ export function EditTagDialog({
             Customize the icon and color for this tag.
           </DialogDescription>
         </DialogHeader>
+
         <div
           className={cn(
             "flex items-center gap-2 p-3 rounded-lg border",
@@ -140,7 +140,7 @@ export function EditTagDialog({
             )
           </span>
         </div>
-        {/* END: Live Preview Section */}
+
         <div className="flex flex-col gap-4 py-4 px-1 overflow-y-auto max-h-[70vh]">
           <div className="space-y-2">
             <Label>Icon</Label>
@@ -163,7 +163,11 @@ export function EditTagDialog({
                   <CaretUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="p-0 w-[280px] h-[300px]" align="start">
+              <PopoverContent
+                className="p-0 w-[280px] overflow-y-auto"
+                align="start"
+                sideOffset={4}
+              >
                 <Command>
                   <CommandInput placeholder="Search icons..." className="h-9" />
                   <CommandList>
@@ -229,6 +233,7 @@ export function EditTagDialog({
             </div>
           </div>
         </div>
+
         <DialogFooter>
           <Button
             type="button"
