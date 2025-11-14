@@ -36,6 +36,7 @@ export default function TagsPageContent({
 }) {
   const [tagsData, setTagsData] = useState<TagData[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function loadTags() {
@@ -45,7 +46,11 @@ export default function TagsPageContent({
       setLoading(false);
     }
     loadTags();
-  }, [userId]);
+  }, [userId, refreshKey]);
+
+  const refreshTags = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   if (loading) {
     return (
@@ -85,7 +90,7 @@ export default function TagsPageContent({
           <TabsTrigger value="nodes">Node Graph</TabsTrigger>
         </TabsList>
         <TabsContent value="cards" className="py-4">
-          <TagListView tagsData={tagsData} />
+          <TagListView tagsData={tagsData} onTagUpdated={refreshTags} />
         </TabsContent>
         <TabsContent value="nodes" className="py-4">
           <TagNodeGraph tagsData={tagsData} />

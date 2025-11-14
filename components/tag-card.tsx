@@ -28,7 +28,13 @@ interface TagData {
 
 const iconComponentMap: Record<string, Icon> = TagIconMap;
 
-export function TagCard({ tag }: { tag: TagData }) {
+export function TagCard({
+  tag,
+  onTagUpdated,
+}: {
+  tag: TagData;
+  onTagUpdated: () => void;
+}) {
   const CardIcon = iconComponentMap[tag.icon_name] || TagIcon;
 
   const cardClasses = cn(
@@ -62,7 +68,7 @@ export function TagCard({ tag }: { tag: TagData }) {
       <div className="flex items-start justify-between relative">
         <CardIcon className={iconClasses} weight="regular" />
         <div className="-mt-1 -mr-1 relative z-20">
-          <TagActionMenu tag={metadata} />
+          <TagActionMenu tag={metadata} onTagUpdated={onTagUpdated} />
         </div>
       </div>
 

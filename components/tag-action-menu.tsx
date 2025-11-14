@@ -34,14 +34,20 @@ interface TagMetadata {
   color_class: string | null;
 }
 
-export function TagActionMenu({ tag }: { tag: TagMetadata }) {
+export function TagActionMenu({
+  tag,
+  onTagUpdated,
+}: {
+  tag: TagMetadata;
+  onTagUpdated: () => void;
+}) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleTagUpdated = () => {
-    router.refresh();
+    onTagUpdated();
   };
 
   const handleConfirmDelete = async () => {
@@ -62,8 +68,9 @@ export function TagActionMenu({ tag }: { tag: TagMetadata }) {
       toast.success(`Tag "${tag.tag_name}" metadata deleted successfully!`, {
         id: toastId,
       });
+      onTagUpdated(); // Update the client state immediately
       router.push("/tags");
-      router.refresh();
+      router.refresh(); // Ensure full page state refreshes after navigation
     }
     setLoading(false);
   };

@@ -25,7 +25,13 @@ interface TagData {
   entries: TagEntry[];
 }
 
-export function TagListView({ tagsData }: { tagsData: TagData[] }) {
+export function TagListView({
+  tagsData,
+  onTagUpdated,
+}: {
+  tagsData: TagData[];
+  onTagUpdated: () => void;
+}) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTags = tagsData.filter((tag) =>
@@ -48,7 +54,7 @@ export function TagListView({ tagsData }: { tagsData: TagData[] }) {
       {filteredTags.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredTags.map((tag) => (
-            <TagCard key={tag.tag_name} tag={tag} />
+            <TagCard key={tag.tag_name} tag={tag} onTagUpdated={onTagUpdated} />
           ))}
         </div>
       ) : (

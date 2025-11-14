@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { TagActionMenu } from "@/components/tag-action-menu";
 import { TagIcon, Icon } from "@phosphor-icons/react";
 import { TagIconMap } from "@/lib/tag-icons";
+import { useRouter } from "next/navigation"; // ADDED
 
 interface TagEntry {
   id: string | number;
@@ -46,6 +47,12 @@ const getEntryLink = (entry: TagEntry) =>
 
 export function TagDetailsClient({ tagData }: TagDetailsClientProps) {
   const TagIconComponent = iconComponentMap[tagData.icon_name] || TagIcon;
+  const router = useRouter(); // ADDED
+
+  const handleTagUpdated = () => {
+    // ADDED
+    router.refresh();
+  };
 
   const metadata: TagMetadata = {
     tag_name: tagData.tag_name,
@@ -56,7 +63,7 @@ export function TagDetailsClient({ tagData }: TagDetailsClientProps) {
   return (
     <>
       <div className="flex justify-end sticky top-20 z-10 mt-0">
-        <TagActionMenu tag={metadata} />
+        <TagActionMenu tag={metadata} onTagUpdated={handleTagUpdated} />
       </div>
 
       <div className={cn("p-4 rounded-lg", tagData.color_class)}>

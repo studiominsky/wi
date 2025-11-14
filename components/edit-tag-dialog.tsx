@@ -122,6 +122,26 @@ export function EditTagDialog({
             Customize the icon and color for this tag.
           </DialogDescription>
         </DialogHeader>
+        {/* START: Live Preview Section */}
+        <div
+          className={cn(
+            "flex items-center gap-2 p-3 rounded-lg border",
+            selectedColor || "bg-card border-border"
+          )}
+        >
+          <SelectedIcon className="size-5 shrink-0" />
+          <span className="font-semibold capitalize text-base">
+            {tag.tag_name}
+          </span>
+          <span className="text-xs text-muted-foreground ml-auto">
+            (Preview:{" "}
+            {selectedColor
+              ? colorOptions.find((c) => c.value === selectedColor)?.name
+              : "Default"}
+            )
+          </span>
+        </div>
+        {/* END: Live Preview Section */}
         <div className="flex flex-col gap-4 py-4 px-1 overflow-y-auto max-h-[70vh]">
           <div className="space-y-2">
             <Label>Icon</Label>
