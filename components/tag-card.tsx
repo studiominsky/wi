@@ -1,21 +1,14 @@
+// studiominsky/wi/wi-3a66a3e3b87b5cde4dab73718cd820d2cfdc6990/components/tag-card.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EditTagDialog } from "@/components/edit-tag-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { TagIcon, PencilSimpleIcon, Icon } from "@phosphor-icons/react";
+import { TagIcon, Icon } from "@phosphor-icons/react";
 import * as PhosphorIcons from "@phosphor-icons/react";
+import { TagActionMenu } from "./tag-action-menu";
 
 interface TagEntry {
   id: string | number;
@@ -40,8 +33,6 @@ interface TagData {
 const iconComponentMap: Record<string, Icon> = PhosphorIcons as any;
 
 export function TagCard({ tag }: { tag: TagData }) {
-  const [open, setOpen] = useState(false);
-
   const CardIcon = iconComponentMap[tag.icon_name] || TagIcon;
 
   const cardClasses = cn(
@@ -62,81 +53,30 @@ export function TagCard({ tag }: { tag: TagData }) {
     color_class: tag.color_class,
   };
 
-  const getEntryLink = (entry: TagEntry) =>
-    entry.isNativePhrase
-      ? `/translations/${entry.id}`
-      : `/inventory/${encodeURIComponent(entry.word)}`;
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <div className={cardClasses} role="button">
-          <div className="flex items-start justify-between">
-            <CardIcon className={iconClasses} weight="regular" />
-            <EditTagDialog
-              tag={metadata}
-              triggerAsChild={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="size-8 opacity-50 hover:opacity-100 shrink-0"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <PencilSimpleIcon className="size-4" />
-                </Button>
-              }
-            />
-          </div>
-
-          <div className="mt-4">
-            <h3 className="text-xl font-bold capitalize truncate">
-              {tag.tag_name}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {tag.count} entr{tag.count === 1 ? "y" : "ies"}
-            </p>
-          </div>
+    <div className={cardClasses} role="button">
+      <Link
+        href={`/tags/${encodeURIComponent(tag.tag_name)}`}
+        className="absolute inset-0 z-10"
+        aria-label={`View details for tag ${tag.tag_name} with ${tag.count} entries`}
+      >
+        <span className="sr-only">View tag {tag.tag_name}</span>
+      </Link>
+      <div className="flex items-start justify-between relative z-20">
+        <CardIcon className={iconClasses} weight="regular" />
+        <div className="-mt-1 -mr-1">
+          <TagActionMenu tag={metadata} />
         </div>
-      </DialogTrigger>
+      </div>
 
-      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Words for Tag: {tag.tag_name}</DialogTitle>
-          <DialogDescription>
-            {tag.count} item{tag.count === 1 ? "" : "s"} tagged with '
-            {tag.tag_name}'.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3 pt-2">
-          {tag.entries.map((entry) => (
-            <div
-              key={entry.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="truncate">
-                <Link
-                  href={getEntryLink(entry)}
-                  className="font-semibold text-base block truncate hover:underline"
-                  onClick={() => setOpen(false)}
-                >
-                  {entry.wordDisplay}
-                </Link>
-                <p className="text-sm text-muted-foreground truncate">
-                  {entry.translation}
-                </p>
-              </div>
-              <Badge
-                variant={entry.isNativePhrase ? "grammar" : "outline"}
-                className="shrink-0 ml-4"
-              >
-                {entry.isNativePhrase
-                  ? "Translation"
-                  : entry.ai_data?.category || "Word"}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+      <div className="mt-4 relative z-20">
+        <h3 className="text-xl font-bold capitalize truncate">
+          {tag.tag_name}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {tag.count} entr{tag.count === 1 ? "y" : "ies"}
+        </p>
+      </div>
+    </div>
   );
 }

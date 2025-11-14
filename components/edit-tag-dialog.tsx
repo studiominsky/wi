@@ -71,9 +71,11 @@ const iconComponentMap: Record<string, Icon> = PhosphorIcons as any;
 export function EditTagDialog({
   tag,
   triggerAsChild,
+  onTagUpdated,
 }: {
   tag: TagMetadata;
   triggerAsChild: React.ReactNode;
+  onTagUpdated: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -98,6 +100,7 @@ export function EditTagDialog({
       toast.error(`Save failed: ${result.error}`, { id: toastId });
     } else {
       toast.success("Tag metadata updated!", { id: toastId });
+      onTagUpdated();
       setTimeout(() => setOpen(false), 100);
     }
 

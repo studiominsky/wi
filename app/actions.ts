@@ -232,6 +232,27 @@ export async function fetchUniqueTagsWithWords() {
   return tagsData.sort((a, b) => b.count - a.count);
 }
 
+export async function deleteTagMetadata({ tagName }: { tagName: string }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("user_tags")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("tag_name", tagName);
+
+  if (error) {
+    return { error: `Database error: ${error.message}` };
+  }
+
+  revalidatePath("/tags");
+  return { success: true };
+}
+
 export async function saveTagMetadata({
   tagName,
   iconName,
