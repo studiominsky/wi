@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TagIcon, Icon } from "@phosphor-icons/react";
 import { TagActionMenu } from "./tag-action-menu";
@@ -61,14 +58,15 @@ export function TagCard({ tag }: { tag: TagData }) {
       >
         <span className="sr-only">View tag {tag.tag_name}</span>
       </Link>
-      <div className="flex items-start justify-between relative z-20">
+
+      <div className="flex items-start justify-between relative">
         <CardIcon className={iconClasses} weight="regular" />
-        <div className="-mt-1 -mr-1">
+        <div className="-mt-1 -mr-1 relative z-20">
           <TagActionMenu tag={metadata} />
         </div>
       </div>
 
-      <div className="mt-4 relative z-20">
+      <div className="mt-4 relative">
         <h3 className="text-xl font-bold capitalize truncate">
           {tag.tag_name}
         </h3>
