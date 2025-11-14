@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { saveTagMetadata } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -32,10 +31,9 @@ import {
   CircleNotchIcon,
   TagIcon,
   CaretUpDownIcon,
-  IconProps,
   Icon,
 } from "@phosphor-icons/react";
-import * as PhosphorIcons from "@phosphor-icons/react";
+import { TagIconMap, TagIconNames } from "@/lib/tag-icons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -62,11 +60,9 @@ const colorOptions = [
   },
 ];
 
-const availableIcons = Object.keys(PhosphorIcons)
-  .filter((name) => name.endsWith("Icon"))
-  .sort();
+const availableIcons = TagIconNames;
 
-const iconComponentMap: Record<string, Icon> = PhosphorIcons as any;
+const iconComponentMap: Record<string, Icon> = TagIconMap;
 
 export function EditTagDialog({
   tag,

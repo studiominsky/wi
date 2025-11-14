@@ -1,4 +1,3 @@
-// studiominsky/wi/wi-3a66a3e3b87b5cde4dab73718cd820d2cfdc6990/components/tag-card.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TagIcon, Icon } from "@phosphor-icons/react";
-import * as PhosphorIcons from "@phosphor-icons/react";
 import { TagActionMenu } from "./tag-action-menu";
+import { TagIconMap } from "@/lib/tag-icons";
 
 interface TagEntry {
   id: string | number;
@@ -30,7 +29,7 @@ interface TagData {
   entries: TagEntry[];
 }
 
-const iconComponentMap: Record<string, Icon> = PhosphorIcons as any;
+const iconComponentMap: Record<string, Icon> = TagIconMap;
 
 export function TagCard({ tag }: { tag: TagData }) {
   const CardIcon = iconComponentMap[tag.icon_name] || TagIcon;

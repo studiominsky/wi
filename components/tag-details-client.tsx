@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { TagActionMenu } from "@/components/tag-action-menu";
 import { TagIcon, Icon } from "@phosphor-icons/react";
-import * as PhosphorIcons from "@phosphor-icons/react";
+import { TagIconMap } from "@/lib/tag-icons";
 
 interface TagEntry {
   id: string | number;
@@ -37,7 +37,7 @@ interface TagDetailsClientProps {
   tagData: TagData;
 }
 
-const iconComponentMap: Record<string, Icon> = PhosphorIcons as any;
+const iconComponentMap: Record<string, Icon> = TagIconMap;
 
 const getEntryLink = (entry: TagEntry) =>
   entry.isNativePhrase

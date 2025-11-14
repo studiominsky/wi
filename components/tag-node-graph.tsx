@@ -2,7 +2,7 @@
 
 import { TagIcon, Icon } from "@phosphor-icons/react";
 import * as React from "react";
-import * as PhosphorIcons from "@phosphor-icons/react";
+import { TagIconMap } from "@/lib/tag-icons";
 
 interface TagEntry {
   id: string | number;
@@ -20,7 +20,7 @@ interface TagData {
   entries: TagEntry[];
 }
 
-const iconComponentMap: Record<string, Icon> = PhosphorIcons as any;
+const iconComponentMap: Record<string, Icon> = TagIconMap;
 
 const NODE_RADIUS = 8;
 const TAG_RADIUS = 12;
@@ -110,14 +110,12 @@ export function TagNodeGraph({ tagsData }: { tagsData: TagData[] | null }) {
         height={SVG_HEIGHT}
         className="block"
       >
-        {/* --- 1. DRAW LINES (LINKS) --- */}
         <g className="links stroke-current stroke-[2px] opacity-30 text-primary">
           {visualTags.flatMap((tag, tagIndex) => {
             const tagPos = tagPositions[tagIndex];
             const nodes = tag.entries.slice(0, MAX_NODES_PER_TAG);
 
             return nodes.map((_, nodeIndex) => {
-              // Calculate node position orbiting the tagPos
               const angle = (nodeIndex / MAX_NODES_PER_TAG) * 2 * Math.PI;
               const nodeX = tagPos.x + ORBIT_RADIUS * Math.cos(angle);
               const nodeY = tagPos.y + ORBIT_RADIUS * Math.sin(angle);
@@ -135,14 +133,12 @@ export function TagNodeGraph({ tagsData }: { tagsData: TagData[] | null }) {
           })}
         </g>
 
-        {/* --- 2. DRAW WORD/TRANSLATION NODES --- */}
         <g className="nodes">
           {visualTags.flatMap((tag, tagIndex) => {
             const tagPos = tagPositions[tagIndex];
             const nodes = tag.entries.slice(0, MAX_NODES_PER_TAG);
 
             return nodes.map((entry, nodeIndex) => {
-              // Calculate node position orbiting the tagPos
               const angle = (nodeIndex / MAX_NODES_PER_TAG) * 2 * Math.PI;
               const nodeX = tagPos.x + ORBIT_RADIUS * Math.cos(angle);
               const nodeY = tagPos.y + ORBIT_RADIUS * Math.sin(angle);
@@ -161,7 +157,6 @@ export function TagNodeGraph({ tagsData }: { tagsData: TagData[] | null }) {
                     stroke="#000"
                     strokeWidth="1"
                   />
-                  {/* Text now uses currentColor from the parent group (text-foreground) */}
                   <text
                     y={-NODE_RADIUS - 5}
                     textAnchor="middle"
@@ -181,7 +176,6 @@ export function TagNodeGraph({ tagsData }: { tagsData: TagData[] | null }) {
           })}
         </g>
 
-        {/* --- 3. DRAW TAG DOTS (CENTRAL NODES) --- */}
         <g className="tag-nodes">
           {visualTags.map((tag, tagIndex) => {
             const tagPos = tagPositions[tagIndex];
