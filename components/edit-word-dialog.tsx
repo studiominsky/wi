@@ -35,6 +35,18 @@ import { toast } from "sonner";
 import { updateWordEntry, deleteWordEntry } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
+const stringToTags = (s: string): string[] => {
+  return s
+    .split(/[,;\s]+/)
+    .map((tag) =>
+      tag
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+    )
+    .filter((tag) => tag.length > 0);
+};
+
 type WordEntry = {
   id: string | number;
   word: string;
@@ -42,6 +54,7 @@ type WordEntry = {
   notes: string | null;
   color: string | null;
   image_url: string | null;
+  tags: string[] | null;
 };
 
 type EditWordDialogProps = {
@@ -94,6 +107,9 @@ export function EditWordDialog({
   const [word, setWord] = useState(entry.word);
   const [translation, setTranslation] = useState(entry.translation);
   const [notes, setNotes] = useState(entry.notes || "");
+  const [tagsInput, setTagsInput] = useState(
+    entry.tags ? entry.tags.join(", ") : ""
+  );
   const [selectedColor, setSelectedColor] = useState(entry.color);
   const [loading, setLoading] = useState(false);
 
@@ -105,6 +121,7 @@ export function EditWordDialog({
     setWord(entry.word);
     setTranslation(entry.translation);
     setNotes(entry.notes || "");
+    setTagsInput(entry.tags ? entry.tags.join(", ") : "");
     setSelectedColor(entry.color);
     setCurrentImageUrl(entry.image_url);
     setImageFile(null);
@@ -204,6 +221,7 @@ export function EditWordDialog({
     }
 
     const table = isNativePhrase ? "user_translations" : "user_words";
+    const tagsArray = stringToTags(tagsInput);
 
     const result = await updateWordEntry({
       id: entry.id,
@@ -213,6 +231,7 @@ export function EditWordDialog({
       notes: notes,
       color: selectedColor,
       image_url: newImageUrl,
+      tags: tagsArray.length > 0 ? tagsArray : null,
     });
 
     if (result.error) {
@@ -232,6 +251,7 @@ export function EditWordDialog({
       setWord(entry.word);
       setTranslation(entry.translation);
       setNotes(entry.notes || "");
+      setTagsInput(entry.tags ? entry.tags.join(", ") : "");
       setSelectedColor(entry.color);
       setCurrentImageUrl(entry.image_url);
       setImageFile(null);
@@ -248,13 +268,19 @@ export function EditWordDialog({
     ? "German Translation (Editable)"
     : "Translation (Editable)";
 
+  const initialTagsArray = stringToTags(
+    entry.tags ? entry.tags.join(", ") : ""
+  );
+  const currentTagsArray = stringToTags(tagsInput);
+
   const hasUnsavedChanges =
     word.trim() !== entry.word.trim() ||
     translation.trim() !== entry.translation.trim() ||
     notes.trim() !== (entry.notes || "").trim() ||
     selectedColor !== entry.color ||
     currentImageUrl !== entry.image_url ||
-    imageFile !== null;
+    imageFile !== null ||
+    JSON.stringify(currentTagsArray) !== JSON.stringify(initialTagsArray);
 
   const imageAdded = Boolean(currentImageUrl || imagePreviewUrl);
 
@@ -300,6 +326,32 @@ export function EditWordDialog({
               onChange={(e) => setTranslation(e.target.value)}
               disabled={loading}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tags-input-edit">
+              Tags (comma or space separated)
+            </Label>
+            <Input
+              id="tags-input-edit"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="e.g., travel, food, casual"
+              disabled={loading}
+            />
+            <div className="flex flex-wrap gap-1 mt-1">
+              {tagsInput.split(/[,;\s]+/).map((tag, index) => {
+                const cleanTag = tag.trim().toLowerCase();
+                return cleanTag.length > 0 ? (
+                  <div
+                    key={index}
+                    className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs"
+                  >
+                    {cleanTag}
+                  </div>
+                ) : null;
+              })}
+            </div>
           </div>
 
           <div className="space-y-2">

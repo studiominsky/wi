@@ -5,6 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 
+function TagsDisplay({ tags }: { tags: string[] | null }) {
+  if (!tags || tags.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2 pt-4 border-t border-muted">
+      {tags.map((tag) => (
+        <Badge key={tag} variant="secondary" className="capitalize">
+          {tag}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
 function AiDataSection({ title, data }: { title: string; data: any }) {
   if (data === null || data === undefined || data === "") return null;
 
@@ -66,7 +79,7 @@ export default async function TranslationDetailPage({
 
   const { data: translationEntry, error } = await supabase
     .from("user_translations")
-    .select("*, notes, ai_data, translation, color, image_url")
+    .select("*, notes, ai_data, translation, color, image_url, tags")
     .eq("user_id", user.id)
     .eq("id", id)
     .single();
@@ -96,6 +109,7 @@ export default async function TranslationDetailPage({
     notes: translationEntry.notes,
     color: translationEntry.color,
     image_url: translationEntry.image_url,
+    tags: (translationEntry as any).tags || null,
   };
 
   return (
@@ -128,6 +142,8 @@ export default async function TranslationDetailPage({
         <p className="text-base italic text-muted-foreground mt-2">
           Translation to German
         </p>
+
+        <TagsDisplay tags={(translationEntry as any).tags} />
       </div>
 
       <div className="bg-muted p-4 ">

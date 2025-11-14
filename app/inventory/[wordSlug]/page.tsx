@@ -5,6 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 
+function TagsDisplay({ tags }: { tags: string[] | null }) {
+  if (!tags || tags.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2 pt-4 border-t border-muted">
+      {tags.map((tag) => (
+        <Badge key={tag} variant="secondary" className="capitalize">
+          {tag}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
 const CASE_ORDER_CANONICAL_CAPS = [
   "Nominative",
   "Accusative",
@@ -427,7 +440,7 @@ export default async function WordDetailPage({
 
   const { data: word, error } = await supabase
     .from("user_words")
-    .select("*, notes, ai_data, translation, color, image_url, id")
+    .select("*, notes, ai_data, translation, color, image_url, id, tags")
     .eq("user_id", user.id)
     .eq("language_id", languageId)
     .eq("word", decodedWord)
@@ -501,6 +514,7 @@ export default async function WordDetailPage({
     notes: word.notes,
     color: word.color,
     image_url: word.image_url,
+    tags: (word as any).tags || null,
   };
 
   return (
@@ -543,6 +557,8 @@ export default async function WordDetailPage({
             </p>
           )}
         </div>
+
+        <TagsDisplay tags={(word as any).tags} />
       </div>
 
       <div className="bg-muted p-4 ">

@@ -6,6 +6,7 @@ import {
   SignOutIcon,
   MoonIcon,
   SunIcon,
+  TagIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -107,7 +108,9 @@ export default function Header() {
             <div className="h-9 w-20 animate-pulse bg-muted rounded-md" />
           ) : user ? (
             <>
+              {navItem("/inventory", "Inventory")}
               {navItem("/translations", "Translations")}
+              {navItem("/tags", "Tags")}
               {navItem("/settings", "Settings")}
               <Link href="/profile">
                 <Button

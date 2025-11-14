@@ -76,6 +76,18 @@ const colorOptions = [
   },
 ];
 
+const stringToTags = (s: string): string[] => {
+  return s
+    .split(/[,;\s]+/)
+    .map((tag) =>
+      tag
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+    )
+    .filter((tag) => tag.length > 0);
+};
+
 export function AddWordDialog({
   userLanguages,
   currentLanguageId,
@@ -87,6 +99,7 @@ export function AddWordDialog({
   const [open, setOpen] = useState(false);
   const [word, setWord] = useState("");
   const [notes, setNotes] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -149,6 +162,7 @@ export function AddWordDialog({
   const resetForm = () => {
     setWord("");
     setNotes("");
+    setTagsInput("");
     setSelectedColor(null);
     setExamplesCount(3);
     setGenPhrases(true);
@@ -293,6 +307,7 @@ export function AddWordDialog({
         dbErrorOccurred = true;
 
         const targetTable = isNativePhrase ? "user_translations" : "user_words";
+        const tagsArray = stringToTags(tagsInput);
 
         let aiDataToSave = aiDataResponse.aiData;
         if (isNativePhrase) delete aiDataToSave.isNativePhrase;
@@ -306,6 +321,7 @@ export function AddWordDialog({
             translation: aiDataResponse.translation,
             ai_data: aiDataToSave,
             notes: notes || null,
+            tags: tagsArray.length > 0 ? tagsArray : null,
             color: selectedColor,
             image_url: image_url,
           })
@@ -449,6 +465,32 @@ export function AddWordDialog({
                 placeholder={wordInputPlaceholder}
                 disabled={loading || !currentLanguageId}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tags-input">
+                Tags (comma or space separated)
+              </Label>
+              <Input
+                id="tags-input"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="e.g., travel, food, casual"
+                disabled={loading}
+              />
+              <div className="flex flex-wrap gap-1 mt-1">
+                {tagsInput.split(/[,;\s]+/).map((tag, index) => {
+                  const cleanTag = tag.trim().toLowerCase();
+                  return cleanTag.length > 0 ? (
+                    <div
+                      key={index}
+                      className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs"
+                    >
+                      {cleanTag}
+                    </div>
+                  ) : null;
+                })}
+              </div>
             </div>
 
             <div className="space-y-2">

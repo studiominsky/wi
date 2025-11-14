@@ -47,6 +47,7 @@ export async function updateWordEntry({
   notes,
   color,
   image_url,
+  tags,
 }: {
   id: string | number;
   table: "user_words" | "user_translations";
@@ -55,6 +56,7 @@ export async function updateWordEntry({
   notes: string | null;
   color: string | null;
   image_url: string | null;
+  tags: string[] | null;
 }) {
   const supabase = await createClient();
 
@@ -88,6 +90,7 @@ export async function updateWordEntry({
     notes: notes?.trim() || null,
     color,
     image_url,
+    tags,
     updated_at: new Date().toISOString(),
   };
 
@@ -150,5 +153,117 @@ export async function deleteWordEntry({
   revalidatePath(revalidatePathname);
   revalidatePath(table === "user_words" ? "/inventory" : "/translations");
 
+  return { success: true };
+}
+
+export async function fetchUniqueTagsWithWords() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/tags");
+
+  const wordQuery = supabase
+    .from("user_words")
+    .select("id, word, translation, tags, color, image_url, ai_data")
+    .eq("user_id", user.id);
+
+  const translationQuery = supabase
+    .from("user_translations")
+    .select("id, word, translation, tags, color, image_url, ai_data")
+    .eq("user_id", user.id);
+
+  const [wordResults, translationResults] = await Promise.all([
+    wordQuery,
+    translationQuery,
+  ]);
+
+  if (wordResults.error || translationResults.error) {
+    console.error("Error fetching tagged entries:", {
+      word: wordResults.error,
+      translation: translationResults.error,
+    });
+    return null;
+  }
+
+  const allEntries = [
+    ...wordResults.data.map((e) => ({
+      ...e,
+      isNativePhrase: false,
+      wordDisplay: e.word,
+    })),
+    ...translationResults.data.map((e) => ({
+      ...e,
+      isNativePhrase: true,
+      wordDisplay: e.word,
+    })),
+  ];
+
+  const uniqueTags = new Set<string>();
+  allEntries.forEach((entry) => {
+    if (Array.isArray(entry.tags)) {
+      entry.tags.forEach((tag) => uniqueTags.add(tag));
+    }
+  });
+
+  const uniqueTagNames = Array.from(uniqueTags);
+
+  const { data: tagMetadata, error: metaError } = await supabase
+    .from("user_tags")
+    .select("tag_name, icon_name, color_class")
+    .in("tag_name", uniqueTagNames)
+    .eq("user_id", user.id);
+
+  const tagsData = uniqueTagNames.map((tagName) => {
+    const metadata = tagMetadata?.find((m) => m.tag_name === tagName);
+    const entries = allEntries.filter(
+      (entry) => Array.isArray(entry.tags) && entry.tags.includes(tagName)
+    );
+
+    return {
+      tag_name: tagName,
+      icon_name: metadata?.icon_name || "Tag",
+      color_class: metadata?.color_class || null,
+      count: entries.length,
+      entries: entries,
+    };
+  });
+
+  return tagsData.sort((a, b) => b.count - a.count);
+}
+
+export async function saveTagMetadata({
+  tagName,
+  iconName,
+  colorClass,
+}: {
+  tagName: string;
+  iconName: string;
+  colorClass: string | null;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "User not authenticated" };
+
+  const { error } = await supabase
+    .from("user_tags")
+    .upsert(
+      {
+        user_id: user.id,
+        tag_name: tagName,
+        icon_name: iconName,
+        color_class: colorClass,
+      },
+      { onConflict: "user_id, tag_name" }
+    )
+    .select();
+
+  if (error) {
+    return { error: `Database error: ${error.message}` };
+  }
+
+  revalidatePath("/tags");
   return { success: true };
 }

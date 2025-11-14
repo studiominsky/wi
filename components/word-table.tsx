@@ -61,6 +61,7 @@ interface Word {
   colorClass: string;
   notes: string | null;
   image_url: string | null;
+  tags: string[] | null;
 }
 
 type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
@@ -276,6 +277,7 @@ export function WordTable({
                 notes: word.notes,
                 color: word.color,
                 image_url: word.image_url,
+                tags: word.tags,
               };
 
               return (
