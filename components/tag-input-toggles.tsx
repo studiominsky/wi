@@ -41,6 +41,9 @@ export function TagInputToggles({
   const [existingTags, setExistingTags] = useState<ExistingTag[]>([]);
   const [loadingTags, setLoadingTags] = useState(true);
   const [newTagInput, setNewTagInput] = useState("");
+  const [newlyAddedTagsForDisplay, setNewlyAddedTagsForDisplay] = useState<
+    ExistingTag[]
+  >([]);
 
   useEffect(() => {
     async function loadTags() {
@@ -63,29 +66,28 @@ export function TagInputToggles({
   }, []);
 
   const allDisplayTags = useMemo(() => {
-    const selectedTagsSet = new Set(currentTags);
-    const combinedTags: ExistingTag[] = [...existingTags];
+    const tagMap = new Map<string, ExistingTag>();
 
-    selectedTagsSet.forEach((tag) => {
-      if (!existingTags.find((e) => e.tag_name === tag)) {
-        combinedTags.push({ tag_name: tag, color_class: null });
+    [...existingTags, ...newlyAddedTagsForDisplay].forEach((tag) => {
+      tagMap.set(tag.tag_name, tag);
+    });
+
+    currentTags.forEach((tag_name) => {
+      if (!tagMap.has(tag_name)) {
+        tagMap.set(tag_name, { tag_name, color_class: null });
       }
     });
 
-    return combinedTags
-      .reduce((acc, tag) => {
-        if (!acc.find((t) => t.tag_name === tag.tag_name)) {
-          acc.push(tag);
-        }
-        return acc;
-      }, [] as ExistingTag[])
-      .sort((a, b) => a.tag_name.localeCompare(b.tag_name));
-  }, [existingTags, currentTags]);
+    return Array.from(tagMap.values()).sort((a, b) =>
+      a.tag_name.localeCompare(b.tag_name)
+    );
+  }, [existingTags, newlyAddedTagsForDisplay, currentTags]);
 
   const normalizedCurrentTags = useMemo(
     () => currentTags.map(normalizeTag),
     [currentTags]
   );
+
   const isTagSelected = (tag: ExistingTag) =>
     normalizedCurrentTags.includes(tag.tag_name);
 
@@ -107,10 +109,30 @@ export function TagInputToggles({
   const handleAddNewTag = () => {
     const newTags = stringToTags(newTagInput);
     if (newTags.length > 0) {
-      const uniqueNewTags = newTags.filter((tag) => !currentTags.includes(tag));
-      if (uniqueNewTags.length > 0) {
-        onChange([...currentTags, ...uniqueNewTags]);
+      const uniqueNewSelectedTags: string[] = [];
+      const uniqueNewDisplayTags: ExistingTag[] = [];
+
+      newTags.forEach((tag) => {
+        if (!allDisplayTags.find((t) => t.tag_name === tag)) {
+          uniqueNewDisplayTags.push({ tag_name: tag, color_class: null });
+        }
+
+        if (!currentTags.includes(tag)) {
+          uniqueNewSelectedTags.push(tag);
+        }
+      });
+
+      if (uniqueNewDisplayTags.length > 0) {
+        setNewlyAddedTagsForDisplay((prev) => [
+          ...prev,
+          ...uniqueNewDisplayTags,
+        ]);
       }
+
+      if (uniqueNewSelectedTags.length > 0) {
+        onChange([...currentTags, ...uniqueNewSelectedTags]);
+      }
+
       setNewTagInput("");
     }
   };
@@ -137,25 +159,33 @@ export function TagInputToggles({
           ) : (
             <>
               {!loadingTags &&
-                allDisplayTags.map((tag) => (
-                  <Toggle
-                    key={tag.tag_name}
-                    size="sm"
-                    pressed={isTagSelected(tag)}
-                    onPressedChange={(isPressed) =>
-                      handleToggle(tag, isPressed)
-                    }
-                    disabled={isParentLoading || loadingTags}
-                    className={cn("capitalize")}
-                  >
-                    {isTagSelected(tag) && (
-                      <CheckIcon className="absolute left-2 size-4 transition-all duration-200 opacity-100 scale-100 translate-x-0" />
-                    )}
-                    <span className={cn(isTagSelected(tag) && "")}>
-                      {tag.tag_name}
-                    </span>
-                  </Toggle>
-                ))}
+                allDisplayTags.map((tag) => {
+                  const selected = isTagSelected(tag);
+
+                  return (
+                    <Toggle
+                      key={tag.tag_name}
+                      size="sm"
+                      pressed={selected}
+                      onPressedChange={(isPressed) =>
+                        handleToggle(tag, isPressed)
+                      }
+                      disabled={isParentLoading || loadingTags}
+                      className={cn("capitalize group relative")}
+                    >
+                      <CheckIcon
+                        className={cn(
+                          "absolute left-2 size-4 transition-all duration-200",
+                          selected
+                            ? "opacity-100 scale-100 translate-x-0"
+                            : "opacity-0 scale-75 -translate-x-1"
+                        )}
+                      />
+
+                      <span className={cn(selected && "")}>{tag.tag_name}</span>
+                    </Toggle>
+                  );
+                })}
             </>
           )}
         </div>
@@ -191,15 +221,19 @@ export function TagInputToggles({
       {newTagInput && (
         <div className="flex flex-wrap gap-1 mt-1">
           {currentNewTags.map((tag, index) => {
-            const isAlreadySelected = normalizedCurrentTags.includes(tag);
-            return !isAlreadySelected ? (
+            // Check if tag is currently in the full display list (already added or existing in DB)
+            const isAlreadyOption = allDisplayTags.some(
+              (t) => t.tag_name === tag
+            );
+
+            return !isAlreadyOption ? (
               <div
                 key={index}
                 className={cn(
-                  "bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs transition-colors"
+                  "bg-muted text-muted-foreground px-2 py-0.5 rounded-full text-xs"
                 )}
               >
-                {tag} (New)
+                {tag} (New - Press + to add as option)
               </div>
             ) : null;
           })}

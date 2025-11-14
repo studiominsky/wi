@@ -68,15 +68,8 @@ export function TagDetailsClient({ tagData }: TagDetailsClientProps) {
 
       <div className={cn("p-4 rounded-lg", tagData.color_class)}>
         <div className="flex items-center gap-4 mb-4">
-          <div
-            className={cn(
-              "p-3 rounded-full border-2",
-              tagData.color_class
-                ? "bg-white/30 dark:bg-black/30 border-white/50 dark:border-black/50"
-                : "bg-muted/50 border-border"
-            )}
-          >
-            <TagIconComponent className="size-8" weight="bold" />
+          <div>
+            <TagIconComponent className="size-16" weight="bold" />
           </div>
           <div>
             <h1 className="text-4xl font-bold capitalize">

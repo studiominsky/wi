@@ -122,7 +122,6 @@ export function EditTagDialog({
             Customize the icon and color for this tag.
           </DialogDescription>
         </DialogHeader>
-        {/* START: Live Preview Section */}
         <div
           className={cn(
             "flex items-center gap-2 p-3 rounded-lg border",

@@ -68,7 +68,6 @@ export function TagActionMenu({
       toast.success(`Tag "${tag.tag_name}" metadata deleted successfully!`, {
         id: toastId,
       });
-      // CRITICAL CHANGE: Rely on parent (onTagUpdated) to handle navigation/refresh.
       onTagUpdated();
     }
     setLoading(false);
@@ -132,12 +131,10 @@ export function TagActionMenu({
         <DialogHeader>
           <DialogTitle>Confirm Tag Deletion</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete the **custom metadata** (icon/color)
-            for tag "<span className="font-semibold">{tag.tag_name}</span>"? The
-            tag will remain on your entries.
+            Are you sure you want to delete the {tag.tag_name}?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-between flex-row">
+        <DialogFooter className="sm:justify-end flex-row">
           <DialogClose asChild>
             <Button type="button" variant="outline" disabled={loading}>
               Cancel
@@ -149,7 +146,7 @@ export function TagActionMenu({
             onClick={handleConfirmDelete}
             disabled={loading}
           >
-            Delete Metadata
+            Delete Tag
           </Button>
         </DialogFooter>
       </DialogContent>
