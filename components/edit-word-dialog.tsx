@@ -34,18 +34,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { updateWordEntry, deleteWordEntry } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { TagInputToggles } from "@/components/tag-input-toggles";
 
-const stringToTags = (s: string): string[] => {
-  return s
-    .split(/[,;\s]+/)
-    .map((tag) =>
-      tag
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-    )
-    .filter((tag) => tag.length > 0);
-};
+// Removed stringToTags utility as logic is now in TagInputToggles
 
 type WordEntry = {
   id: string | number;
@@ -107,9 +98,7 @@ export function EditWordDialog({
   const [word, setWord] = useState(entry.word);
   const [translation, setTranslation] = useState(entry.translation);
   const [notes, setNotes] = useState(entry.notes || "");
-  const [tagsInput, setTagsInput] = useState(
-    entry.tags ? entry.tags.join(", ") : ""
-  );
+  const [tags, setTags] = useState<string[]>(entry.tags || []);
   const [selectedColor, setSelectedColor] = useState(entry.color);
   const [loading, setLoading] = useState(false);
 
@@ -121,7 +110,7 @@ export function EditWordDialog({
     setWord(entry.word);
     setTranslation(entry.translation);
     setNotes(entry.notes || "");
-    setTagsInput(entry.tags ? entry.tags.join(", ") : "");
+    setTags(entry.tags || []);
     setSelectedColor(entry.color);
     setCurrentImageUrl(entry.image_url);
     setImageFile(null);
@@ -221,7 +210,7 @@ export function EditWordDialog({
     }
 
     const table = isNativePhrase ? "user_translations" : "user_words";
-    const tagsArray = stringToTags(tagsInput);
+    const tagsArray = tags;
 
     const result = await updateWordEntry({
       id: entry.id,
@@ -251,7 +240,7 @@ export function EditWordDialog({
       setWord(entry.word);
       setTranslation(entry.translation);
       setNotes(entry.notes || "");
-      setTagsInput(entry.tags ? entry.tags.join(", ") : "");
+      setTags(entry.tags || []);
       setSelectedColor(entry.color);
       setCurrentImageUrl(entry.image_url);
       setImageFile(null);
@@ -268,11 +257,6 @@ export function EditWordDialog({
     ? "German Translation (Editable)"
     : "Translation (Editable)";
 
-  const initialTagsArray = stringToTags(
-    entry.tags ? entry.tags.join(", ") : ""
-  );
-  const currentTagsArray = stringToTags(tagsInput);
-
   const hasUnsavedChanges =
     word.trim() !== entry.word.trim() ||
     translation.trim() !== entry.translation.trim() ||
@@ -280,7 +264,7 @@ export function EditWordDialog({
     selectedColor !== entry.color ||
     currentImageUrl !== entry.image_url ||
     imageFile !== null ||
-    JSON.stringify(currentTagsArray) !== JSON.stringify(initialTagsArray);
+    JSON.stringify(tags) !== JSON.stringify(entry.tags || []);
 
   const imageAdded = Boolean(currentImageUrl || imagePreviewUrl);
 
@@ -328,31 +312,11 @@ export function EditWordDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tags-input-edit">
-              Tags (comma or space separated)
-            </Label>
-            <Input
-              id="tags-input-edit"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="e.g., travel, food, casual"
-              disabled={loading}
-            />
-            <div className="flex flex-wrap gap-1 mt-1">
-              {tagsInput.split(/[,;\s]+/).map((tag, index) => {
-                const cleanTag = tag.trim().toLowerCase();
-                return cleanTag.length > 0 ? (
-                  <div
-                    key={index}
-                    className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs"
-                  >
-                    {cleanTag}
-                  </div>
-                ) : null;
-              })}
-            </div>
-          </div>
+          <TagInputToggles
+            currentTags={tags}
+            onChange={setTags}
+            isLoading={loading}
+          />
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">

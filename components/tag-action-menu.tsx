@@ -68,9 +68,8 @@ export function TagActionMenu({
       toast.success(`Tag "${tag.tag_name}" metadata deleted successfully!`, {
         id: toastId,
       });
-      onTagUpdated(); // Update the client state immediately
-      router.push("/tags");
-      router.refresh(); // Ensure full page state refreshes after navigation
+      // CRITICAL CHANGE: Rely on parent (onTagUpdated) to handle navigation/refresh.
+      onTagUpdated();
     }
     setLoading(false);
   };

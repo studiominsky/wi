@@ -38,15 +38,13 @@ export function TagCard({
   const CardIcon = iconComponentMap[tag.icon_name] || TagIcon;
 
   const cardClasses = cn(
-    "relative flex flex-col justify-between p-4 h-48 rounded-lg shadow-md transition-shadow hover:shadow-lg cursor-pointer",
+    "relative flex flex-col justify-between p-4 rounded cursor-pointer",
     tag.color_class || "bg-card/50 border border-border"
   );
 
   const iconClasses = cn(
-    "size-16 transition-transform group-hover:scale-105",
-    tag.color_class
-      ? "text-white/80 dark:text-foreground/80"
-      : "text-muted-foreground"
+    "size-16 transition-transform group-hover:scale-110",
+    !tag.color_class && "text-muted-foreground"
   );
 
   const metadata = {
@@ -56,7 +54,13 @@ export function TagCard({
   };
 
   return (
-    <div className={cardClasses} role="button">
+    <div
+      className={cn(
+        cardClasses,
+        "group transition-all duration-300 aspect-square group-hover:scale-[1.03] group-hover:-translate-y-1"
+      )}
+      role="button"
+    >
       <Link
         href={`/tags/${encodeURIComponent(tag.tag_name)}`}
         className="absolute inset-0 z-10"

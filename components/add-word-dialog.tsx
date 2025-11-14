@@ -36,6 +36,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { TagInputToggles } from "./tag-input-toggles";
 
 type UserLanguage = { id: string; language_name: string };
 
@@ -76,18 +77,6 @@ const colorOptions = [
   },
 ];
 
-const stringToTags = (s: string): string[] => {
-  return s
-    .split(/[,;\s]+/)
-    .map((tag) =>
-      tag
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-    )
-    .filter((tag) => tag.length > 0);
-};
-
 export function AddWordDialog({
   userLanguages,
   currentLanguageId,
@@ -99,7 +88,7 @@ export function AddWordDialog({
   const [open, setOpen] = useState(false);
   const [word, setWord] = useState("");
   const [notes, setNotes] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -162,7 +151,7 @@ export function AddWordDialog({
   const resetForm = () => {
     setWord("");
     setNotes("");
-    setTagsInput("");
+    setTags([]);
     setSelectedColor(null);
     setExamplesCount(3);
     setGenPhrases(true);
@@ -307,7 +296,7 @@ export function AddWordDialog({
         dbErrorOccurred = true;
 
         const targetTable = isNativePhrase ? "user_translations" : "user_words";
-        const tagsArray = stringToTags(tagsInput);
+        const tagsArray = tags;
 
         let aiDataToSave = aiDataResponse.aiData;
         if (isNativePhrase) delete aiDataToSave.isNativePhrase;
@@ -467,31 +456,11 @@ export function AddWordDialog({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tags-input">
-                Tags (comma or space separated)
-              </Label>
-              <Input
-                id="tags-input"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                placeholder="e.g., travel, food, casual"
-                disabled={loading}
-              />
-              <div className="flex flex-wrap gap-1 mt-1">
-                {tagsInput.split(/[,;\s]+/).map((tag, index) => {
-                  const cleanTag = tag.trim().toLowerCase();
-                  return cleanTag.length > 0 ? (
-                    <div
-                      key={index}
-                      className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs"
-                    >
-                      {cleanTag}
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </div>
+            <TagInputToggles
+              currentTags={tags}
+              onChange={setTags}
+              isLoading={loading}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="word-notes">Notes</Label>
@@ -500,7 +469,7 @@ export function AddWordDialog({
                 placeholder="e.g., Personal reminder..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[120px]"
+                className="min-h-[75px]"
                 disabled={loading}
               />
             </div>
@@ -516,7 +485,7 @@ export function AddWordDialog({
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   className={cn(
-                    "flex h-24 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
+                    "flex h-22 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-input bg-transparent text-sm text-muted-foreground transition-colors hover:border-primary/50",
                     loading && "pointer-events-none opacity-50"
                   )}
                 >
@@ -616,7 +585,7 @@ export function AddWordDialog({
                 )}
             </div>
 
-            <div className="space-y-3 pt-3 border-t">
+            <div className="space-y-5 pt-3 border-t">
               <Label id="examples-count-label">Number of Examples</Label>
               <div className="flex items-center justify-center gap-2">
                 <Button

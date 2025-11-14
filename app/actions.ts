@@ -239,17 +239,61 @@ export async function deleteTagMetadata({ tagName }: { tagName: string }) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { error } = await supabase
+  const { error: metaDeleteError } = await supabase
     .from("user_tags")
     .delete()
     .eq("user_id", user.id)
     .eq("tag_name", tagName);
 
-  if (error) {
-    return { error: `Database error: ${error.message}` };
+  if (metaDeleteError) {
+    return {
+      error: `Database error deleting metadata: ${metaDeleteError.message}`,
+    };
   }
 
+  const removeTagFromTable = async (
+    table: "user_words" | "user_translations"
+  ) => {
+    const { data, error } = await supabase
+      .from(table)
+      .select("id, tags")
+      .contains("tags", [tagName])
+      .eq("user_id", user.id);
+
+    if (error || !data?.length) {
+      if (error) {
+        console.error(`Error fetching rows from ${table}:`, error);
+      }
+      return;
+    }
+
+    await Promise.all(
+      data.map((row) => {
+        const filteredTags = (row.tags || []).filter(
+          (t: string) => t !== tagName
+        );
+
+        return supabase
+          .from(table)
+          .update({
+            tags: filteredTags.length ? filteredTags : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", row.id)
+          .eq("user_id", user.id);
+      })
+    );
+  };
+
+  await Promise.all([
+    removeTagFromTable("user_words"),
+    removeTagFromTable("user_translations"),
+  ]);
+
+  revalidatePath("/inventory");
+  revalidatePath("/translations");
   revalidatePath("/tags");
+
   return { success: true };
 }
 

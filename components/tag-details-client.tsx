@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { TagActionMenu } from "@/components/tag-action-menu";
 import { TagIcon, Icon } from "@phosphor-icons/react";
 import { TagIconMap } from "@/lib/tag-icons";
-import { useRouter } from "next/navigation"; // ADDED
+import { useRouter } from "next/navigation";
 
 interface TagEntry {
   id: string | number;
@@ -47,10 +47,10 @@ const getEntryLink = (entry: TagEntry) =>
 
 export function TagDetailsClient({ tagData }: TagDetailsClientProps) {
   const TagIconComponent = iconComponentMap[tagData.icon_name] || TagIcon;
-  const router = useRouter(); // ADDED
+  const router = useRouter();
 
   const handleTagUpdated = () => {
-    // ADDED
+    router.push("/tags");
     router.refresh();
   };
 
