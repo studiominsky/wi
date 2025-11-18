@@ -87,7 +87,7 @@ export default function TagsPageContent({
       <Tabs defaultValue="cards" className="w-full">
         <TabsList className="grid w-full grid-cols-2 max-w-sm">
           <TabsTrigger value="cards">Card View</TabsTrigger>
-          <TabsTrigger value="nodes">Node Graph</TabsTrigger>
+          <TabsTrigger value="nodes">Graph View</TabsTrigger>
         </TabsList>
         <TabsContent value="cards" className="py-4">
           <TagListView tagsData={tagsData} onTagUpdated={refreshTags} />

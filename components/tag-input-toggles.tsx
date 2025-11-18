@@ -221,7 +221,6 @@ export function TagInputToggles({
       {newTagInput && (
         <div className="flex flex-wrap gap-1 mt-1">
           {currentNewTags.map((tag, index) => {
-            // Check if tag is currently in the full display list (already added or existing in DB)
             const isAlreadyOption = allDisplayTags.some(
               (t) => t.tag_name === tag
             );

@@ -44,7 +44,7 @@ interface TagData {
   entries: TagEntry[];
 }
 
-const iconComponentMap: Record<string, Icon> = TagIconMap;
+const _iconComponentMap: Record<string, Icon> = TagIconMap;
 
 const MAX_NODES_PER_TAG = 4;
 
@@ -63,6 +63,7 @@ type EntryGraphNode = NodeObject & {
   wordDisplay: string;
   translation: string;
   isNativePhrase: boolean;
+  colorClass: string | null;
 };
 
 type GraphNode = TagGraphNode | EntryGraphNode;
@@ -85,19 +86,35 @@ const getTagColors = (colorClass: string | null) => {
   }
 };
 
+const getEntryColors = (colorClass: string | null) => {
+  switch (colorClass) {
+    case "tag-color-teal":
+      return { bg: "#2d9c94", text: "#e5f9f4" };
+    case "tag-color-blue":
+      return { bg: "#4277f0", text: "#e0ecff" };
+    case "tag-color-orange":
+      return { bg: "#d97706", text: "#ffe7d1" };
+    case "tag-color-red":
+      return { bg: "#dc2626", text: "#ffe2e2" };
+    case "tag-color-purple":
+      return { bg: "#9333ea", text: "#f3e8ff" };
+    default:
+      return { bg: "#6b7280", text: "#e5e7eb" };
+  }
+};
+
 function paintGraphNode(
   nodeObj: NodeObject,
   ctx: CanvasRenderingContext2D,
   globalScale: number
 ) {
   const node = nodeObj as GraphNode;
-  const label =
-    node.kind === "tag" ? node.tagName : (node as EntryGraphNode).wordDisplay;
-  const fontSize = node.kind === "tag" ? 12 / globalScale : 10 / globalScale;
 
   if (node.kind === "tag") {
+    const label = node.tagName;
     const colors = getTagColors(node.colorClass ?? null);
-    const radius = 14;
+    const radius = 16;
+    const fontSize = 12 / globalScale;
 
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
@@ -107,13 +124,12 @@ function paintGraphNode(
     ctx.strokeStyle = "#020617";
     ctx.stroke();
 
-    ctx.font = `${11 / globalScale}px sans-serif`;
+    ctx.font = `${10 / globalScale}px system-ui`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = colors.text;
-    const textInside =
-      node.tagName.length > 0 ? node.tagName[0].toUpperCase() : "T";
-    ctx.fillText(textInside, node.x!, node.y!);
+    const glyph = label;
+    ctx.fillText(glyph, node.x!, node.y!);
 
     if (globalScale > 0.4) {
       ctx.font = `${fontSize}px system-ui`;
@@ -124,19 +140,33 @@ function paintGraphNode(
     }
   } else {
     const entry = node as EntryGraphNode;
-    const radius = 6;
+    const colors = getEntryColors(entry.colorClass ?? null);
+    const radius = 7;
+    const fontSize = 10 / globalScale;
 
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = entry.isNativePhrase ? "#0ea5e9" : "#22c55e";
+    ctx.fillStyle = colors.bg;
     ctx.fill();
 
     if (globalScale > 1) {
-      ctx.font = `${fontSize}px monospace`;
+      const german = entry.isNativePhrase
+        ? entry.translation
+        : entry.wordDisplay;
+      const native = entry.isNativePhrase
+        ? entry.wordDisplay
+        : entry.translation;
+
+      ctx.font = `${fontSize}px system-ui`;
       ctx.textAlign = "center";
+
       ctx.textBaseline = "bottom";
-      ctx.fillStyle = "#cbd5f5";
-      ctx.fillText(label, node.x!, node.y! - radius - 2 / globalScale);
+      ctx.fillStyle = "#e5e7eb";
+      ctx.fillText(german, node.x!, node.y! - radius - 2 / globalScale);
+
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "#9ca3af";
+      ctx.fillText(native, node.x!, node.y! + radius + 2 / globalScale);
     }
   }
 }
@@ -147,16 +177,15 @@ function paintPointerArea(
   ctx: CanvasRenderingContext2D
 ) {
   const node = nodeObj as GraphNode;
-
   ctx.fillStyle = color;
 
   if (node.kind === "tag") {
-    const radius = 16;
+    const radius = 20;
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
     ctx.fill();
   } else {
-    const radius = 8;
+    const radius = 10;
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
     ctx.fill();
@@ -166,10 +195,10 @@ function paintPointerArea(
 export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   const fgRef = useRef<ForceGraphMethods | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [size, setSize] = useState({ width: 800, height: 400 });
-  const [hasInitialFit, setHasInitialFit] = useState(false);
 
-  // Empty state
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [forcesConfigured, setForcesConfigured] = useState(false);
+
   if (!tagsData || tagsData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] border-2 border-dashed rounded-lg p-8 bg-muted/20">
@@ -189,38 +218,52 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
       .sort((a, b) => a.tag_name.localeCompare(b.tag_name))
       .slice(0, 10);
 
-    const nodes: GraphNode[] = [];
+    const nodesMap = new Map<string, GraphNode>();
     const links: GraphLink[] = [];
+
+    const entryKeyToId = new Map<string, string>();
+    let entryCounter = 0;
 
     tagsToDisplay.forEach((tag) => {
       const tagId = `tag-${tag.tag_name}`;
-      const colors = getTagColors(tag.color_class);
+      const tagColors = getTagColors(tag.color_class);
 
-      nodes.push({
-        id: tagId,
-        kind: "tag",
-        tagName: tag.tag_name,
-        iconName: tag.icon_name,
-        colorClass: tag.color_class,
-        count: tag.count,
-        name: tag.tag_name,
-        color: colors.bg,
-        val: 6 + Math.min(tag.entries.length, MAX_NODES_PER_TAG),
-      } as TagGraphNode);
+      if (!nodesMap.has(tagId)) {
+        nodesMap.set(tagId, {
+          id: tagId,
+          kind: "tag",
+          tagName: tag.tag_name,
+          iconName: tag.icon_name,
+          colorClass: tag.color_class,
+          count: tag.count,
+          name: tag.tag_name,
+          color: tagColors.bg,
+          val: 30,
+        } as TagGraphNode);
+      }
 
-      tag.entries.slice(0, MAX_NODES_PER_TAG).forEach((entry, idx) => {
-        const entryId = `entry-${tag.tag_name}-${entry.id}-${idx}`;
+      tag.entries.slice(0, MAX_NODES_PER_TAG).forEach((entry) => {
+        const key = `${entry.wordDisplay}::${entry.translation}`;
+        let entryId = entryKeyToId.get(key);
 
-        nodes.push({
-          id: entryId,
-          kind: "entry",
-          wordDisplay: entry.wordDisplay,
-          translation: entry.translation,
-          isNativePhrase: entry.isNativePhrase,
-          name: entry.wordDisplay,
-          color: entry.isNativePhrase ? "#0ea5e9" : "#22c55e",
-          val: 2,
-        } as EntryGraphNode);
+        if (!entryId) {
+          entryId = `entry-${entryCounter++}`;
+          entryKeyToId.set(key, entryId);
+
+          const entryColors = getEntryColors(tag.color_class);
+
+          nodesMap.set(entryId, {
+            id: entryId,
+            kind: "entry",
+            wordDisplay: entry.wordDisplay,
+            translation: entry.translation,
+            isNativePhrase: entry.isNativePhrase,
+            name: entry.wordDisplay,
+            colorClass: tag.color_class,
+            color: entryColors.bg,
+            val: 3,
+          } as EntryGraphNode);
+        }
 
         links.push({
           source: tagId,
@@ -229,10 +272,12 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
       });
     });
 
-    return { tagsToDisplay, graphData: { nodes, links } };
+    return {
+      tagsToDisplay,
+      graphData: { nodes: Array.from(nodesMap.values()), links },
+    };
   }, [tagsData]);
 
-  // If still nothing after filtering
   if (tagsToDisplay.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] border-2 border-dashed rounded-lg p-8 bg-muted/20">
@@ -247,17 +292,16 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   }
 
   useEffect(() => {
-    setHasInitialFit(false);
-  }, [tagsData]);
+    setForcesConfigured(false);
+  }, [graphData]);
 
   useEffect(() => {
     const updateSize = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      setSize({
-        width: rect.width,
-        height: rect.height,
-      });
+      if (rect.width && rect.height) {
+        setSize({ width: rect.width, height: rect.height });
+      }
     };
 
     updateSize();
@@ -279,18 +323,19 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   const nodeLabel = (nodeObj: NodeObject) => {
     const node = nodeObj as GraphNode;
     if (node.kind === "tag") {
-      return `${node.tagName} (${node.count})`;
+      return `${node.tagName} (${node.count} entries)`;
     }
     const e = node as EntryGraphNode;
-    return `${e.wordDisplay} – ${e.translation}`;
+    const german = e.isNativePhrase ? e.translation : e.wordDisplay;
+    const native = e.isNativePhrase ? e.wordDisplay : e.translation;
+    return `German: ${german}\nNative: ${native}`;
   };
 
   const handleNodeClick = (nodeObj: NodeObject) => {
     const node = nodeObj as GraphNode;
     if (!fgRef.current || node.x == null || node.y == null) return;
 
-    fgRef.current.centerAt(node.x, node.y, 600);
-    fgRef.current.zoom(2, 600);
+    fgRef.current.centerAt(node.x, node.y, 400);
   };
 
   const zoomIn = () => {
@@ -307,7 +352,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
 
   const fitView = () => {
     if (!fgRef.current) return;
-    fgRef.current.zoomToFit(400, 40);
+    fgRef.current.zoomToFit(0, 40);
   };
 
   return (
@@ -317,30 +362,42 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
         className="relative w-full"
         style={{ height: "60vh", minHeight: 380 }}
       >
-        <ForceGraph2D
-          ref={fgRef as any}
-          graphData={graphData}
-          width={size.width}
-          height={size.height}
-          nodeCanvasObject={nodeCanvasObject}
-          nodePointerAreaPaint={paintPointerArea}
-          nodeLabel={nodeLabel}
-          backgroundColor="transparent"
-          linkColor={() => "rgba(148,163,184,0.6)"}
-          linkWidth={1.2}
-          linkCurvature={0}
-          linkDirectionalParticles={0}
-          cooldownTicks={70}
-          d3VelocityDecay={0.9}
-          onNodeClick={handleNodeClick}
-          onEngineStop={() => {
-            if (!fgRef.current) return;
-            if (!hasInitialFit) {
-              fgRef.current.zoomToFit(400, 40);
-              setHasInitialFit(true);
-            }
-          }}
-        />
+        {size.width > 0 && size.height > 0 && (
+          <ForceGraph2D
+            ref={fgRef as any}
+            graphData={graphData}
+            width={size.width}
+            height={size.height}
+            nodeCanvasObject={nodeCanvasObject}
+            nodePointerAreaPaint={paintPointerArea}
+            nodeLabel={nodeLabel}
+            backgroundColor="transparent"
+            linkColor={() => "rgba(148,163,184,0.6)"}
+            linkWidth={1.2}
+            linkCurvature={0}
+            linkDirectionalParticles={0}
+            cooldownTicks={70}
+            d3VelocityDecay={0.9}
+            onNodeClick={handleNodeClick}
+            onEngineTick={() => {
+              if (forcesConfigured || !fgRef.current) return;
+              const fg = fgRef.current as any;
+
+              const chargeForce = fg.d3Force?.("charge");
+              if (chargeForce && typeof chargeForce.strength === "function") {
+                chargeForce.strength(-800).distanceMax(600);
+              }
+
+              const linkForce = fg.d3Force?.("link");
+              if (linkForce && typeof linkForce.distance === "function") {
+                linkForce.distance(40).strength(0.8);
+              }
+
+              fg.d3ReheatSimulation?.();
+              setForcesConfigured(true);
+            }}
+          />
+        )}
 
         <div className="absolute bottom-3 right-3 flex flex-col gap-1">
           <button
@@ -373,16 +430,19 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
       <div className="p-4 bg-muted/60 text-xs md:text-sm text-muted-foreground flex justify-between flex-wrap gap-2">
         <span>
           Displaying {tagsToDisplay.length} of {tagsData.length} tags and up to{" "}
-          {MAX_NODES_PER_TAG} entries per tag.
+          {MAX_NODES_PER_TAG} entries per tag (deduplicated).
         </span>
         <span className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#22c55e]" />
-            Word
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#0ea5e9]" />
-            Translation
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-full"
+              style={{
+                backgroundColor: getEntryColors(
+                  tagsToDisplay[0]?.color_class || null
+                ).bg,
+              }}
+            />
+            Entry nodes (German + native)
           </span>
         </span>
       </div>
