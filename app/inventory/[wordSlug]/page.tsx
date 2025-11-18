@@ -615,10 +615,10 @@ export default async function WordDetailPage({
 
             <div className="md:col-span-1 flex flex-col justify-end items-end gap-4 order-1 md:order-2">
               {word.image_url && (
-                <div className="relative aspect-video w-full max-w-sm md:max-w-none overflow-hidden">
+                <div className="relative aspect-[1.2] w-full max-w-sm overflow-hidden rounded-md bg-muted">
                   <ImageWithErrorBoundary
                     src={word.image_url}
-                    alt={`Image for the word ${word.word}`}
+                    alt={`Image for the word ${decodedWord}`}
                   />
                 </div>
               )}

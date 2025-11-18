@@ -7,6 +7,8 @@ interface ImageWithErrorBoundaryProps {
   src: string;
   alt: string;
   className?: string;
+  rounded?: boolean;
+  fallbackText?: string;
 }
 
 export function ImageWithErrorBoundary({
