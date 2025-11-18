@@ -39,6 +39,41 @@ export async function updateSortPreference(newSortPreference: string) {
   return { success: true };
 }
 
+export async function updateItemsPerPagePreference(newItemsPerPage: number) {
+  const cookieStore = cookies();
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "User not authenticated" };
+  }
+
+  const validSizes = [10, 25, 50, 100];
+  if (!validSizes.includes(newItemsPerPage)) {
+    return { error: "Invalid items per page value" };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      items_per_page: newItemsPerPage,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    return { error: `Database error: ${error.message}` };
+  }
+
+  revalidatePath("/inventory");
+  revalidatePath("/translations");
+  return { success: true };
+}
+
 export async function updateWordEntry({
   id,
   table,

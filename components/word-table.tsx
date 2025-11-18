@@ -50,6 +50,9 @@ import {
 } from "@/components/ui/pagination";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { useRouter } from "next/navigation";
+import { updateItemsPerPagePreference } from "@/app/actions";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 interface Word {
   id: string | number;
@@ -69,6 +72,7 @@ type SortPreference = "date_desc" | "date_asc" | "alpha_asc" | "alpha_desc";
 interface WordTableProps {
   words: Word[];
   currentSortPreference: SortPreference;
+  currentItemsPerPage: number;
   isNativeInventory?: boolean;
 }
 
@@ -136,6 +140,7 @@ function CategoryCombobox({
 export function WordTable({
   words: initialWords,
   currentSortPreference,
+  currentItemsPerPage,
   isNativeInventory = false,
 }: WordTableProps) {
   const router = useRouter();
@@ -144,13 +149,19 @@ export function WordTable({
   const [selectedCategory, setSelectedCategory] = React.useState("All");
 
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [itemsPerPage, setItemsPerPage] = React.useState(currentItemsPerPage);
+  const [isPending, startTransition] = useTransition();
 
   const itemsPerPageOptions = [10, 25, 50, 100];
 
   React.useEffect(() => {
     setWords(initialWords);
   }, [initialWords]);
+
+  React.useEffect(() => {
+    setItemsPerPage(currentItemsPerPage);
+    setCurrentPage(1);
+  }, [currentItemsPerPage]);
 
   const categoryOptions = React.useMemo(() => {
     const unique = new Set<string>();
@@ -190,7 +201,7 @@ export function WordTable({
 
   const paginatedWords = React.useMemo(() => {
     return filteredWords.slice(startIdx, endIdx);
-  }, [filteredWords, startIdx, endIdx]);
+  }, [filteredWords, startIdx, endIdx, itemsPerPage]);
 
   const goToNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
@@ -202,8 +213,18 @@ export function WordTable({
 
   const handleItemsPerPageChange = (value: string) => {
     const newItemsPerPage = Number(value);
+
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
+
+    startTransition(async () => {
+      const result = await updateItemsPerPagePreference(newItemsPerPage);
+      if (result?.error) {
+        toast.error(
+          `Failed to save items per page preference: ${result.error}`
+        );
+      }
+    });
   };
 
   const getLinkHref = (word: Word) =>
@@ -352,8 +373,9 @@ export function WordTable({
             <Select
               value={String(itemsPerPage)}
               onValueChange={handleItemsPerPageChange}
+              disabled={isPending}
             >
-              <SelectTrigger size="sm" className="w-[70px]">
+              <SelectTrigger size="sm" className="w-[73.5px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -76,12 +76,14 @@ export default async function NativeTranslationInventoryPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("word_sort_preference")
+    .select("word_sort_preference, items_per_page")
     .eq("id", user.id)
     .single();
 
   const currentSortPreference = (profile?.word_sort_preference ||
     "date_desc") as SortPreference;
+
+  const currentItemsPerPage = profile?.items_per_page || 10;
 
   let query = supabase
     .from("user_translations")
@@ -174,6 +176,7 @@ export default async function NativeTranslationInventoryPage() {
         <WordTable
           words={formattedWords}
           currentSortPreference={currentSortPreference}
+          currentItemsPerPage={currentItemsPerPage}
           isNativeInventory={true}
         />
       ) : (

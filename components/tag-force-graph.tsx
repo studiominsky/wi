@@ -230,7 +230,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   const [forcesConfigured, setForcesConfigured] = useState(false);
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const initialSpread = 200;
+  const initialSpread = 400;
 
   const getRandomInitialPosition = () => ({
     x: (Math.random() - 0.5) * initialSpread,

@@ -76,12 +76,14 @@ export default async function GermanInventoryPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("word_sort_preference")
+    .select("word_sort_preference, items_per_page")
     .eq("id", user.id)
     .single();
 
   const currentSortPreference = (profile?.word_sort_preference ||
     "date_desc") as SortPreference;
+
+  const currentItemsPerPage = profile?.items_per_page || 10;
 
   let query = supabase
     .from("user_words")
@@ -173,6 +175,7 @@ export default async function GermanInventoryPage() {
         <WordTable
           words={formattedWords}
           currentSortPreference={currentSortPreference}
+          currentItemsPerPage={currentItemsPerPage}
         />
       ) : (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
