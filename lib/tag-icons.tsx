@@ -1,5 +1,5 @@
+import * as React from "react";
 import {
-  Icon,
   TagIcon,
   BookOpenIcon,
   HouseIcon,
@@ -106,9 +106,32 @@ import {
   CircuitryIcon,
   PlantIcon,
   PantsIcon,
-} from "@phosphor-icons/react";
+} from "@phosphor-icons/react/dist/ssr";
 
-export const TagIconMap: Record<string, Icon> = {
+type PhosphorIcon = React.ForwardRefExoticComponent<
+  Omit<
+    {
+      color?: string | undefined;
+      size?: string | number | undefined;
+      weight?:
+        | "thin"
+        | "light"
+        | "regular"
+        | "bold"
+        | "fill"
+        | "duotone"
+        | undefined;
+      mirrored?: boolean | undefined;
+      children?: React.ReactNode;
+      className?: string;
+      style?: React.CSSProperties;
+    },
+    "ref"
+  > &
+    React.RefAttributes<SVGSVGElement>
+>;
+
+export const TagIconMap: Record<string, PhosphorIcon> = {
   TagIcon,
   BookOpenIcon,
   HouseIcon,

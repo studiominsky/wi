@@ -4,6 +4,8 @@ import * as React from "react";
 import { TagIcon } from "@phosphor-icons/react";
 import { TagIconMap } from "@/lib/tag-icons";
 import { ImageWithErrorBoundary } from "./image-error-boundary";
+import { TagActionMenu } from "./tag-action-menu";
+import Link from "next/link";
 
 interface TagEntry {
   id: string | number;
@@ -23,6 +25,12 @@ interface TagData {
   color_class: string | null;
   count: number;
   entries: TagEntry[];
+}
+
+interface TagMetadata {
+  tag_name: string;
+  icon_name: string;
+  color_class: string | null;
 }
 
 const getTagColors = (colorClass: string | null) => {
@@ -47,6 +55,14 @@ export function TagDetailsClient({ tagData }: { tagData: TagData }) {
     TagIconMap[tagData.icon_name as keyof typeof TagIconMap] || TagIcon;
 
   const colors = getTagColors(tagData.color_class);
+
+  const tagMetadata: TagMetadata = {
+    tag_name: tagData.tag_name,
+    icon_name: tagData.icon_name,
+    color_class: tagData.color_class,
+  };
+
+  const dummyRefresh = () => {};
 
   return (
     <div className="container mx-auto max-w-6xl p-4 md:p-6 space-y-8">
@@ -74,45 +90,48 @@ export function TagDetailsClient({ tagData }: { tagData: TagData }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span
-            className="inline-block w-3 h-3 rounded-full"
-            style={{ backgroundColor: colors.bg }}
-          />
-          <span>Tag color</span>
+        <div className="flex items-center gap-2">
+          <TagActionMenu tag={tagMetadata} onTagUpdated={dummyRefresh} />
         </div>
       </header>
 
       <section className="space-y-3">
-        {tagData.entries.map((entry) => (
-          <div
-            key={entry.id}
-            className="flex items-start gap-3 rounded-md border border-border bg-card/70 p-3"
-          >
-            <div
-              className="mt-1 w-1.5 rounded-full self-stretch"
-              style={{ backgroundColor: colors.bg }}
-            />
-            <div className="flex-1">
-              <div className="flex justify-between gap-4">
-                <div>
-                  <p className="font-semibold">{entry.wordDisplay}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {entry.translation}
-                  </p>
-                </div>
-                {entry.image_url && (
-                  <div className="relative w-20 h-16 overflow-hidden rounded-sm border border-border/60 shrink-0">
-                    <ImageWithErrorBoundary
-                      src={entry.image_url}
-                      alt={entry.wordDisplay}
-                    />
+        {tagData.entries.map((entry) => {
+          const href = entry.isNativePhrase
+            ? `/translations/${entry.id}`
+            : `/inventory/${encodeURIComponent(entry.wordDisplay)}`;
+
+          return (
+            <Link key={entry.id} href={href} className="group block">
+              <div className="flex items-start gap-3 rounded-md border border-border bg-card/70 p-3 transition-colors hover:bg-card">
+                <div
+                  className="mt-1 w-1.5 rounded-full self-stretch transition-all"
+                  style={{ backgroundColor: colors.bg }}
+                />
+                <div className="flex-1">
+                  <div className="flex justify-between gap-4">
+                    <div>
+                      <p className="font-semibold transition-colors group-hover:text-primary">
+                        {entry.wordDisplay}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {entry.translation}
+                      </p>
+                    </div>
+                    {entry.image_url && (
+                      <div className="relative w-20 h-16 overflow-hidden rounded-sm border border-border/60 shrink-0">
+                        <ImageWithErrorBoundary
+                          src={entry.image_url}
+                          alt={entry.wordDisplay}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </Link>
+          );
+        })}
 
         {tagData.entries.length === 0 && (
           <p className="text-sm text-muted-foreground italic">

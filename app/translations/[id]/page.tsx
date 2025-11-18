@@ -6,22 +6,70 @@ import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
+import { TagIconMap } from "@/lib/tag-icons";
+import { TagIcon } from "@phosphor-icons/react/dist/ssr";
 
-function TagsDisplay({ tags }: { tags: string[] | null }) {
+const iconComponentMap = TagIconMap;
+
+async function TagsDisplay({ tags }: { tags: string[] | null }) {
   if (!tags || tags.length === 0) return null;
+
+  const supabase = await createClient();
+  const { data: tagMetadata } = await supabase
+    .from("user_tags")
+    .select("tag_name, icon_name, color_class")
+    .in("tag_name", tags);
+
+  const tagDataMap = new Map();
+  tagMetadata?.forEach((item) => tagDataMap.set(item.tag_name, item));
+
   return (
     <div className="flex flex-wrap gap-2 pt-4">
-      {tags.map((tag) => (
-        <Link
-          key={tag}
-          href={`/tags/${encodeURIComponent(tag)}`}
-          className="hover:opacity-80 transition-opacity"
-        >
-          <Badge variant="secondary" className="capitalize cursor-pointer">
-            {tag}
-          </Badge>
-        </Link>
-      ))}
+      {tags.map((tag) => {
+        const data = tagDataMap.get(tag) || {};
+        const IconComponent = iconComponentMap[data.icon_name] || TagIcon;
+        const colorClass = data.color_class || null;
+
+        return (
+          <Link
+            key={tag}
+            href={`/tags/${encodeURIComponent(tag)}`}
+            className="hover:opacity-80 transition-opacity"
+          >
+            <Badge
+              variant="secondary"
+              className={cn(
+                "capitalize cursor-pointer flex items-center gap-1.5 border-transparent"
+              )}
+            >
+              <div
+                className={cn(
+                  "size-4 rounded-full flex items-center justify-center border-1 shrink-0 transition-colors",
+                  colorClass || "bg-muted border-border"
+                )}
+                style={
+                  colorClass
+                    ? {
+                        backgroundColor: `var(--tag-bg)`,
+                        borderColor: `var(--tag-border)`,
+                        color: `var(--tag-text)`,
+                      }
+                    : undefined
+                }
+              >
+                <IconComponent
+                  className="w-3 h-3 transition-colors"
+                  style={{
+                    color: colorClass ? `var(--tag-text)` : undefined,
+                  }}
+                  weight="bold"
+                />
+              </div>
+              {tag}
+            </Badge>
+          </Link>
+        );
+      })}
     </div>
   );
 }
