@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 import Link from "next/link";
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
+// import { ArrowLeftIcon } from "@phosphor-icons/react";
 
 function TagsDisplay({ tags }: { tags: string[] | null }) {
   if (!tags || tags.length === 0) return null;
@@ -375,14 +377,16 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   } else if (title === "Key Verb Forms" && typeof data === "object") {
     content = <VerbFormsSection data={data} />;
   } else if (title === "Passive Voice Forms") {
-    content = <p className="text-sm whitespace-pre-wrap">{String(data)}</p>;
+    content = (
+      <p className="text-md leading-7 whitespace-pre-wrap">{String(data)}</p>
+    );
   } else if (typeof data === "string") {
-    content = <p className="text-sm whitespace-pre-wrap">{data}</p>;
+    content = <p className="text-md leading-7 whitespace-pre-wrap">{data}</p>;
   } else if (Array.isArray(data)) {
     if (data.length === 0) return null;
     if (title === "Common Phrases / Idioms") {
       content = (
-        <ul className="list-disc list-inside space-y-1 text-sm">
+        <ul className="list-disc list-inside space-y-1 text-md leading-7">
           {data.map((item, index) => (
             <li key={index}>"{item}"</li>
           ))}
@@ -422,7 +426,7 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   if (!content) return null;
 
   return (
-    <div className="border-t border-blue-200 dark:border-blue-700 pt-4 first:border-t-0">
+    <div className="pt-4">
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       {content}
     </div>
@@ -525,89 +529,149 @@ export default async function WordDetailPage({
   };
 
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
-      <div className="flex justify-end sticky top-20 z-10 mt-0">
-        <EntryActionMenu entry={entryForEdit} isNativePhrase={false} />
+    <>
+      <div className={cn("relative w-full pb-10", word.color)}>
+        <div className="container mx-auto max-w-8xl p-4 md:p-6 relative">
+          <div className="flex items-center justify-between mb-6">
+            <Link
+              href="/inventory"
+              className="inline-flex items-center gap-2 text-xs md:text-sm text-foreground font-medium"
+            >
+              <ArrowLeftIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Back to inventory</span>
+              <span className="sm:hidden">Back</span>
+            </Link>
+            <EntryActionMenu entry={entryForEdit} isNativePhrase={false} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+            <div className="md:col-span-2 flex flex-col justify-end space-y-4 order-2 md:order-1">
+              <div className="space-y-3">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight break-words">
+                  {decodedWord}
+                </h1>
+
+                <div className="space-y-2">
+                  <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground">
+                    {word.translation || "Translation not generated yet."}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    {genderAndSingularDisplay && (
+                      <Badge
+                        variant="outline"
+                        className="capitalize bg-background/50"
+                      >
+                        {genderAndSingularDisplay}
+                      </Badge>
+                    )}
+
+                    {pluralForm && (
+                      <Badge
+                        variant="secondary"
+                        className="capitalize bg-background/50"
+                      >
+                        Plural: {pluralForm}
+                      </Badge>
+                    )}
+
+                    {category && (
+                      <Badge
+                        variant="outline"
+                        className="capitalize bg-background/50"
+                      >
+                        {category}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <TagsDisplay tags={(word as any).tags} />
+            </div>
+
+            <div className="md:col-span-1 flex flex-col justify-end items-end gap-4 order-1 md:order-2">
+              {word.image_url && (
+                <div className="relative aspect-video w-full max-w-sm md:max-w-none overflow-hidden rounded-md border border-border/60">
+                  <ImageWithErrorBoundary
+                    src={word.image_url}
+                    alt={`Image for the word ${word.word}`}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {word.image_url && (
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-md">
-          <ImageWithErrorBoundary
-            src={word.image_url}
-            alt={`Image for the word ${word.word}`}
-          />
+      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+          <div className="space-y-6">
+            {aiData && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
+                  AI Generated Details (Text)
+                </h2>
+                <AiDataSection
+                  title="Grammar Explanation"
+                  data={aiData.grammar}
+                />
+                <AiDataSection
+                  title="Example Sentences"
+                  data={aiData.examples}
+                />
+                <AiDataSection
+                  title="Synonyms"
+                  data={aiData.synonyms_antonyms}
+                />
+                <AiDataSection
+                  title="Common Phrases / Idioms"
+                  data={aiData.phrases}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 rounded-lg bg-[#C3DE21] text-black">
+              <h2 className="text-lg font-semibold mb-2">My Notes</h2>
+              {word.notes ? (
+                <p className="text-md whitespace-pre-wrap">{word.notes}</p>
+              ) : (
+                <p className="text-md text-black">No notes provided.</p>
+              )}
+            </div>
+
+            {aiData && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 space-y-4 rounded-lg">
+                <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
+                  Grammar Tables & Forms
+                </h2>
+                <AiDataSection
+                  title="Full Verb Conjugation"
+                  data={fullConjugationTable}
+                />
+                <AiDataSection
+                  title="Noun Declension Table"
+                  data={nounDeclensionTable}
+                />
+                <AiDataSection
+                  title="Adjective Declension Example"
+                  data={adjectiveDeclensionExample}
+                />
+                <AiDataSection
+                  title="Passive Voice Forms"
+                  data={passiveForms}
+                />
+                <AiDataSection
+                  title="Key Verb Forms"
+                  data={aiData.verb_forms}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      )}
-
-      <div className={cn("p-4", word.color)}>
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-4xl font-bold">{decodedWord}</h1>
-          {category && (
-            <Badge variant="outline" className="capitalize shrink-0">
-              {category}
-            </Badge>
-          )}
-        </div>
-
-        <p className="text-xl text-muted-foreground">
-          {word.translation || "Translation not generated yet."}
-        </p>
-
-        <div className="mt-3 space-y-1 text-base italic text-muted-foreground">
-          {genderAndSingularDisplay && (
-            <p className="capitalize">{genderAndSingularDisplay}</p>
-          )}
-
-          {pluralForm && (
-            <p>
-              <span className="font-semibold">Plural:</span> {pluralForm}
-            </p>
-          )}
-        </div>
-
-        <TagsDisplay tags={(word as any).tags} />
       </div>
-
-      <div className="bg-muted p-4 ">
-        <h2 className="text-lg font-semibold mb-2">My Notes</h2>
-        {word.notes ? (
-          <p className="text-sm whitespace-pre-wrap">{word.notes}</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">No notes provided.</p>
-        )}
-      </div>
-
-      {aiData && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 space-y-4">
-          <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
-            AI Generated Details
-          </h2>
-          <AiDataSection
-            title="Full Verb Conjugation"
-            data={fullConjugationTable}
-          />
-          <AiDataSection
-            title="Noun Declension Table"
-            data={nounDeclensionTable}
-          />
-          <AiDataSection
-            title="Adjective Declension Example"
-            data={adjectiveDeclensionExample}
-          />
-
-          <AiDataSection title="Passive Voice Forms" data={passiveForms} />
-
-          <AiDataSection title="Key Verb Forms" data={aiData.verb_forms} />
-          <AiDataSection title="Grammar Explanation" data={aiData.grammar} />
-          <AiDataSection title="Example Sentences" data={aiData.examples} />
-
-          <AiDataSection title="Synonyms" data={aiData.synonyms_antonyms} />
-          <AiDataSection
-            title="Common Phrases / Idioms"
-            data={aiData.phrases}
-          />
-        </div>
-      )}
-    </div>
+    </>
   );
 }

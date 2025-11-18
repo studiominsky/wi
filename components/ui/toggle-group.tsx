@@ -345,16 +345,11 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
     const isSelected = activeTag === tag.tag_name;
     const opacity = activeTag && !isSelected ? 0.4 : 1;
 
-    // --- Start of Toggle Styling ---
-    // Combined base classes from toggleVariants (simplified to match look)
     const baseClasses =
       "cursor-pointer relative inline-flex items-center justify-center rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-transparent hover:bg-muted/50 text-muted-foreground opacity-80";
 
-    // Custom classes for size and alignment
     const customClasses = "h-8 px-3 gap-1.5 shrink-0";
 
-    // Active state appearance derived from data-[state=on] for default variant
-    // Uses background for base, primary for border/ring.
     const activeClasses = isSelected
       ? "bg-background shadow-md ring-2 ring-primary/30 opacity-100 border-primary text-foreground"
       : "bg-background/40 hover:bg-muted/70";

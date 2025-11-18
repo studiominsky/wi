@@ -18,6 +18,7 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "text-primary hover:bg-accent hover:text-accent-foreground",
+        ellipse: "text-primary",
         link: "relative uppercase text-foreground transition-colors after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-full after:bg-current after:scale-x-0 after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100",
       },
       size: {

@@ -63,7 +63,7 @@ export default function TagsPageContent({
 
   if (!tagsData || tagsData.length === 0) {
     return (
-      <div className="container mx-auto p-4 md:p-6 text-center py-16 border-2 border-dashed rounded-lg max-w-4xl mt-10">
+      <div className="container mx-auto p-4 md:p-6 text-center py-16 border-2 border-dashed rounded-lg max-w-8xlmt-10">
         <h1 className="text-2xl font-bold">No Tags Used Yet</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Start tagging your words and translations in German and{" "}

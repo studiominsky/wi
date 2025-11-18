@@ -496,7 +496,7 @@ export function EntryActionMenu({
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="ghost"
+            variant="ellipse"
             size="icon-sm"
             aria-label={`Actions for ${entry.word}`}
             className="size-8 shrink-0"
