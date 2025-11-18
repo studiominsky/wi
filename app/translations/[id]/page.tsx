@@ -148,7 +148,7 @@ export default async function TranslationDetailPage({
               </p>
 
               <div className="space-y-3 mt-5">
-                <div className="inline-flex max-w-xl rounded-md overflow-hidden shadow-sm">
+                <div className="inline-flex max-w-xl rounded-md overflow-hidden">
                   <div
                     className={cn(
                       "w-1.5 flex-shrink-0",
@@ -160,7 +160,7 @@ export default async function TranslationDetailPage({
                     {translationEntry.color && (
                       <div
                         className={cn(
-                          "absolute inset-0 pointer-events-none opacity-20",
+                          "absolute inset-0 pointer-events-none opacity-50",
                           translationEntry.color
                         )}
                       />
@@ -248,7 +248,7 @@ export default async function TranslationDetailPage({
           <div className="space-y-6">
             <div
               className={cn(
-                "p-4 rounded-md border border-border bg-background/80",
+                "p-4 rounded-md bg-background/80",
                 translationEntry.color &&
                   `${translationEntry.color} bg-opacity-10 bg-blend-multiply`
               )}
