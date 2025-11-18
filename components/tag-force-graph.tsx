@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
@@ -26,6 +27,7 @@ import {
   PlusIcon,
   MinusIcon,
   ArrowsOutSimpleIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
 import { TagIconMap } from "@/lib/tag-icons";
 
@@ -72,7 +74,10 @@ type EntryGraphNode = NodeObject & {
 };
 
 type GraphNode = TagGraphNode | EntryGraphNode;
-type GraphLink = LinkObject & { source: string; target: string };
+type GraphLink = LinkObject & {
+  source: string | GraphNode;
+  target: string | GraphNode;
+};
 
 const getColorPalette = (
   colorClass: string | null,
@@ -113,9 +118,21 @@ function paintGraphNode(
   nodeObj: NodeObject,
   ctx: CanvasRenderingContext2D,
   globalScale: number,
-  resolvedTheme: string | undefined
+  resolvedTheme: string | undefined,
+  activeTag: string | null,
+  relatedNodeIdsByTag: Map<string, Set<string>>
 ) {
   const node = nodeObj as GraphNode;
+
+  const id = String(node.id);
+  const activeSet = activeTag
+    ? relatedNodeIdsByTag.get(activeTag) ?? null
+    : null;
+
+  const isDimmed = activeSet != null && !activeSet.has(id);
+
+  ctx.save();
+  ctx.globalAlpha = isDimmed ? 0.15 : 1;
 
   if (node.kind === "tag") {
     const label = node.tagName;
@@ -131,12 +148,11 @@ function paintGraphNode(
     ctx.strokeStyle = colors.border;
     ctx.stroke();
 
-    ctx.font = `${12 / globalScale}px system-ui`;
+    ctx.font = `${10 / globalScale}px system-ui`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = colors.text;
-    const glyph = label;
-    ctx.fillText(glyph, node.x!, node.y!);
+    ctx.fillText(label, node.x!, node.y!);
 
     if (globalScale > 0.4) {
       ctx.font = `${fontSize}px system-ui`;
@@ -149,7 +165,7 @@ function paintGraphNode(
     const entry = node as EntryGraphNode;
     const colors = getColorPalette(entry.colorClass ?? null, resolvedTheme);
     const radius = 7;
-    const fontSize = 12 / globalScale;
+    const fontSize = 10 / globalScale;
 
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
@@ -180,6 +196,8 @@ function paintGraphNode(
       ctx.fillText(native, node.x!, node.y! + radius + 2 / globalScale);
     }
   }
+
+  ctx.restore();
 }
 
 function paintPointerArea(
@@ -210,6 +228,16 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
 
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [forcesConfigured, setForcesConfigured] = useState(false);
+  const [shuffleKey, setShuffleKey] = useState(0);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const initialSpread = 200;
+
+  const getRandomInitialPosition = () => ({
+    x: (Math.random() - 0.5) * initialSpread,
+    y: (Math.random() - 0.5) * initialSpread,
+    vx: 0,
+    vy: 0,
+  });
 
   if (!tagsData || tagsData.length === 0) {
     return (
@@ -224,82 +252,115 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
     );
   }
 
-  const { tagsToDisplay, graphData, totalItems } = useMemo(() => {
-    const tagsToDisplay = tagsData
-      .filter((t) => t.entries.length > 0)
-      .sort((a, b) => a.tag_name.localeCompare(b.tag_name))
-      .slice(0, 10);
+  const { tagsToDisplay, graphData, relatedNodeIdsByTag, totalItems } =
+    useMemo(() => {
+      const tagsToDisplay = tagsData
+        .filter((t) => t.entries.length > 0)
+        .sort((a, b) => a.tag_name.localeCompare(b.tag_name))
+        .slice(0, 10);
 
-    const nodesMap = new Map<string, GraphNode>();
-    const links: GraphLink[] = [];
-    let totalEntriesCount = 0;
+      const nodesMap = new Map<string, GraphNode>();
+      const links: GraphLink[] = [];
+      const relatedNodeIdsByTag = new Map<string, Set<string>>();
+      let totalEntriesCount = 0;
 
-    const entryKeyToId = new Map<string, string>();
-    let entryCounter = 0;
+      const entryKeyToId = new Map<string, string>();
+      let entryCounter = 0;
 
-    tagsToDisplay.forEach((tag) => {
-      const tagId = `tag-${tag.tag_name}`;
-      const tagColors = getColorPalette(tag.color_class, resolvedTheme);
+      tagsToDisplay.forEach((tag) => {
+        const tagId = `tag-${tag.tag_name}`;
+        const tagColors = getColorPalette(tag.color_class, resolvedTheme);
 
-      if (!nodesMap.has(tagId)) {
-        nodesMap.set(tagId, {
-          id: tagId,
-          kind: "tag",
-          tagName: tag.tag_name,
-          iconName: tag.icon_name,
-          colorClass: tag.color_class,
-          count: tag.count,
-          name: tag.tag_name,
-          color: tagColors.bg,
-          val: 30,
-        } as TagGraphNode);
-      }
-
-      tag.entries.slice(0, MAX_NODES_PER_TAG).forEach((entry) => {
-        const key = `${entry.wordDisplay}::${entry.translation}`;
-        let entryId = entryKeyToId.get(key);
-
-        if (!entryId) {
-          entryId = `entry-${entryCounter++}`;
-          entryKeyToId.set(key, entryId);
-          const entryColors = getColorPalette(entry.color, resolvedTheme);
-          totalEntriesCount++;
-
-          nodesMap.set(entryId, {
-            id: entryId,
-            kind: "entry",
-            wordDisplay: entry.wordDisplay,
-            translation: entry.translation,
-            isNativePhrase: entry.isNativePhrase,
-            name: entry.wordDisplay,
-            colorClass: entry.color,
-            color: entryColors.bg,
-            val: 3,
-          } as EntryGraphNode);
+        let relatedSet = relatedNodeIdsByTag.get(tag.tag_name);
+        if (!relatedSet) {
+          relatedSet = new Set<string>();
+          relatedNodeIdsByTag.set(tag.tag_name, relatedSet);
         }
 
-        links.push({
-          source: tagId,
-          target: entryId,
-        } as GraphLink);
-      });
-    });
+        if (!nodesMap.has(tagId)) {
+          nodesMap.set(tagId, {
+            id: tagId,
+            kind: "tag",
+            tagName: tag.tag_name,
+            iconName: tag.icon_name,
+            colorClass: tag.color_class,
+            count: tag.count,
+            name: tag.tag_name,
+            color: tagColors.bg,
+            val: 30,
+            ...getRandomInitialPosition(),
+          } as TagGraphNode);
+        }
+        relatedSet.add(tagId);
 
-    return {
-      tagsToDisplay,
-      graphData: { nodes: Array.from(nodesMap.values()), links },
-      totalItems: totalEntriesCount,
-    };
-  }, [tagsData, resolvedTheme]);
+        tag.entries.slice(0, MAX_NODES_PER_TAG).forEach((entry) => {
+          const key = `${entry.wordDisplay}::${entry.translation}`;
+          let entryId = entryKeyToId.get(key);
+
+          if (!entryId) {
+            entryId = `entry-${entryCounter++}`;
+            entryKeyToId.set(key, entryId);
+            const entryColors = getColorPalette(entry.color, resolvedTheme);
+            totalEntriesCount++;
+
+            nodesMap.set(entryId, {
+              id: entryId,
+              kind: "entry",
+              wordDisplay: entry.wordDisplay,
+              translation: entry.translation,
+              isNativePhrase: entry.isNativePhrase,
+              name: entry.wordDisplay,
+              colorClass: entry.color,
+              color: entryColors.bg,
+              val: 3,
+              ...getRandomInitialPosition(),
+            } as EntryGraphNode);
+          }
+
+          relatedSet.add(entryId);
+
+          links.push({
+            source: tagId,
+            target: entryId,
+          } as GraphLink);
+        });
+      });
+
+      return {
+        tagsToDisplay,
+        graphData: { nodes: Array.from(nodesMap.values()), links },
+        relatedNodeIdsByTag,
+        totalItems: totalEntriesCount,
+      };
+    }, [tagsData, resolvedTheme, shuffleKey]);
+
+  const handleLegendClick = (tagName: string) => {
+    setActiveTag((prev) => (prev === tagName ? null : tagName));
+  };
 
   const TagLegendItem = ({ tag }: { tag: TagData }) => {
     const IconComponent = _iconComponentMap[tag.icon_name] || TagIcon;
     const colors = getColorPalette(tag.color_class, resolvedTheme);
+    const isSelected = activeTag === tag.tag_name;
+    const opacity = activeTag && !isSelected ? 0.4 : 1;
 
     return (
-      <div className="flex items-center gap-1.5 shrink-0">
+      <button
+        type="button"
+        onClick={() => handleLegendClick(tag.tag_name)}
+        className={cn(
+          "flex cursor-pointer items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-full border text-xs md:text-sm transition-all duration-200 h-8",
+          "border-input bg-transparent text-muted-foreground hover:bg-muted/70",
+          isSelected
+            ? "border-primary bg-background opacity-100 text-foreground"
+            : "opacity-80"
+        )}
+        style={{ opacity: opacity }}
+        data-state={isSelected ? "on" : "off"}
+        aria-pressed={isSelected}
+      >
         <div
-          className="size-7 rounded-full flex items-center justify-center border-2 shrink-0 transition-colors"
+          className="size-5 rounded-full flex items-center justify-center border-2 shrink-0 transition-colors"
           style={{
             backgroundColor: colors.bg,
             borderColor: colors.border,
@@ -311,10 +372,23 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
             weight="bold"
           />
         </div>
-        <span className="capitalize text-foreground">{tag.tag_name}</span>
-        <span className="text-muted-foreground">({tag.count})</span>
-      </div>
+        <span
+          className="capitalize transition-colors"
+          style={{ color: isSelected ? colors.text : "var(--foreground)" }}
+        >
+          {tag.tag_name}
+        </span>
+        <span className="text-muted-foreground transition-colors">
+          ({tag.count})
+        </span>
+      </button>
     );
+  };
+
+  const randomizeLayout = () => {
+    setForcesConfigured(false);
+    setShuffleKey((prev) => prev + 1);
+    fgRef.current?.zoomToFit(0, 400);
   };
 
   if (tagsToDisplay.length === 0) {
@@ -354,9 +428,63 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
       ctx: CanvasRenderingContext2D,
       globalScale: number
     ) => {
-      paintGraphNode(nodeObj, ctx, globalScale, resolvedTheme);
+      paintGraphNode(
+        nodeObj,
+        ctx,
+        globalScale,
+        resolvedTheme,
+        activeTag,
+        relatedNodeIdsByTag
+      );
     },
-    [resolvedTheme]
+    [resolvedTheme, activeTag, relatedNodeIdsByTag]
+  );
+
+  const linkColor = useCallback(
+    (linkObj: LinkObject) => {
+      const baseStrong =
+        resolvedTheme === "dark"
+          ? "rgba(148,163,184,0.9)"
+          : "rgba(148,163,184,0.9)";
+      const baseDim =
+        resolvedTheme === "dark"
+          ? "rgba(55,65,81,0.2)"
+          : "rgba(148,163,184,0.15)";
+
+      if (!activeTag) {
+        return baseStrong;
+      }
+
+      const activeSet = relatedNodeIdsByTag.get(activeTag);
+      if (!activeSet) return baseStrong;
+
+      const link = linkObj as GraphLink;
+
+      const sourceId =
+        typeof link.source === "object"
+          ? String((link.source as any).id)
+          : String(link.source);
+      const targetId =
+        typeof link.target === "object"
+          ? String((link.target as any).id)
+          : String(link.target);
+
+      const isInActive = activeSet.has(sourceId) && activeSet.has(targetId);
+
+      if (isInActive) {
+        const tagNode = graphData.nodes.find(
+          (n) => n.id === `tag-${activeTag}`
+        ) as TagGraphNode;
+        if (tagNode?.colorClass) {
+          const colors = getColorPalette(tagNode.colorClass, resolvedTheme);
+          return colors.border;
+        }
+        return baseStrong;
+      } else {
+        return baseDim;
+      }
+    },
+    [activeTag, relatedNodeIdsByTag, resolvedTheme, graphData.nodes]
   );
 
   const nodeLabel = (nodeObj: NodeObject) => {
@@ -395,7 +523,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   };
 
   return (
-    <div className="border rounded-lg shadow-lg overflow-hidden bg-card/60">
+    <div className="border rounded-md overflow-hidden bg-card/60">
       <div
         ref={containerRef}
         className="relative w-full"
@@ -403,6 +531,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
       >
         {size.width > 0 && size.height > 0 && (
           <ForceGraph2D
+            key={shuffleKey}
             ref={fgRef as any}
             graphData={graphData}
             width={size.width}
@@ -411,7 +540,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
             nodePointerAreaPaint={paintPointerArea}
             nodeLabel={nodeLabel}
             backgroundColor="transparent"
-            linkColor={() => "rgba(148,163,184,0.6)"}
+            linkColor={linkColor as any}
             linkWidth={1.2}
             linkCurvature={0}
             linkDirectionalParticles={0}
@@ -441,8 +570,17 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
         <div className="absolute bottom-3 right-3 flex flex-col gap-1">
           <button
             type="button"
+            onClick={randomizeLayout}
+            className="flex cursor-pointer items-center justify-center rounded-md border border-border bg-background/90 w-8 h-8 hover:bg-accent transition-colors"
+            aria-label="Rearrange graph"
+            title="Rearrange graph layout"
+          >
+            <SparkleIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
             onClick={zoomIn}
-            className="flex items-center justify-center rounded-md border border-border bg-background/90 shadow-sm w-8 h-8 hover:bg-accent transition-colors"
+            className="flex cursor-pointer items-center justify-center rounded-md border border-border bg-background/90 w-8 h-8 hover:bg-accent transition-colors"
             aria-label="Zoom in"
           >
             <PlusIcon className="w-4 h-4" />
@@ -450,7 +588,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
           <button
             type="button"
             onClick={zoomOut}
-            className="flex items-center justify-center rounded-md border border-border bg-background/90 shadow-sm w-8 h-8 hover:bg-accent transition-colors"
+            className="flex cursor-pointer items-center justify-center rounded-md border border-border bg-background/90 w-8 h-8 hover:bg-accent transition-colors"
             aria-label="Zoom out"
           >
             <MinusIcon className="w-4 h-4" />
@@ -458,7 +596,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
           <button
             type="button"
             onClick={fitView}
-            className="flex items-center justify-center rounded-md border border-border bg-background/90 shadow-sm w-8 h-8 hover:bg-accent transition-colors"
+            className="flex cursor-pointer items-center justify-center rounded-md border border-border bg-background/90 w-8 h-8 hover:bg-accent transition-colors"
             aria-label="Center graph"
           >
             <ArrowsOutSimpleIcon className="w-4 h-4" />
