@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
@@ -32,6 +33,10 @@ interface TagEntry {
   id: string | number;
   word: string;
   translation: string;
+  tags: string[] | null;
+  color: string | null;
+  image_url: string | null;
+  ai_data: any;
   isNativePhrase: boolean;
   wordDisplay: string;
 }
@@ -69,50 +74,52 @@ type EntryGraphNode = NodeObject & {
 type GraphNode = TagGraphNode | EntryGraphNode;
 type GraphLink = LinkObject & { source: string; target: string };
 
-const getTagColors = (colorClass: string | null) => {
-  switch (colorClass) {
-    case "tag-color-teal":
-      return { bg: "#0f766e", text: "#e5f9f4" };
-    case "tag-color-blue":
-      return { bg: "#1d4ed8", text: "#e0ecff" };
-    case "tag-color-orange":
-      return { bg: "#c2410c", text: "#ffe7d1" };
-    case "tag-color-red":
-      return { bg: "#b91c1c", text: "#ffe2e2" };
-    case "tag-color-purple":
-      return { bg: "#7e22ce", text: "#f3e8ff" };
-    default:
-      return { bg: "#111827", text: "#e5e7eb" };
-  }
-};
+const getColorPalette = (
+  colorClass: string | null,
+  resolvedTheme: string | undefined
+) => {
+  const isDark = resolvedTheme === "dark";
 
-const getEntryColors = (colorClass: string | null) => {
-  switch (colorClass) {
-    case "tag-color-teal":
-      return { bg: "#2d9c94", text: "#e5f9f4" };
-    case "tag-color-blue":
-      return { bg: "#4277f0", text: "#e0ecff" };
-    case "tag-color-orange":
-      return { bg: "#d97706", text: "#ffe7d1" };
-    case "tag-color-red":
-      return { bg: "#dc2626", text: "#ffe2e2" };
-    case "tag-color-purple":
-      return { bg: "#9333ea", text: "#f3e8ff" };
-    default:
-      return { bg: "#6b7280", text: "#e5e7eb" };
+  const colorMap = {
+    "tag-color-teal": isDark
+      ? { bg: "#006666", text: "rgba(30, 232, 232, 1)", border: "#049595" }
+      : { bg: "#b9f5e6", text: "#035959", border: "#008080" },
+    "tag-color-blue": isDark
+      ? { bg: "#1c3987", text: "#bdd2ff", border: "#0a45c4" }
+      : { bg: "#d3ddff", text: "#082684", border: "#082684" },
+    "tag-color-orange": isDark
+      ? { bg: "#994d00", text: "#f0c187", border: "#bc6c0a" }
+      : { bg: "#ffe0c0", text: "#8a4603", border: "#b35900" },
+    "tag-color-red": isDark
+      ? { bg: "#a42424", text: "#fdd", border: "#5c0b0b" }
+      : { bg: "#ffcccc", text: "#840000", border: "#840000" },
+    "tag-color-purple": isDark
+      ? { bg: "#751296", text: "#ddbbfb", border: "#9a3dec" }
+      : { bg: "#eed3ff", text: "#660884", border: "#660884" },
+  };
+
+  const defaultColors = isDark
+    ? { bg: "#262626", text: "#a3a3a3", border: "#333333" }
+    : { bg: "#e5e7eb", text: "#4b5563", border: "#9ca3af" };
+
+  if (!colorClass || !Object.keys(colorMap).includes(colorClass)) {
+    return defaultColors;
   }
+
+  return colorMap[colorClass as keyof typeof colorMap] || defaultColors;
 };
 
 function paintGraphNode(
   nodeObj: NodeObject,
   ctx: CanvasRenderingContext2D,
-  globalScale: number
+  globalScale: number,
+  resolvedTheme: string | undefined
 ) {
   const node = nodeObj as GraphNode;
 
   if (node.kind === "tag") {
     const label = node.tagName;
-    const colors = getTagColors(node.colorClass ?? null);
+    const colors = getColorPalette(node.colorClass ?? null, resolvedTheme);
     const radius = 16;
     const fontSize = 12 / globalScale;
 
@@ -121,10 +128,10 @@ function paintGraphNode(
     ctx.fillStyle = colors.bg;
     ctx.fill();
     ctx.lineWidth = 1.5 / globalScale;
-    ctx.strokeStyle = "#020617";
+    ctx.strokeStyle = colors.border;
     ctx.stroke();
 
-    ctx.font = `${10 / globalScale}px system-ui`;
+    ctx.font = `${12 / globalScale}px system-ui`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = colors.text;
@@ -135,19 +142,23 @@ function paintGraphNode(
       ctx.font = `${fontSize}px system-ui`;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillStyle = "#e5e7eb";
+      ctx.fillStyle = colors.text;
       ctx.fillText(label, node.x!, node.y! + radius + 4 / globalScale);
     }
   } else {
     const entry = node as EntryGraphNode;
-    const colors = getEntryColors(entry.colorClass ?? null);
+    const colors = getColorPalette(entry.colorClass ?? null, resolvedTheme);
     const radius = 7;
-    const fontSize = 10 / globalScale;
+    const fontSize = 12 / globalScale;
 
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
     ctx.fillStyle = colors.bg;
     ctx.fill();
+
+    ctx.lineWidth = 1 / globalScale;
+    ctx.strokeStyle = colors.border;
+    ctx.stroke();
 
     if (globalScale > 1) {
       const german = entry.isNativePhrase
@@ -161,11 +172,11 @@ function paintGraphNode(
       ctx.textAlign = "center";
 
       ctx.textBaseline = "bottom";
-      ctx.fillStyle = "#e5e7eb";
+      ctx.fillStyle = colors.text;
       ctx.fillText(german, node.x!, node.y! - radius - 2 / globalScale);
 
       ctx.textBaseline = "top";
-      ctx.fillStyle = "#9ca3af";
+      ctx.fillStyle = resolvedTheme === "dark" ? "#888" : "#9ca3af";
       ctx.fillText(native, node.x!, node.y! + radius + 2 / globalScale);
     }
   }
@@ -195,6 +206,7 @@ function paintPointerArea(
 export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   const fgRef = useRef<ForceGraphMethods | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { resolvedTheme } = useTheme();
 
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [forcesConfigured, setForcesConfigured] = useState(false);
@@ -212,7 +224,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
     );
   }
 
-  const { tagsToDisplay, graphData } = useMemo(() => {
+  const { tagsToDisplay, graphData, totalItems } = useMemo(() => {
     const tagsToDisplay = tagsData
       .filter((t) => t.entries.length > 0)
       .sort((a, b) => a.tag_name.localeCompare(b.tag_name))
@@ -220,13 +232,14 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
 
     const nodesMap = new Map<string, GraphNode>();
     const links: GraphLink[] = [];
+    let totalEntriesCount = 0;
 
     const entryKeyToId = new Map<string, string>();
     let entryCounter = 0;
 
     tagsToDisplay.forEach((tag) => {
       const tagId = `tag-${tag.tag_name}`;
-      const tagColors = getTagColors(tag.color_class);
+      const tagColors = getColorPalette(tag.color_class, resolvedTheme);
 
       if (!nodesMap.has(tagId)) {
         nodesMap.set(tagId, {
@@ -249,8 +262,8 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
         if (!entryId) {
           entryId = `entry-${entryCounter++}`;
           entryKeyToId.set(key, entryId);
-
-          const entryColors = getEntryColors(tag.color_class);
+          const entryColors = getColorPalette(entry.color, resolvedTheme);
+          totalEntriesCount++;
 
           nodesMap.set(entryId, {
             id: entryId,
@@ -259,7 +272,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
             translation: entry.translation,
             isNativePhrase: entry.isNativePhrase,
             name: entry.wordDisplay,
-            colorClass: tag.color_class,
+            colorClass: entry.color,
             color: entryColors.bg,
             val: 3,
           } as EntryGraphNode);
@@ -275,8 +288,34 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
     return {
       tagsToDisplay,
       graphData: { nodes: Array.from(nodesMap.values()), links },
+      totalItems: totalEntriesCount,
     };
-  }, [tagsData]);
+  }, [tagsData, resolvedTheme]);
+
+  const TagLegendItem = ({ tag }: { tag: TagData }) => {
+    const IconComponent = _iconComponentMap[tag.icon_name] || TagIcon;
+    const colors = getColorPalette(tag.color_class, resolvedTheme);
+
+    return (
+      <div className="flex items-center gap-1.5 shrink-0">
+        <div
+          className="size-7 rounded-full flex items-center justify-center border-2 shrink-0 transition-colors"
+          style={{
+            backgroundColor: colors.bg,
+            borderColor: colors.border,
+          }}
+        >
+          <IconComponent
+            className="w-3 h-3 transition-colors"
+            style={{ color: colors.text }}
+            weight="bold"
+          />
+        </div>
+        <span className="capitalize text-foreground">{tag.tag_name}</span>
+        <span className="text-muted-foreground">({tag.count})</span>
+      </div>
+    );
+  };
 
   if (tagsToDisplay.length === 0) {
     return (
@@ -315,9 +354,9 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
       ctx: CanvasRenderingContext2D,
       globalScale: number
     ) => {
-      paintGraphNode(nodeObj, ctx, globalScale);
+      paintGraphNode(nodeObj, ctx, globalScale, resolvedTheme);
     },
-    []
+    [resolvedTheme]
   );
 
   const nodeLabel = (nodeObj: NodeObject) => {
@@ -427,24 +466,12 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
         </div>
       </div>
 
-      <div className="p-4 bg-muted/60 text-xs md:text-sm text-muted-foreground flex justify-between flex-wrap gap-2">
-        <span>
-          Displaying {tagsToDisplay.length} of {tagsData.length} tags and up to{" "}
-          {MAX_NODES_PER_TAG} entries per tag (deduplicated).
-        </span>
-        <span className="flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <span
-              className="inline-block w-2.5 h-2.5 rounded-full"
-              style={{
-                backgroundColor: getEntryColors(
-                  tagsToDisplay[0]?.color_class || null
-                ).bg,
-              }}
-            />
-            Entry nodes (German + native)
-          </span>
-        </span>
+      <div className="p-4 bg-muted/60 text-xs md:text-sm text-muted-foreground flex flex-col gap-2">
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {tagsToDisplay.map((tag) => (
+            <TagLegendItem key={tag.tag_name} tag={tag} />
+          ))}
+        </div>
       </div>
     </div>
   );
