@@ -441,7 +441,7 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
       );
     } else {
       content = (
-        <ul className="list-disc list-inside space-y-1 text-sm">
+        <ul className="list-disc list-inside leading-7 space-y-1 text-md">
           {data.map((item, index) => (
             <li key={index}>{item}</li>
           ))}
@@ -474,7 +474,7 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
 
   return (
     <div className="pt-4">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <h3 className="text-lg font-semibold my-2">{title}</h3>
       {content}
     </div>
   );
@@ -619,37 +619,37 @@ export default async function WordDetailPage({
                     )}
 
                     <div className="relative space-y-2 px-4 py-3 bg-muted/60">
-                      <div className="flex flex-col flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-foreground/90">
+                      <div className="flex flex-col gap-3 text-xs sm:text-sm">
                         {genderAndSingularDisplay && (
                           <div className="flex items-center gap-2">
-                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
-                              Gender
-                            </span>
-                            <span className="font-semibold capitalize">
+                            <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
+                              Gender:
+                            </div>
+                            <div className="text-sm font-semibold text-foreground">
                               {genderAndSingularDisplay}
-                            </span>
+                            </div>
                           </div>
                         )}
 
                         {pluralForm && (
                           <div className="flex items-center gap-2">
-                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
-                              Plural
-                            </span>
-                            <span className="font-semibold capitalize">
+                            <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
+                              Plural:
+                            </div>
+                            <div className="text-sm font-semibold capitalize text-foreground">
                               {pluralForm}
-                            </span>
+                            </div>
                           </div>
                         )}
 
                         {category && (
                           <div className="flex items-center gap-2">
-                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
-                              Category
-                            </span>
-                            <span className="font-semibold capitalize">
+                            <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
+                              Category:
+                            </div>
+                            <div className="text-sm font-semibold capitalize text-foreground">
                               {category}
-                            </span>
+                            </div>
                           </div>
                         )}
                       </div>

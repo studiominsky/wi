@@ -215,32 +215,31 @@ export default async function TranslationDetailPage({
                     )}
 
                     <div className="relative space-y-2 px-4 py-3 bg-muted/60">
-                      <div className="flex flex-col flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-foreground/90">
+                      <div className="flex flex-col gap-3 text-xs sm:text-sm">
+                        {" "}
                         {originalLanguage && (
                           <div className="flex items-center gap-2">
-                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
-                              Original language
-                            </span>
+                            <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
+                              Original language:
+                            </div>
                             <span className="font-semibold capitalize">
                               {originalLanguage}
                             </span>
                           </div>
                         )}
-
                         <div className="flex items-center gap-2">
-                          <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
-                            Direction
-                          </span>
-                          <span className="font-semibold">Native → German</span>
+                          <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
+                            Direction:
+                          </div>
+                          <div className="font-semibold">Native → German</div>
                         </div>
-
                         <div className="flex items-center gap-2">
-                          <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
-                            Type
-                          </span>
-                          <span className="font-semibold">
+                          <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
+                            Type:
+                          </div>
+                          <div className="font-semibold">
                             Native phrase / expression
-                          </span>
+                          </div>
                         </div>
                       </div>
                     </div>
