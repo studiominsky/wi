@@ -273,7 +273,7 @@ export default async function TranslationDetailPage({
 
             <div className="md:col-span-1 flex flex-col justify-end items-end gap-4 order-1 md:order-2">
               {translationEntry.image_url && (
-                <div className="relative aspect-[1.2] w-full max-w-sm overflow-hidden rounded-md bg-muted">
+                <div className="relative aspect-[1.5] w-full max-w-sm overflow-hidden rounded-md bg-muted">
                   <ImageWithErrorBoundary
                     src={translationEntry.image_url}
                     alt="Image for the translation"
