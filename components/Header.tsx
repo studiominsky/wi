@@ -1,3 +1,4 @@
+// studiominsky/wi/wi-f5dfbd236c9a97521343ab4512a1acaf15a3da07/components/Header.tsx
 "use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -111,23 +112,9 @@ export default function Header() {
               {navItem("/inventory", "Inventory")}
               {navItem("/translations", "Translations")}
               {navItem("/tags", "Tags")}
+              {navItem("/games", "Games")}
               {navItem("/settings", "Settings")}
-              <Link href="/profile">
-                <Button
-                  variant="link"
-                  size="link"
-                  className={cn(
-                    buttonClasses,
-                    "relative after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-full after:bg-current after:origin-left after:transition-transform after:duration-200",
-                    pathname === "/profile"
-                      ? "after:scale-x-100"
-                      : "after:scale-x-0 hover:after:scale-x-100"
-                  )}
-                >
-                  <UserIcon className="h-4 w-4 mr-2" />
-                  Profile
-                </Button>
-              </Link>
+
               <Button
                 onClick={handleSignOut}
                 variant="link"
