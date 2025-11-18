@@ -360,7 +360,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
         aria-pressed={isSelected}
       >
         <div
-          className="size-5 rounded-full flex items-center justify-center border-2 shrink-0 transition-colors"
+          className="size-6 rounded-full flex items-center justify-center border-1 shrink-0 transition-colors"
           style={{
             backgroundColor: colors.bg,
             borderColor: colors.border,
