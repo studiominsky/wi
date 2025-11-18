@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { fetchUniqueTagsWithWords } from "@/app/actions";
 import { TagListView } from "@/components/tag-list-view";
-import { TagNodeGraph } from "@/components/tag-node-graph";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CircleNotchIcon } from "@phosphor-icons/react";
+import { TagNodeGraphFlow as TagForceGraph } from "./tag-force-graph";
 
 interface TagEntry {
   id: string | number;
@@ -93,7 +93,7 @@ export default function TagsPageContent({
           <TagListView tagsData={tagsData} onTagUpdated={refreshTags} />
         </TabsContent>
         <TabsContent value="nodes" className="py-4">
-          <TagNodeGraph tagsData={tagsData} />
+          <TagForceGraph tagsData={tagsData} />
         </TabsContent>
       </Tabs>
     </div>
