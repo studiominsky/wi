@@ -332,6 +332,66 @@ export async function deleteTagMetadata({ tagName }: { tagName: string }) {
   return { success: true };
 }
 
+export async function fetchRandomEntry({
+  table,
+  currentIdOrSlug,
+}: {
+  table: "user_words" | "user_translations";
+  currentIdOrSlug: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "User not authenticated" };
+  }
+
+  if (table === "user_words") {
+    const { data: allEntries, error: fetchError } = await supabase
+      .from("user_words")
+      .select("word")
+      .eq("user_id", user.id);
+
+    if (fetchError || !allEntries || allEntries.length === 0) {
+      return { error: "No entries found in user_words" };
+    }
+
+    let filteredEntries = allEntries.filter(
+      (entry) => entry.word !== currentIdOrSlug
+    );
+
+    if (filteredEntries.length === 0) return { slug: null };
+
+    const randomIndex = Math.floor(Math.random() * filteredEntries.length);
+    const randomEntry = filteredEntries[randomIndex];
+
+    return { slug: encodeURIComponent(randomEntry.word) };
+  } else {
+    const { data: allEntries, error: fetchError } = await supabase
+      .from("user_translations")
+      .select("id")
+      .eq("user_id", user.id);
+
+    if (fetchError || !allEntries || allEntries.length === 0) {
+      return { error: "No entries found in user_translations" };
+    }
+
+    let filteredEntries = allEntries.filter(
+      (entry) => String(entry.id) !== String(currentIdOrSlug)
+    );
+
+    if (filteredEntries.length === 0) return { slug: null };
+
+    const randomIndex = Math.floor(Math.random() * filteredEntries.length);
+    const randomEntry = filteredEntries[randomIndex];
+
+    return { slug: String(randomEntry.id) };
+  }
+}
+
 export async function saveTagMetadata({
   tagName,
   iconName,

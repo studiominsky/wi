@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 import Link from "next/link";
-import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/ssr";
 import { TagIconMap } from "@/lib/tag-icons";
 import { TagIcon } from "@phosphor-icons/react/ssr";
+import { fetchRandomEntry } from "@/app/actions";
 
 const iconComponentMap = TagIconMap;
 
@@ -487,6 +488,7 @@ export default async function WordDetailPage({
 }) {
   const { wordSlug } = await params;
   const decodedWord = decodeURIComponent(wordSlug);
+  const currentYear = new Date().getFullYear();
 
   const supabase = await createClient();
   const {
@@ -505,6 +507,26 @@ export default async function WordDetailPage({
     .single();
 
   if (error || !word) notFound();
+
+  const [randomPrevResult, randomNextResult] = await Promise.all([
+    (async () => {
+      const { fetchRandomEntry } = await import("@/app/actions");
+      return fetchRandomEntry({
+        table: "user_words",
+        currentIdOrSlug: decodedWord,
+      });
+    })(),
+    (async () => {
+      const { fetchRandomEntry } = await import("@/app/actions");
+      return fetchRandomEntry({
+        table: "user_words",
+        currentIdOrSlug: decodedWord,
+      });
+    })(),
+  ]);
+
+  const randomPrevSlug = randomPrevResult.slug;
+  const randomNextSlug = randomNextResult.slug;
 
   const aiData = word.ai_data
     ? typeof word.ai_data === "string"
@@ -675,7 +697,7 @@ export default async function WordDetailPage({
         </div>
       </div>
 
-      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-10">
+      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-10 mb-40">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
           <div className="space-y-6">
             {aiData && (
@@ -746,6 +768,46 @@ export default async function WordDetailPage({
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 border-t bg-[#fbfbfb] dark:bg-[#000] backdrop-blur-sm">
+        <div className="container mx-auto max-w-8xl flex justify-between">
+          <Link
+            href={randomPrevSlug ? `/inventory/${randomPrevSlug}` : "#"}
+            aria-disabled={!randomPrevSlug}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-colors",
+              randomPrevSlug
+                ? "text-foreground hover:bg-muted"
+                : "text-muted-foreground cursor-default pointer-events-none"
+            )}
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            <span className="hidden sm:inline">Random Previous</span>
+          </Link>
+
+          <p className="text-xs text-muted-foreground py-2 mt-1">
+            &copy; {currentYear} Word Inventory by{" "}
+            <a href="https://studiominsky.com" target="_blank">
+              Studio Minsky
+            </a>
+            . All rights reserved.
+          </p>
+
+          <Link
+            href={randomNextSlug ? `/inventory/${randomNextSlug}` : "#"}
+            aria-disabled={!randomNextSlug}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-colors",
+              randomNextSlug
+                ? "text-foreground hover:bg-muted"
+                : "text-muted-foreground cursor-default pointer-events-none"
+            )}
+          >
+            <span className="hidden sm:inline">Random Next</span>
+            <ArrowRightIcon className="w-5 h-5" />
+          </Link>
         </div>
       </div>
     </>

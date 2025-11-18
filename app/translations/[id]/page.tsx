@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 import Link from "next/link";
-import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { TagIconMap } from "@/lib/tag-icons";
 import { TagIcon } from "@phosphor-icons/react/dist/ssr";
 
@@ -125,6 +125,7 @@ export default async function TranslationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const currentYear = new Date().getFullYear();
 
   const supabase = await createClient();
   const {
@@ -141,6 +142,26 @@ export default async function TranslationDetailPage({
     .single();
 
   if (error || !translationEntry) notFound();
+
+  const [randomPrevResult, randomNextResult] = await Promise.all([
+    (async () => {
+      const { fetchRandomEntry } = await import("@/app/actions");
+      return fetchRandomEntry({
+        table: "user_translations",
+        currentIdOrSlug: id,
+      });
+    })(),
+    (async () => {
+      const { fetchRandomEntry } = await import("@/app/actions");
+      return fetchRandomEntry({
+        table: "user_translations",
+        currentIdOrSlug: id,
+      });
+    })(),
+  ]);
+
+  const randomPrevId = randomPrevResult.slug;
+  const randomNextId = randomNextResult.slug;
 
   const aiData = translationEntry.ai_data
     ? typeof translationEntry.ai_data === "string"
@@ -264,7 +285,7 @@ export default async function TranslationDetailPage({
         </div>
       </div>
 
-      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-10">
+      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-10 mb-40">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
           <div className="space-y-6">
             {aiData && (
@@ -310,6 +331,46 @@ export default async function TranslationDetailPage({
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 border-t bg-[#fbfbfb] dark:bg-[#000] backdrop-blur-sm">
+        <div className="container mx-auto max-w-8xl flex justify-between">
+          <Link
+            href={randomPrevId ? `/translations/${randomPrevId}` : "#"}
+            aria-disabled={!randomPrevId}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-colors",
+              randomPrevId
+                ? "text-foreground hover:bg-muted"
+                : "text-muted-foreground cursor-default pointer-events-none"
+            )}
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            <span className="hidden sm:inline">Random Previous</span>
+          </Link>
+
+          <p className="text-xs text-muted-foreground py-2 mt-1">
+            &copy; {currentYear} Word Inventory by{" "}
+            <a href="https://studiominsky.com" target="_blank">
+              Studio Minsky
+            </a>
+            . All rights reserved.
+          </p>
+
+          <Link
+            href={randomNextId ? `/translations/${randomNextId}` : "#"}
+            aria-disabled={!randomNextId}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-colors",
+              randomNextId
+                ? "text-foreground hover:bg-muted"
+                : "text-muted-foreground cursor-default pointer-events-none"
+            )}
+          >
+            <span className="hidden sm:inline">Random Next</span>
+            <ArrowRightIcon className="w-5 h-5" />
+          </Link>
         </div>
       </div>
     </>
