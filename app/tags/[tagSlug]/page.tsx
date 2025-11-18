@@ -39,21 +39,15 @@ export default async function TagDetailPage({
   if (!user) redirect(`/login?next=/tags/${tagSlug}`);
 
   const allTagsData: TagData[] | null = await fetchUniqueTagsWithWords();
-
-  if (!allTagsData) {
-    notFound();
-  }
+  if (!allTagsData) notFound();
 
   const tagData = allTagsData.find(
     (t) => t.tag_name.toLowerCase() === tagName.toLowerCase()
   );
-
-  if (!tagData) {
-    notFound();
-  }
+  if (!tagData) notFound();
 
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-6 space-y-6">
+    <div className="w-full">
       <TagDetailsClient tagData={tagData} />
     </div>
   );

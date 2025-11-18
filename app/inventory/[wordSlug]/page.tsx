@@ -6,12 +6,11 @@ import { EntryActionMenu } from "@/components/edit-word-dialog";
 import { ImageWithErrorBoundary } from "@/components/image-error-boundary";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
-// import { ArrowLeftIcon } from "@phosphor-icons/react";
 
 function TagsDisplay({ tags }: { tags: string[] | null }) {
   if (!tags || tags.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-2 pt-4 border-t border-muted">
+    <div className="flex flex-wrap gap-2 pt-4">
       {tags.map((tag) => (
         <Link
           key={tag}
@@ -286,7 +285,7 @@ function DataDisplay({ data }: { data: any }) {
     );
 
   if (isTenseObject) {
-    entries = rawEntries.sort(([keyA], [keyB]) => {
+    entries = rawEntries.sort(([keyA, _a], [keyB, _b]) => {
       const indexA = TENSE_ORDER.findIndex(
         (t) => t.toLowerCase() === keyA.toLowerCase()
       );
@@ -297,7 +296,7 @@ function DataDisplay({ data }: { data: any }) {
       return 0;
     });
   } else if (isPronounObject) {
-    entries = rawEntries.sort(([keyA], [keyB]) => {
+    entries = rawEntries.sort(([keyA, _a], [keyB, _b]) => {
       const cleanA = keyA.toLowerCase().replace(/\s/g, "");
       const cleanB = keyB.toLowerCase().replace(/\s/g, "");
       const indexA = PRONOUN_ORDER_FOR_SORT.findIndex(
@@ -530,7 +529,7 @@ export default async function WordDetailPage({
 
   return (
     <>
-      <div className={cn("relative w-full pb-10", word.color)}>
+      <div className={cn("relative w-full pb-10")}>
         <div className="container mx-auto max-w-8xl p-4 md:p-6 relative">
           <div className="flex items-center justify-between mb-6">
             <Link
@@ -545,44 +544,68 @@ export default async function WordDetailPage({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-            <div className="md:col-span-2 flex flex-col justify-end space-y-4 order-2 md:order-1">
-              <div className="space-y-3">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight break-words">
-                  {decodedWord}
-                </h1>
+            <div className="md:col-span-2 flex flex-col justify-end order-2 md:order-1">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight break-words">
+                {decodedWord}
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">
+                {word.translation || "Translation not generated yet."}
+              </p>
+              <div className="space-y-3 mt-5">
+                <div className="inline-flex max-w-xl rounded-md overflow-hidden shadow-sm">
+                  <div
+                    className={cn(
+                      "w-1.5 flex-shrink-0",
+                      word.color || "bg-primary"
+                    )}
+                  />
 
-                <div className="space-y-2">
-                  <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground">
-                    {word.translation || "Translation not generated yet."}
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                    {genderAndSingularDisplay && (
-                      <Badge
-                        variant="outline"
-                        className="capitalize bg-background/50"
-                      >
-                        {genderAndSingularDisplay}
-                      </Badge>
+                  <div className="relative flex-1">
+                    {word.color && (
+                      <div
+                        className={cn(
+                          "absolute inset-0 pointer-events-none opacity-20",
+                          word.color
+                        )}
+                      />
                     )}
 
-                    {pluralForm && (
-                      <Badge
-                        variant="secondary"
-                        className="capitalize bg-background/50"
-                      >
-                        Plural: {pluralForm}
-                      </Badge>
-                    )}
+                    <div className="relative space-y-2 px-4 py-3 bg-muted/60">
+                      <div className="flex flex-col flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-foreground/90">
+                        {genderAndSingularDisplay && (
+                          <div className="flex items-center gap-2">
+                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
+                              Gender
+                            </span>
+                            <span className="font-semibold capitalize">
+                              {genderAndSingularDisplay}
+                            </span>
+                          </div>
+                        )}
 
-                    {category && (
-                      <Badge
-                        variant="outline"
-                        className="capitalize bg-background/50"
-                      >
-                        {category}
-                      </Badge>
-                    )}
+                        {pluralForm && (
+                          <div className="flex items-center gap-2">
+                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
+                              Plural
+                            </span>
+                            <span className="font-semibold capitalize">
+                              {pluralForm}
+                            </span>
+                          </div>
+                        )}
+
+                        {category && (
+                          <div className="flex items-center gap-2">
+                            <span className="uppercase tracking-wide text-[0.65rem] opacity-70">
+                              Category
+                            </span>
+                            <span className="font-semibold capitalize">
+                              {category}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -592,7 +615,7 @@ export default async function WordDetailPage({
 
             <div className="md:col-span-1 flex flex-col justify-end items-end gap-4 order-1 md:order-2">
               {word.image_url && (
-                <div className="relative aspect-video w-full max-w-sm md:max-w-none overflow-hidden rounded-md border border-border/60">
+                <div className="relative aspect-video w-full max-w-sm md:max-w-none overflow-hidden">
                   <ImageWithErrorBoundary
                     src={word.image_url}
                     alt={`Image for the word ${word.word}`}
@@ -633,17 +656,22 @@ export default async function WordDetailPage({
           </div>
 
           <div className="space-y-6">
-            <div className="p-4 rounded-lg bg-[#C3DE21] text-black">
+            <div
+              className={cn(
+                "p-4 rounded-md border border-border bg-background/80",
+                word.color && `${word.color} bg-opacity-10 bg-blend-multiply`
+              )}
+            >
               <h2 className="text-lg font-semibold mb-2">My Notes</h2>
               {word.notes ? (
                 <p className="text-md whitespace-pre-wrap">{word.notes}</p>
               ) : (
-                <p className="text-md text-black">No notes provided.</p>
+                <p className="text-md opacity-80">No notes provided.</p>
               )}
             </div>
 
             {aiData && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 space-y-4 rounded-lg">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 space-y-4 rounded-md">
                 <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
                   Grammar Tables & Forms
                 </h2>
