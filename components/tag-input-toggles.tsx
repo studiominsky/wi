@@ -146,7 +146,7 @@ export function TagInputToggles({
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto pr-1">
           {loadingTags && (
-            <div className="flex items-center text-sm text-muted-foreground">
+            <div className="flex items-center text-sm text-muted-foreground h-6">
               <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" /> Loading
               existing tags...
             </div>

@@ -50,7 +50,7 @@ export default function Header() {
     ? "bg-[#011c42] dark:bg-black border-b-transparent text-white shadow-none"
     : isHomePage && isScrolled
     ? "bg-[#fbfbfb]/95 dark:bg-[#000]/95 border-b-border text-foreground"
-    : "bg-background/95 border-b-border text-foreground";
+    : "dark:bg-black border-b-border text-foreground";
 
   const handleSignOut = async () => {
     await signOut();
