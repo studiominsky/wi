@@ -79,7 +79,7 @@ export default async function BlogPostPage({ params }: Props) {
       </div>
 
       <article className="container px-4 md:px-6 mx-auto max-w-3xl -mt-8">
-        <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg mb-10 bg-muted border">
+        <div className="relative w-full aspect-video rounded-md overflow-hidden mb-10 bg-muted">
           <Image
             src={post.image}
             alt={post.title}
