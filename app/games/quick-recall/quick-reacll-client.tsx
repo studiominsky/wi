@@ -29,14 +29,15 @@ interface GameState extends RecallEntry {
 
 const TOTAL_TIME_MS = 60000;
 const GAME_LENGTH = 15;
+
 function shuffleArray<T>(array: T[]): T[] {
   let currentIndex = array.length,
     randomIndex;
   while (currentIndex !== 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
+    [array[currentIndex], array[currentIndex]] = [
+      array[currentIndex],
       array[currentIndex],
     ];
   }
@@ -63,6 +64,8 @@ export default function QuickRecallClient({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const ACCENT = "#e88dfb";
+
   const currentItem = sessionData[currentIndex];
 
   const score = sessionData.filter((e) => e.status === "correct").length;
@@ -86,7 +89,6 @@ export default function QuickRecallClient({
     }
   }, [initialData, startNewGame]);
 
-  // Timer logic
   useEffect(() => {
     if (isRunning && timeRemaining > 0) {
       timerRef.current = setTimeout(() => {
@@ -108,7 +110,7 @@ export default function QuickRecallClient({
     setSessionData((prev) => {
       const nextData = [...prev];
       if (nextData[currentIndex]) {
-        nextData[currentIndex] = { ...nextData[currentIndex], status: status };
+        nextData[currentIndex] = { ...nextData[currentIndex], status };
       }
       return nextData;
     });
@@ -150,6 +152,7 @@ export default function QuickRecallClient({
     currentItem?.direction === "G-N"
       ? "Native Translation"
       : "German Translation";
+
   const scoreDisplay = `${score} / ${attempted}`;
 
   return (
@@ -177,13 +180,13 @@ export default function QuickRecallClient({
         Quick Recall Challenge
       </h1>
       <p className="text-sans text-foreground/60 max-w-xl">
-        Translate the word/phrase as quickly as possible. **Goal: {GAME_LENGTH}{" "}
-        attempts in 60 seconds.**
+        Translate the word/phrase as quickly as possible. Goal: {GAME_LENGTH}{" "}
+        attempts in 60 seconds.
       </p>
 
       <div className="flex justify-center w-full">
-        <div className="w-full max-w-xl space-y-6 p-6 border rounded-lg bg-card shadow-lg">
-          <div className="flex justify-between items-center text-lg font-semibold">
+        <div className="w-full max-w-xl space-y-6 p-6 border rounded-md bg-[#fbfbfb] dark:bg-[#000]">
+          <div className="flex justify-between items-center text-sm md:text-base font-semibold">
             <span className="flex items-center gap-2">
               <ClockIcon
                 className={cn(
@@ -195,9 +198,12 @@ export default function QuickRecallClient({
               />
               {timerDisplay}
             </span>
-            <span>{scoreDisplay} Correct</span>
+            <span className="cursor-pointer relative inline-flex items-center justify-center rounded-full text-sm font-medium bg-[#e88dfb] transition-all focus-visible:outline-none border border-input text-black h-8 px-3">
+              Score: {scoreDisplay}
+            </span>
           </div>
-          <Separator />
+
+          <Separator className="bg-[#e88dfb]" />
 
           {isGameOver ? (
             <div className="text-center py-10">
@@ -209,7 +215,11 @@ export default function QuickRecallClient({
               <p className="text-xl text-primary">
                 Final Score: {score} / {GAME_LENGTH}
               </p>
-              <Button onClick={startNewGame} className="mt-6">
+              <Button
+                onClick={startNewGame}
+                className="mt-6"
+                style={{ backgroundColor: ACCENT, color: "#000" }}
+              >
                 Play Again
               </Button>
             </div>
@@ -244,6 +254,7 @@ export default function QuickRecallClient({
                   className="w-full"
                   size="lg"
                   disabled={!isRunning || userInput.trim() === ""}
+                  style={{ backgroundColor: ACCENT, color: "#000" }}
                 >
                   Submit Answer
                 </Button>
@@ -252,7 +263,7 @@ export default function QuickRecallClient({
               {attempted > 0 && (
                 <div className="flex items-center justify-center pt-2">
                   {sessionData[currentIndex - 1]?.status === "correct" ? (
-                    <span className="flex items-center text-green-600 dark:text-green-400">
+                    <span className="flex font-medium items-center text-green-600 dark:text-green-400">
                       <CheckIcon className="size-5 mr-2" /> Correct!
                     </span>
                   ) : sessionData[currentIndex - 1]?.status === "incorrect" ? (
@@ -267,12 +278,12 @@ export default function QuickRecallClient({
                   ) : null}
                 </div>
               )}
+
+              <div className="pt-4 text-sm text-muted-foreground">
+                Attempted: {attempted} / {GAME_LENGTH}
+              </div>
             </>
           )}
-
-          <div className="pt-4 text-sm text-muted-foreground">
-            Attempted: {attempted} / {GAME_LENGTH}
-          </div>
         </div>
       </div>
     </div>

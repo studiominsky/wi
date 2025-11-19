@@ -146,7 +146,7 @@ export default function ArticleGuesserClient({
       </p>
 
       <div className="flex justify-center w-full">
-        <div className="w-full max-w-xl space-y-6 p-6 border rounded-lg bg-card shadow-lg">
+        <div className="w-full max-w-xl space-y-6 p-6 border rounded-md g-[#fbfbfb] dark:bg-[#000]">
           {isGameOver ? (
             <div className="text-center py-10">
               <h2 className="text-3xl font-bold mb-2">Game Over!</h2>
@@ -163,7 +163,7 @@ export default function ArticleGuesserClient({
                 <span>
                   Word {currentIndex + 1} of {data.length}
                 </span>
-                <span>
+                <span className="cursor-pointer relative inline-flex items-center justify-center rounded-full text-sm font-medium bg-[#52eec8] transition-all focus-visible:outline-none border border-input text-black h-8 px-3">
                   Score: {correct} / {total}
                 </span>
               </div>
@@ -175,7 +175,7 @@ export default function ArticleGuesserClient({
                 </p>
               </div>
 
-              <Separator />
+              <Separator className="bg-[#52eec8]" />
 
               <div className="flex justify-around gap-4">
                 {Object.values(articleMap).map((article) => {
@@ -204,9 +204,9 @@ export default function ArticleGuesserClient({
                       disabled={buttonsDisabled}
                       variant={buttonVariant}
                       className={cn(
-                        "text-xl h-12 w-24",
+                        "text-xl h-12 w-24 capitalize font-sans",
                         isCorrectAnswer &&
-                          "bg-green-600/20 hover:bg-green-600/30 border-green-600 dark:border-green-400 text-green-700 dark:text-green-300"
+                          "bg-green-600/20 capitalize hover:bg-green-600/30 border-green-600 dark:border-green-400 text-green-700 dark:text-green-300"
                       )}
                     >
                       {article}
@@ -219,7 +219,7 @@ export default function ArticleGuesserClient({
                 <div className="text-center space-y-2 pt-4">
                   <p
                     className={cn(
-                      "text-lg font-semibold flex items-center justify-center gap-2",
+                      "text-md font-medium flex items-center justify-center gap-2",
                       currentItem.status === "correct"
                         ? "text-green-600 dark:text-green-400"
                         : "text-destructive"

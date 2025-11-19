@@ -153,13 +153,14 @@ export default function MemoryCardsClient({
           </div>
 
           <div
+            key={currentCard.id}
             className="w-full aspect-[4/3] cursor-pointer"
             style={{ perspective: "1200px" }}
             onClick={handleFlip}
           >
             <div
               className={cn(
-                "relative h-full w-full rounded-2xl border border-border/60 shadow-xl bg-transparent transition-transform duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]",
+                "relative h-full w-full rounded-md border border-border bg-transparent transition-transform duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]",
                 "will-change-transform"
               )}
               style={{
@@ -168,19 +169,20 @@ export default function MemoryCardsClient({
               }}
             >
               <div
-                className="absolute inset-0 flex flex-col items-center justify-center px-8 py-6 rounded-md bg-[#fbfbfb] dark:bg-[#000] border from-card to-card/80 text-card-foreground"
+                className="absolute inset-0 flex flex-col items-center justify-center px-8 py-6 rounded-md bg-[#c4e456] text-black from-card to-card/80"
                 style={{
                   backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                   transform: "rotateY(0deg)",
                 }}
               >
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mb-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-black mb-3">
                   {isWord ? "German Word" : "Native Phrase"}
                 </p>
                 <h2 className="text-4xl sm:text-5xl font-bold text-center leading-tight">
                   {isWord ? currentCard.german : currentCard.native}
                 </h2>
-                <p className="mt-4 text-xs text-muted-foreground/80">
+                <p className="mt-4 text-sm text-black">
                   Tap the card to reveal / hide the translation
                 </p>
               </div>
