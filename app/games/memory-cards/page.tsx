@@ -22,7 +22,7 @@ async function fetchGameData(userId: string) {
   if (germanLangId) {
     const result = await supabase
       .from("user_words")
-      .select("id, word, translation, ai_data")
+      .select("id, word, translation, ai_data, image_url, color")
       .eq("user_id", userId)
       .eq("language_id", germanLangId);
 
@@ -32,8 +32,8 @@ async function fetchGameData(userId: string) {
 
   const { data: translationData, error: translationError } = await supabase
     .from("user_translations")
-    .select("id, word, translation, ai_data")
-    .eq("user_id", userId); // CORRECTED column name
+    .select("id, word, translation, ai_data, image_url, color")
+    .eq("user_id", userId);
 
   if (wordError || translationError) {
     console.error("Error fetching game data:", {
@@ -43,44 +43,77 @@ async function fetchGameData(userId: string) {
     return null;
   }
 
+  const getGermanDetails = (e: any) => {
+    let article: string | null = null;
+    let gender: string | null = null;
+    let aiData: any = null;
+
+    try {
+      aiData =
+        typeof e.ai_data === "string" ? JSON.parse(e.ai_data) : e.ai_data;
+    } catch {}
+
+    if (aiData?.gender) {
+      gender = aiData.gender.toLowerCase().replace(/\s/g, "");
+    }
+
+    if (gender === "masculine" || gender === "der") {
+      article = "Der";
+    } else if (gender === "feminine" || gender === "die") {
+      article = "Die";
+    } else if (gender === "neuter" || gender === "das") {
+      article = "Das";
+    }
+
+    const all_examples: string[] = aiData?.examples || [];
+
+    return {
+      article,
+      image_url: e.image_url,
+      all_examples,
+    };
+  };
+
   const allEntries = [
     ...(wordData || []).map((e) => {
-      let example = "No example available. (e.g., Sie mag Äpfel.)";
-      try {
-        const aiData =
-          typeof e.ai_data === "string" ? JSON.parse(e.ai_data) : e.ai_data;
-        if (aiData?.examples?.length > 0) {
-          // Use the first example, stripping the translation part if present
-          const firstExample = (aiData.examples[0] || "").split("(")[0].trim();
-          if (firstExample) example = firstExample;
-        }
-      } catch {}
+      const { article, image_url, all_examples } = getGermanDetails(e);
+      const germanDisplay = article && e.word ? `${article} ${e.word}` : e.word;
+
+      const singleExample =
+        all_examples.length > 0
+          ? (all_examples[0] || "").split("(")[0].trim()
+          : "No example available. (e.g., Sie mag Äpfel.)";
 
       return {
         id: `word-${e.id}`,
         german: e.word,
+        germanDisplay: germanDisplay,
         native: e.translation,
-        example: example,
+        article: article,
+        image_url: image_url,
+        all_examples: all_examples,
+        color: e.color,
+        example: singleExample,
       };
     }),
     ...(translationData || []).map((e) => {
-      let example =
-        "No example available. (e.g., I'm going running tomorrow morning.)";
-      try {
-        const aiData =
-          typeof e.ai_data === "string" ? JSON.parse(e.ai_data) : e.ai_data;
-        if (aiData?.examples?.length > 0) {
-          // Use the first example
-          const firstExample = (aiData.examples[0] || "").split("(")[0].trim();
-          if (firstExample) example = firstExample;
-        }
-      } catch {}
+      const { image_url, all_examples } = getGermanDetails(e);
+
+      const singleExample =
+        all_examples.length > 0
+          ? (all_examples[0] || "").split("(")[0].trim()
+          : "No example available. (e.g., I'm going running tomorrow morning.)";
 
       return {
         id: `trans-${e.id}`,
         german: e.translation,
+        germanDisplay: e.translation,
         native: e.word,
-        example: example,
+        article: null,
+        image_url: image_url,
+        all_examples: all_examples,
+        color: e.color,
+        example: singleExample,
       };
     }),
   ];

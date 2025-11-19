@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   RepeatIcon,
   LightbulbIcon,
   CaretRightIcon,
+  CircleNotchIcon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -16,8 +17,12 @@ import { toast } from "sonner";
 interface CardData {
   id: string;
   german: string;
+  germanDisplay: string;
   native: string;
-  example: string;
+  article: string | null;
+  image_url: string | null;
+  all_examples: string[];
+  color: string | null;
 }
 
 interface CardState extends CardData {
@@ -40,37 +45,48 @@ function shuffleArray<T>(array: T[]): T[] {
   return array;
 }
 
+const GAME_SIZE = 10;
+
 export default function MemoryCardsClient({
   initialData,
 }: {
   initialData: CardData[];
 }) {
-  const [sessionData, setSessionData] = useState<CardData[]>(
-    shuffleArray([...initialData]).slice(0, 10)
-  );
+  const [cards, setCards] = useState<CardState[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [cards, setCards] = useState<CardState[]>(
-    sessionData.map((c) => ({ ...c, flipped: false }))
-  );
+  const [loading, setLoading] = useState(true);
+
+  const initializeGame = useCallback(() => {
+    const sourceData = initialData.length > 0 ? initialData : [];
+
+    const newSessionData = shuffleArray([...sourceData]).slice(0, GAME_SIZE);
+
+    setCards(newSessionData.map((c) => ({ ...c, flipped: false })));
+    setCurrentIndex(0);
+    setLoading(false);
+  }, [initialData]);
+
+  useEffect(() => {
+    initializeGame();
+  }, [initializeGame]);
 
   const currentCard = cards[currentIndex];
 
   const handleFlip = useCallback(() => {
     setCards((prev) => {
       const next = [...prev];
-      next[currentIndex] = {
-        ...next[currentIndex],
-        flipped: !next[currentIndex].flipped,
-      };
+      if (next[currentIndex]) {
+        next[currentIndex] = {
+          ...next[currentIndex],
+          flipped: !next[currentIndex].flipped,
+        };
+      }
       return next;
     });
   }, [currentIndex]);
 
   const handleRestart = () => {
-    const newSessionData = shuffleArray([...initialData]).slice(0, 10);
-    setSessionData(newSessionData);
-    setCards(newSessionData.map((c) => ({ ...c, flipped: false })));
-    setCurrentIndex(0);
+    initializeGame();
     toast.info("Game restarted with new cards.", { duration: 2000 });
   };
 
@@ -85,9 +101,30 @@ export default function MemoryCardsClient({
     }
   };
 
-  if (!currentCard) return null;
+  if (loading || !currentCard) {
+    return (
+      <div className="container mx-auto p-4 md:p-6 flex justify-center items-center h-[50vh]">
+        <CircleNotchIcon className="size-8 animate-spin text-primary" />
+        <span className="ml-2">Loading cards...</span>
+      </div>
+    );
+  }
 
   const isFlipped = currentCard.flipped;
+  const isWord = !currentCard.id.startsWith("trans-");
+
+  const displayedExamples = currentCard.all_examples
+    .slice(0, 3)
+    .map((e) => {
+      return (e || "").split("(")[0].trim();
+    })
+    .filter((e) => e.length > 0);
+
+  const customColorClass = currentCard.color;
+  const isCustomColor = !!customColorClass;
+
+  const flippedCardBackground =
+    customColorClass || "bg-card text-card-foreground border-border";
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -131,17 +168,17 @@ export default function MemoryCardsClient({
               }}
             >
               <div
-                className="absolute inset-0 flex flex-col items-center justify-center px-8 py-6 rounded-2xl bg-gradient-to-br from-card to-card/80 text-card-foreground"
+                className="absolute inset-0 flex flex-col items-center justify-center px-8 py-6 rounded-md bg-[#fbfbfb] dark:bg-[#000] border from-card to-card/80 text-card-foreground"
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(0deg)",
                 }}
               >
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mb-3">
-                  German Word
+                  {isWord ? "German Word" : "Native Phrase"}
                 </p>
                 <h2 className="text-4xl sm:text-5xl font-bold text-center leading-tight">
-                  {currentCard.german}
+                  {isWord ? currentCard.german : currentCard.native}
                 </h2>
                 <p className="mt-4 text-xs text-muted-foreground/80">
                   Tap the card to reveal / hide the translation
@@ -149,29 +186,44 @@ export default function MemoryCardsClient({
               </div>
 
               <div
-                className="absolute inset-0 flex flex-col px-8 py-6 rounded-2xl bg-[#c4e456] from-primary to-primary/80 text-primary-foreground"
+                className={cn(
+                  "absolute inset-0 flex flex-col px-8 py-6 rounded-md",
+                  isCustomColor ? "border-current" : "border-transparent",
+                  flippedCardBackground
+                )}
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
                 }}
               >
                 <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-                  <p className="text-xs uppercase tracking-[0.18em] opacity-80">
-                    Native Translation
+                  <span>
+                    {isWord ? currentCard.germanDisplay : currentCard.native}
+                  </span>
+
+                  <p className="text-xs uppercase tracking-[0.18em] opacity-80 mt-2">
+                    {isWord ? "Native Translation" : "German Translation"}
                   </p>
+
                   <h2 className="text-3xl sm:text-4xl font-bold text-center leading-tight">
-                    {currentCard.native}
+                    {isWord ? currentCard.native : currentCard.germanDisplay}
                   </h2>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-primary-foreground/30">
-                  <p className="text-xs font-mono opacity-80 mb-1 flex items-center gap-1">
-                    <LightbulbIcon className="size-3" /> Example Context
-                  </p>
-                  <p className="text-sm italic leading-relaxed text-center">
-                    {currentCard.example}
-                  </p>
-                </div>
+                {displayedExamples.length > 0 && (
+                  <div className={cn("mt-4 pt-4 border-t border-current/30")}>
+                    <p className="text-xs font-mono opacity-80 mb-2 flex items-center gap-1">
+                      <LightbulbIcon className="size-3" /> Examples:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-sm italic leading-relaxed text-left max-h-24 overflow-y-auto">
+                      {displayedExamples.map((ex, index) => (
+                        <li key={index} className="text-start">
+                          {ex}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
