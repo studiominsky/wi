@@ -59,7 +59,7 @@ export default function Header() {
   };
 
   const buttonClasses = cn(
-    isTransparentHeroState && "font-mono text-white hover:text-white/80"
+    isTransparentHeroState && "font-mono text-white hover:text-white"
   );
 
   const logoMode = !mounted

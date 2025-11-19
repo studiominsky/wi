@@ -77,7 +77,7 @@ export default async function PricingPage() {
             <div
               key={tier.name}
               className={cn(
-                "flex flex-col p-6 bg-background rounded-xl border shadow-sm transition-all hover:shadow-md h-full"
+                "flex flex-col p-6 bg-background rounded-xl border h-full"
               )}
             >
               {tier.popular && (
@@ -119,15 +119,6 @@ export default async function PricingPage() {
               </Link>
             </div>
           ))}
-        </div>
-
-        <div className="mt-16 text-center">
-          <p className="text-muted-foreground text-sm">
-            Questions about plans?{" "}
-            <Link href="/contact" className="underline hover:text-foreground">
-              Contact us
-            </Link>
-          </p>
         </div>
       </div>
     </div>
