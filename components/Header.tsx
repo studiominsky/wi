@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ export default function Header() {
 
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -30,12 +32,25 @@ export default function Header() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  const isHomePage = pathname === "/";
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 300);
+    };
 
-  const dynamicHeaderClasses =
-    isHomePage && !mobileMenuOpen
-      ? "bg-[#011c42] dark:bg-background border-b-transparent text-white"
-      : "bg-background/95 border-b-border text-foreground";
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isHomePage = pathname === "/";
+  const isTransparentHeroState = isHomePage && !isScrolled && !mobileMenuOpen;
+
+  const dynamicHeaderClasses = isTransparentHeroState
+    ? "bg-[#011c42] dark:bg-black border-b-transparent text-white shadow-none"
+    : isHomePage && isScrolled
+    ? "bg-[#fbfbfb]/95 dark:bg-[#000]/95 border-b-border text-foreground"
+    : "bg-background/95 border-b-border text-foreground";
 
   const handleSignOut = async () => {
     await signOut();
@@ -44,18 +59,14 @@ export default function Header() {
   };
 
   const buttonClasses = cn(
-    isHomePage && !mobileMenuOpen && "font-mono text-white"
+    isTransparentHeroState && "font-mono text-white hover:text-white/80"
   );
 
   const logoMode = !mounted
     ? isHomePage
       ? "light"
       : "dark"
-    : mobileMenuOpen
-    ? resolvedTheme === "dark"
-      ? "light"
-      : "dark"
-    : isHomePage
+    : isTransparentHeroState
     ? "light"
     : resolvedTheme === "dark"
     ? "light"
@@ -68,7 +79,7 @@ export default function Header() {
         size="link"
         className={cn(
           buttonClasses,
-          "relative after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-full after:bg-current after:origin-left after:transition-transform after:duration-200",
+          "font-mono relative after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-full after:bg-current after:origin-left after:transition-transform after:duration-200",
           pathname === href
             ? "after:scale-x-100"
             : "after:scale-x-0 hover:after:scale-x-100"
@@ -98,7 +109,7 @@ export default function Header() {
 
     const toggleClasses = cn(
       "hover:bg-transparent h-9 w-9",
-      isHomePage && !mobileMenuOpen
+      isTransparentHeroState
         ? "text-white hover:text-white/80"
         : "text-foreground",
       className
@@ -120,7 +131,7 @@ export default function Header() {
   return (
     <header
       className={cn(
-        "w-full border-b sticky top-0 backdrop-blur z-50 py-4 md:py-7 transition-colors duration-200",
+        "w-full border-b sticky top-0 backdrop-blur-sm z-50 py-4 md:py-7",
         dynamicHeaderClasses
       )}
     >
@@ -142,7 +153,10 @@ export default function Header() {
                 onClick={handleSignOut}
                 variant="link"
                 size="link"
-                className={cn(isHomePage && "bg-transparent text-white")}
+                className={cn(
+                  isTransparentHeroState &&
+                    "bg-transparent text-white hover:text-white/80"
+                )}
               >
                 <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
                 Logout
@@ -170,7 +184,7 @@ export default function Header() {
             size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={cn(
-              isHomePage && !mobileMenuOpen
+              isTransparentHeroState
                 ? "text-white hover:bg-white/10"
                 : "text-foreground hover:bg-accent"
             )}
@@ -186,7 +200,7 @@ export default function Header() {
       </div>
 
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-background text-foreground border-b shadow-lg animate-in slide-in-from-top-2 border-t">
+        <div className="lg:hidden absolute top-full left-0 w-full bg-background text-foreground border-b animate-in slide-in-from-top-2 border-t">
           <nav className="container mx-auto p-4 flex flex-col gap-2">
             {loading ? (
               <div className="h-9 w-full animate-pulse bg-muted rounded-md" />
