@@ -4,6 +4,7 @@ import * as React from "react";
 import { TagIcon } from "@phosphor-icons/react";
 import { TagIconMap } from "@/lib/tag-icons";
 import { ImageWithErrorBoundary } from "./image-error-boundary";
+import { useTheme } from "next-themes";
 import { TagActionMenu } from "./tag-action-menu";
 import Link from "next/link";
 
@@ -33,28 +34,50 @@ interface TagMetadata {
   color_class: string | null;
 }
 
-const getTagColors = (colorClass: string | null) => {
+const getTagColors = (
+  colorClass: string | null,
+  resolvedTheme: string | undefined
+) => {
+  const isDark = resolvedTheme === "dark";
+
   switch (colorClass) {
+    case "tag-color-lime":
+      return isDark
+        ? { bg: "#455807", text: "#d7ef89", border: "#c4e456" }
+        : { bg: "#dff695", text: "#2b3704", border: "#5a720b" };
     case "tag-color-teal":
-      return { bg: "#0f766e", text: "#e5f9f4", border: "#0f766e" };
+      return isDark
+        ? { bg: "#006666", text: "rgba(30, 232, 232, 1)", border: "#049595" }
+        : { bg: "#b9f5e6", text: "#035959", border: "#008080" };
     case "tag-color-blue":
-      return { bg: "#1d4ed8", text: "#e0ecff", border: "#1d4ed8" };
+      return isDark
+        ? { bg: "#1c3987", text: "#bdd2ff", border: "#0a45c4" }
+        : { bg: "#d3ddff", text: "#082684", border: "#082684" };
     case "tag-color-orange":
-      return { bg: "#c2410c", text: "#ffe7d1", border: "#c2410c" };
+      return isDark
+        ? { bg: "#994d00", text: "#f0c187", border: "#bc6c0a" }
+        : { bg: "#ffe0c0", text: "#8a4603", border: "#b35900" };
     case "tag-color-red":
-      return { bg: "#b91c1c", text: "#ffe2e2", border: "#b91c1c" };
+      return isDark
+        ? { bg: "#a42424", text: "#fdd", border: "#5c0b0b" }
+        : { bg: "#ffcccc", text: "#840000", border: "#840000" };
     case "tag-color-purple":
-      return { bg: "#7e22ce", text: "#f3e8ff", border: "#7e22ce" };
+      return isDark
+        ? { bg: "#751296", text: "#ddbbfb", border: "#9a3dec" }
+        : { bg: "#eed3ff", text: "#660884", border: "#660884" };
     default:
-      return { bg: "#111827", text: "#e5e7eb", border: "#111827" };
+      return isDark
+        ? { bg: "#262626", text: "#a3a3a3", border: "#333333" }
+        : { bg: "#e5e7eb", text: "#4b5563", border: "#9ca3af" };
   }
 };
 
 export function TagDetailsClient({ tagData }: { tagData: TagData }) {
+  const { resolvedTheme } = useTheme();
   const IconComponent =
     TagIconMap[tagData.icon_name as keyof typeof TagIconMap] || TagIcon;
 
-  const colors = getTagColors(tagData.color_class);
+  const colors = getTagColors(tagData.color_class, resolvedTheme);
 
   const tagMetadata: TagMetadata = {
     tag_name: tagData.tag_name,

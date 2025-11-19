@@ -45,6 +45,7 @@ interface TagMetadata {
 
 const colorOptions = [
   { name: "Default", value: null, displayClass: "bg-transparent border-input" },
+  { name: "Lime", value: "tag-color-lime", displayClass: "tag-color-lime" },
   { name: "Teal", value: "tag-color-teal", displayClass: "tag-color-teal" },
   { name: "Blue", value: "tag-color-blue", displayClass: "tag-color-blue" },
   {

@@ -89,6 +89,9 @@ const getColorPalette = (
     "tag-color-teal": isDark
       ? { bg: "#006666", text: "rgba(30, 232, 232, 1)", border: "#049595" }
       : { bg: "#b9f5e6", text: "#035959", border: "#008080" },
+    "tag-color-lime": isDark
+      ? { bg: "#455807", text: "#d7ef89", border: "#c4e456" }
+      : { bg: "#dff695", text: "#2b3704", border: "#5a720b" },
     "tag-color-blue": isDark
       ? { bg: "#1c3987", text: "#bdd2ff", border: "#0a45c4" }
       : { bg: "#d3ddff", text: "#082684", border: "#082684" },

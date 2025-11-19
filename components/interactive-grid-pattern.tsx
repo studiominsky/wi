@@ -15,7 +15,7 @@ const TAG_COLOR_FILL_MAP: Record<string, string> = {
   "tag-color-blue": "fill-[#d3ddff] dark:fill-[#1c3987]",
   "tag-color-orange": "fill-[#ffe0c0] dark:fill-[#994d00]",
   "tag-color-purple": "fill-[#eed3ff] dark:fill-[#751296]",
-  "tag-color-teal": "fill-[#b9f5e6] dark:fill-[#006666]",
+  "tag-color-lime": "fill-[#dff695] dark:fill-[#455807]",
 };
 
 const TAG_COLOR_CLASSES = Object.keys(TAG_COLOR_FILL_MAP);

@@ -127,7 +127,6 @@
 }
 
 @layer utilities {
-  /* New utilities for flip card effect */
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
@@ -227,6 +226,24 @@
     --tag-bg: #006666;
     --tag-border: #049595;
     --tag-text: rgba(30, 232, 232, 1);
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .tag-color-lime {
+    --tag-bg: #dff695;
+    --tag-border: #5a720b;
+    --tag-text: #2b3704;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
+  }
+
+  .dark .tag-color-lime {
+    --tag-bg: #455807;
+    --tag-border: #c4e456;
+    --tag-text: #d7ef89;
     background-color: var(--tag-bg);
     border-color: var(--tag-border);
     color: var(--tag-text);

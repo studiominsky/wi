@@ -36,8 +36,6 @@ import { updateWordEntry, deleteWordEntry } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { TagInputToggles } from "@/components/tag-input-toggles";
 
-// Removed stringToTags utility as logic is now in TagInputToggles
-
 type WordEntry = {
   id: string | number;
   word: string;
@@ -57,6 +55,11 @@ type EditWordDialogProps = {
 
 const colorOptions = [
   { name: "Default", value: null, displayClass: "bg-transparent border-input" },
+  {
+    name: "Lime",
+    value: "tag-color-lime",
+    displayClass: "tag-color-lime",
+  },
   {
     name: "Teal",
     value: "tag-color-teal",
