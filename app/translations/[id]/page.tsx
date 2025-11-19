@@ -39,7 +39,7 @@ async function TagsDisplay({ tags }: { tags: string[] | null }) {
             <Badge
               variant="secondary"
               className={cn(
-                "capitalize cursor-pointer flex items-center gap-1.5 border-transparent"
+                "capitalize cursor-pointer flex items-center gap-1.5 border-transparent h-6"
               )}
             >
               <div
@@ -271,7 +271,7 @@ export default async function TranslationDetailPage({
               <TagsDisplay tags={(translationEntry as any).tags} />
             </div>
 
-            <div className="md:col-span-1 flex flex-col justify-end items-end gap-4 order-1 md:order-2">
+            <div className="md:col-span-1 m-auto flex flex-col justify-end items-end gap-4 order-1 md:order-2">
               {translationEntry.image_url && (
                 <div className="relative aspect-[1.5] w-full max-w-sm overflow-hidden rounded-md bg-muted">
                   <ImageWithErrorBoundary
