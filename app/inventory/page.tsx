@@ -158,7 +158,8 @@ export default async function GermanInventoryPage() {
         <div className="flex flex-col gap-3">
           <h1 className="text-2xl font-grotesk md:text-3xl">{langDisplay}</h1>
           <p className="text-sans text-foreground/60">
-            Inventory for {currentLangName} words to your native language.
+            Inventory for {currentLangName} words or sentences to your native
+            language.
           </p>
         </div>
 
