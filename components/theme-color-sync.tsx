@@ -1,4 +1,3 @@
-// components/theme-color-sync.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -11,7 +10,6 @@ export default function ThemeColorSync() {
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    // Find existing meta tag or create one
     let meta = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]'
     );
