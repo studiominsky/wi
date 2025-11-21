@@ -307,7 +307,7 @@ export function WordTable({
                     <Link
                       href={href}
                       className={cn(
-                        "size-3 rounded-full shrink-0 border block",
+                        "size-3 rounded-full shrink-0 block",
                         word.color || "bg-transparent border-input"
                       )}
                       aria-label={`View ${word.word}`}

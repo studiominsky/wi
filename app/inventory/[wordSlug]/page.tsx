@@ -787,12 +787,11 @@ export default async function WordDetailPage({
             <span className="hidden sm:inline">Random Previous</span>
           </Link>
 
-          <p className="text-xs text-muted-foreground py-2 mt-1">
+          <p className="text-xs text-muted-foreground py-2 mt-1 text-center">
             &copy; {currentYear} Word Inventory by{" "}
             <a href="https://studiominsky.com" target="_blank">
               Studio Minsky
             </a>
-            . All rights reserved.
           </p>
 
           <Link

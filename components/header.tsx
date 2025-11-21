@@ -66,6 +66,7 @@ export default function Header() {
     : "dark:bg-black border-b-border text-foreground";
 
   const handleSignOut = async () => {
+    setMobileMenuOpen(false);
     await signOut();
     router.push("/");
     router.refresh();
@@ -107,7 +108,12 @@ export default function Header() {
   );
 
   const mobileNavItem = (href: string, label: string) => (
-    <Link href={href} key={href} className="w-full block">
+    <Link
+      href={href}
+      key={href}
+      className="w-full block"
+      onClick={() => setMobileMenuOpen(false)}
+    >
       <Button
         variant="link"
         className={cn(
@@ -128,6 +134,7 @@ export default function Header() {
 
     const handleToggle = () => {
       setTheme(theme === "dark" ? "light" : "dark");
+      setMobileMenuOpen(false);
     };
 
     const Icon = resolvedTheme === "dark" ? SunIcon : MoonIcon;
@@ -269,7 +276,11 @@ export default function Header() {
                     <ThemeToggle className="text-foreground" />
                   </div>
 
-                  <Link href="/login" className="w-full mt-4">
+                  <Link
+                    href="/login"
+                    className="w-full mt-4"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     <Button size="lg" className="w-full">
                       <SignInIcon className="h-4 w-4 mr-2" weight="regular" />
                       Login

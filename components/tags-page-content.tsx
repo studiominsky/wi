@@ -54,15 +54,6 @@ export default function TagsPageContent({
     setRefreshKey((prev) => prev + 1);
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4 md:p-6 flex justify-center items-center h-[50vh]">
-        <CircleNotchIcon className="size-8 animate-spin text-primary" />
-        <span className="ml-2">Loading tags...</span>
-      </div>
-    );
-  }
-
   if (!tagsData || tagsData.length === 0) {
     return (
       <div className="container mx-auto p-4 md:p-6 text-center py-16 border-2 border-dashed rounded-lg max-w-8xlmt-10">
