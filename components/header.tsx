@@ -33,6 +33,17 @@ export default function Header() {
   }, [pathname]);
 
   useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 300);
     };
@@ -44,7 +55,8 @@ export default function Header() {
   }, []);
 
   const isHomePage = pathname === "/";
-  const isTransparentHeroState = isHomePage && !isScrolled && !mobileMenuOpen;
+  const isTransparentHeroState =
+    isHomePage && !isScrolled && !mobileMenuOpen && !user;
 
   const dynamicHeaderClasses = isTransparentHeroState
     ? "bg-[#011c42] dark:bg-black border-b-transparent text-white shadow-none"
@@ -92,7 +104,13 @@ export default function Header() {
 
   const mobileNavItem = (href: string, label: string) => (
     <Link href={href} key={href} className="w-full block">
-      <Button variant="ghost" className="w-full justify-start h-10 text-base">
+      <Button
+        variant="ghost"
+        className={cn(
+          "w-full justify-start h-10 text-base",
+          pathname === href && "bg-accent text-accent-foreground font-medium"
+        )}
+      >
         {label}
       </Button>
     </Link>
@@ -129,92 +147,46 @@ export default function Header() {
   };
 
   return (
-    <header
-      className={cn(
-        "w-full border-b sticky top-0 backdrop-blur-sm z-50 py-4 md:py-7",
-        dynamicHeaderClasses
-      )}
-    >
-      <div className="container flex items-center justify-between mx-auto px-4 md:px-6">
-        <Logo mode={logoMode} />
+    <>
+      <header
+        className={cn(
+          "w-full border-b sticky top-0 backdrop-blur-sm z-50 py-4 md:py-7",
+          dynamicHeaderClasses,
+          mobileMenuOpen
+            ? "z-[60] bg-background text-foreground border-b-border"
+            : "z-50"
+        )}
+      >
+        <div className="container flex items-center justify-between mx-auto px-4 md:px-6">
+          <Logo
+            mode={
+              mobileMenuOpen
+                ? resolvedTheme === "dark"
+                  ? "light"
+                  : "dark"
+                : logoMode
+            }
+          />
 
-        <nav className="hidden lg:flex items-center gap-4 sm:gap-6">
-          {loading ? (
-            <div className="h-9 w-20 animate-pulse bg-muted rounded-md" />
-          ) : user ? (
-            <>
-              {navItem("/inventory", "Inventory")}
-              {navItem("/translations", "Translations")}
-              {navItem("/tags", "Tags")}
-              {navItem("/games", "Games")}
-              {navItem("/settings", "Settings")}
-
-              <Button
-                onClick={handleSignOut}
-                variant="link"
-                size="link"
-                className={cn(
-                  isTransparentHeroState &&
-                    "bg-transparent text-white hover:text-white/80"
-                )}
-              >
-                <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
-                Logout
-              </Button>
-            </>
-          ) : (
-            <>
-              {navItem("/#how-it-works", "How It Works")}
-              {navItem("/blog", "Blog")}
-              {navItem("/pricing", "Pricing")}
-              <ThemeToggle />
-
-              <Link href="/login">
-                <Button size="lg" className="shrink-0">
-                  Login
-                </Button>
-              </Link>
-            </>
-          )}
-        </nav>
-
-        <div className="flex items-center gap-2 lg:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={cn(
-              isTransparentHeroState
-                ? "text-white hover:bg-white/10"
-                : "text-foreground hover:bg-accent"
-            )}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <XIcon className="size-6" />
-            ) : (
-              <ListIcon className="size-6" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-background text-foreground border-b animate-in slide-in-from-top-2 border-t">
-          <nav className="container mx-auto p-4 flex flex-col gap-2">
+          <nav className="hidden lg:flex items-center gap-4 sm:gap-6">
             {loading ? (
-              <div className="h-9 w-full animate-pulse bg-muted rounded-md" />
+              <div className="h-9 w-20 animate-pulse bg-muted rounded-md" />
             ) : user ? (
               <>
-                {mobileNavItem("/inventory", "Inventory")}
-                {mobileNavItem("/translations", "Translations")}
-                {mobileNavItem("/tags", "Tags")}
-                {mobileNavItem("/games", "Games")}
-                {mobileNavItem("/settings", "Settings")}
+                {navItem("/inventory", "Inventory")}
+                {navItem("/translations", "Translations")}
+                {navItem("/tags", "Tags")}
+                {navItem("/games", "Games")}
+                {navItem("/settings", "Settings")}
+
                 <Button
                   onClick={handleSignOut}
-                  variant="ghost"
-                  className="w-full justify-start h-10 text-base text-destructive hover:text-destructive hover:bg-destructive/10"
+                  variant="link"
+                  size="link"
+                  className={cn(
+                    isTransparentHeroState &&
+                      "bg-transparent text-white hover:text-white/80"
+                  )}
                 >
                   <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
                   Logout
@@ -222,25 +194,92 @@ export default function Header() {
               </>
             ) : (
               <>
-                {mobileNavItem("/#how-it-works", "How It Works")}
-                {mobileNavItem("/blog", "Blog")}
-                {mobileNavItem("/pricing", "Pricing")}
+                {navItem("/#how-it-works", "How It Works")}
+                {navItem("/blog", "Blog")}
+                {navItem("/pricing", "Pricing")}
+                <ThemeToggle />
 
-                <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 mt-2">
-                  <span className="font-medium">Theme</span>
-                  <ThemeToggle className="text-foreground" />
-                </div>
-
-                <Link href="/login" className="w-full mt-2">
-                  <Button size="lg" className="w-full">
+                <Link href="/login">
+                  <Button size="lg" className="shrink-0">
                     Login
                   </Button>
                 </Link>
               </>
             )}
           </nav>
+
+          <div className="flex items-center gap-2 lg:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={cn(
+                !mobileMenuOpen && isTransparentHeroState
+                  ? "text-white hover:bg-white/10"
+                  : "text-foreground hover:bg-accent"
+              )}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <XIcon className="size-6" />
+              ) : (
+                <ListIcon className="size-6" />
+              )}
+            </Button>
+          </div>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="lg:hidden absolute top-full left-0 w-full bg-background text-foreground border-b animate-in slide-in-from-top-2 border-t z-[60]">
+            <nav className="container mx-auto p-4 flex flex-col gap-2 max-h-[80vh] overflow-y-auto">
+              {loading ? (
+                <div className="h-9 w-full animate-pulse bg-muted rounded-md" />
+              ) : user ? (
+                <>
+                  {mobileNavItem("/inventory", "Inventory")}
+                  {mobileNavItem("/translations", "Translations")}
+                  {mobileNavItem("/tags", "Tags")}
+                  {mobileNavItem("/games", "Games")}
+                  {mobileNavItem("/settings", "Settings")}
+                  <Button
+                    onClick={handleSignOut}
+                    variant="ghost"
+                    className="w-full justify-start h-10 text-base text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {mobileNavItem("/#how-it-works", "How It Works")}
+                  {mobileNavItem("/blog", "Blog")}
+                  {mobileNavItem("/pricing", "Pricing")}
+
+                  <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 mt-2">
+                    <span className="font-medium">Theme</span>
+                    <ThemeToggle className="text-foreground" />
+                  </div>
+
+                  <Link href="/login" className="w-full mt-2">
+                    <Button size="lg" className="w-full">
+                      Login
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in-0"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
       )}
-    </header>
+    </>
   );
 }

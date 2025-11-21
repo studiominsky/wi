@@ -31,7 +31,7 @@ const dmMono = DM_Mono({
 
 export const metadata: Metadata = {
   title: "Word Inventory",
-  description: "Your personal language library",
+  description: "Your German word inventory. Powered by AI.",
 };
 
 export default function RootLayout({
@@ -49,7 +49,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <AuthProvider>
             <ThemeProvider>
-              {/* <ThemeColorSync /> */}
+              <ThemeColorSync />
               <Header />
               <main className="flex-1 text-foreground">{children}</main>
               <Footer />

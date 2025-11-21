@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Word Inventory",
     short_name: "Wi",
-    description: "Your personal German learning inventory.",
+    description: "Your German word inventory. Powered by AI.",
     start_url: "/",
     display: "standalone",
     background_color: "#fbfbfb",

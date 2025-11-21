@@ -409,6 +409,7 @@ export function AddWordDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
+          className="w-full sm:w-fit"
           disabled={loading || userLanguages.length === 0 || !currentLanguageId}
           title={
             userLanguages.length === 0

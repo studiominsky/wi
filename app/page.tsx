@@ -65,7 +65,7 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen bg-[#fbfbfb] dark:bg-black text-foreground">
       <div className="bg-[#011C42] dark:bg-black relative overflow-hidden">
         <div className="relative w-full mx-auto max-w-[1600px]">
-          <div className="relative w-full pt-[100%] sm:pt-[50%]">
+          <div className="relative w-full pt-[100%] sm:pt-[50%] my-10 sm:my-5">
             <InteractiveGridPattern
               className="absolute inset-0 h-full w-full"
               squares={[20, 10]}
@@ -77,14 +77,16 @@ export default async function Home() {
         <section className="absolute inset-0 text-center z-10 p-12 md:p-24 lg:p-32 xl:p-48 pointer-events-none">
           <div className="container px-4 md:px-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-lg">
             <div className="flex flex-col items-center space-y-4">
-              <h1 className="font-grotesk text-white leading-10 md:leading-19 text-4xl xs:text-5xl md:text-6xl lg:text-[72px] !tracking-[-0.123rem] tracking-tighter">
-                Inventory for your Language Learning Journey
+              <h1 className="font-grotesk text-white text-4xl sm:text-5xl lg:text-[72px] !tracking-[-0.123rem] tracking-tighter">
+                Your German word inventory. Powered by AI.
               </h1>
               <p className="mx-auto max-w-[700px] text-white/80 md:text-xl">
-                The ultimate tool to collect, customize, and master vocabulary
-                in German language learning.
+                Build your personal word inventory. Just drop in a word, and let
+                AI automatically add grammar and real-world examples. Turn your
+                inventory into interactive graphs and games to master the
+                language faster.
               </p>
-              <div className="flex items-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
                 <Link
                   href={user ? "/inventory" : "/login"}
                   className="pointer-events-auto"
@@ -138,7 +140,7 @@ export default async function Home() {
               <h3 className="text-xl font-bold">Add Words and Phrases</h3>
               <p className="text-sm text-muted-foreground">
                 Quickly add new words, translations, and notes to your personal
-                inventory.
+                German word inventory.
               </p>
             </div>
             <div className="flex flex-col items-center space-y-2 text-center p-4">

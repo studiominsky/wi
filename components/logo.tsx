@@ -20,7 +20,7 @@ export default function Logo({
     >
       <div
         className={cn(
-          "flex items-center justify-center border text-md font-mono font-medium w-[48px] h-[48px]",
+          "flex items-center justify-center text-md font-mono font-medium w-[48px] h-[48px]",
           isDark
             ? "bg-black text-white border-black"
             : "bg-white text-black border-black"
