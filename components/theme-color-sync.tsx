@@ -1,18 +1,28 @@
+// components/theme-color-sync.tsx
 "use client";
 
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 
+const LIGHT_COLOR = "#fbfbfb";
+const DARK_COLOR = "#000000";
+
 export default function ThemeColorSync() {
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
+    // Find existing meta tag or create one
+    let meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]'
+    );
 
-    if (!meta) return;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
 
-    const color = resolvedTheme === "dark" ? "#000000" : "#fbfbfb";
-    meta.setAttribute("content", color);
+    meta.content = resolvedTheme === "dark" ? DARK_COLOR : LIGHT_COLOR;
   }, [resolvedTheme]);
 
   return null;
