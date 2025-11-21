@@ -99,7 +99,7 @@ export default async function GamesPage() {
         your inventory.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-10 pt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 pt-4">
         <GameCard
           href="/games/memory-cards"
           icon={ScrollIcon}

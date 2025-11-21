@@ -36,7 +36,17 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const authRoutes = ["/login", "/signup", "/forgot-password"];
-  const protectedRoutes = ["/inventory", "/profile"];
+  const protectedRoutes = [
+    "/inventory",
+    "/translations",
+    "/tags",
+    "/games",
+    "/settings",
+  ];
+
+  if (user && pathname === "/") {
+    return NextResponse.redirect(new URL("/inventory", request.url));
+  }
 
   const isAuthRoute = authRoutes.some((path) => pathname.startsWith(path));
   const isProtectedRoute = protectedRoutes.some((path) =>
@@ -45,16 +55,10 @@ export async function middleware(request: NextRequest) {
 
   if (!user && isProtectedRoute) {
     const next = encodeURIComponent(pathname + search);
-    console.log(
-      `Middleware: User not logged in, accessing protected route ${pathname}. Redirecting to login.`
-    );
     return NextResponse.redirect(new URL(`/login?next=${next}`, request.url));
   }
 
   if (user && isAuthRoute) {
-    console.log(
-      `Middleware: User logged in, accessing auth route ${pathname}. Redirecting to dashboard.`
-    );
     return NextResponse.redirect(new URL("/inventory", request.url));
   }
 
@@ -63,13 +67,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - any files in /public (e.g., .svg, .png, .jpg)
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

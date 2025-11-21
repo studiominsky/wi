@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TagsPageContent from "@/components/tags-page-content";
+import { fetchUniqueTagsWithWords } from "@/app/actions";
 
 async function getTagsDataAndProfile(userId: string) {
   const supabase = await createClient();
@@ -26,9 +27,14 @@ export default async function TagsPage() {
     redirect("/login?next=/tags");
   }
 
+  const tagsData = await fetchUniqueTagsWithWords();
   const { nativeLanguage } = await getTagsDataAndProfile(user.id);
 
   return (
-    <TagsPageContent userId={user.id} initialNativeLanguage={nativeLanguage} />
+    <TagsPageContent
+      userId={user.id}
+      initialNativeLanguage={nativeLanguage}
+      initialData={tagsData}
+    />
   );
 }

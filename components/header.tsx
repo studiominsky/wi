@@ -8,6 +8,7 @@ import {
   SunIcon,
   ListIcon,
   XIcon,
+  SignInIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -74,6 +75,9 @@ export default function Header() {
     isTransparentHeroState && "font-mono text-white hover:text-white"
   );
 
+  const underlineClasses =
+    "font-mono relative after:absolute after:left-0 after:bottom-0 after:h-[1px]";
+
   const logoMode = !mounted
     ? isHomePage
       ? "light"
@@ -91,7 +95,7 @@ export default function Header() {
         size="link"
         className={cn(
           buttonClasses,
-          "font-mono relative after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-full after:bg-current after:origin-left after:transition-transform after:duration-200",
+          "font-mono relative after:absolute after:left-0 after:bottom-0 after:h-[1px] after:w-full after:bg-current",
           pathname === href
             ? "after:scale-x-100"
             : "after:scale-x-0 hover:after:scale-x-100"
@@ -105,10 +109,13 @@ export default function Header() {
   const mobileNavItem = (href: string, label: string) => (
     <Link href={href} key={href} className="w-full block">
       <Button
-        variant="ghost"
+        variant="link"
         className={cn(
-          "w-full justify-start h-10 text-base",
-          pathname === href && "bg-accent text-accent-foreground font-medium"
+          "w-full justify-start h-10 text-base w-fit p-0",
+          underlineClasses,
+          pathname === href
+            ? "after:scale-x-100 text-accent-foreground font-medium"
+            : "after:scale-x-0 hover:after:scale-x-100"
         )}
       >
         {label}
@@ -153,7 +160,7 @@ export default function Header() {
           "w-full border-b sticky top-0 backdrop-blur-sm z-50 py-4 md:py-7",
           dynamicHeaderClasses,
           mobileMenuOpen
-            ? "z-[60] bg-background text-foreground border-b-border"
+            ? "z-[60] bg-[#fbfbfb] dark:bg-[#000] text-foreground border-b-border"
             : "z-50"
         )}
       >
@@ -230,10 +237,10 @@ export default function Header() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-background text-foreground border-b animate-in slide-in-from-top-2 border-t z-[60]">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-[#fbfbfb] dark:bg-[#000] text-foreground border-b animate-in slide-in-from-top-2 border-t z-[60]">
             <nav className="container mx-auto p-4 flex flex-col gap-2 max-h-[80vh] overflow-y-auto">
               {loading ? (
-                <div className="h-9 w-full animate-pulse bg-muted rounded-md" />
+                <div className="h-9 w-full animate-pulse rounded-md" />
               ) : user ? (
                 <>
                   {mobileNavItem("/inventory", "Inventory")}
@@ -243,8 +250,9 @@ export default function Header() {
                   {mobileNavItem("/settings", "Settings")}
                   <Button
                     onClick={handleSignOut}
-                    variant="ghost"
-                    className="w-full justify-start h-10 text-base text-destructive hover:text-destructive hover:bg-destructive/10"
+                    size="lg"
+                    variant="destructive"
+                    className="w-full mt-4 uppercase"
                   >
                     <SignOutIcon className="h-4 w-4 mr-2" weight="regular" />
                     Logout
@@ -256,13 +264,14 @@ export default function Header() {
                   {mobileNavItem("/blog", "Blog")}
                   {mobileNavItem("/pricing", "Pricing")}
 
-                  <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 mt-2">
+                  <div className="flex items-center justify-between p-0 border-border/50 mt-2">
                     <span className="font-medium">Theme</span>
                     <ThemeToggle className="text-foreground" />
                   </div>
 
-                  <Link href="/login" className="w-full mt-2">
+                  <Link href="/login" className="w-full mt-4">
                     <Button size="lg" className="w-full">
+                      <SignInIcon className="h-4 w-4 mr-2" weight="regular" />
                       Login
                     </Button>
                   </Link>

@@ -30,11 +30,13 @@ interface TagData {
 export default function TagsPageContent({
   userId,
   initialNativeLanguage,
+  initialData,
 }: {
   userId: string;
   initialNativeLanguage: string;
+  initialData: TagData[] | null;
 }) {
-  const [tagsData, setTagsData] = useState<TagData[] | null>(null);
+  const [tagsData, setTagsData] = useState<TagData[] | null>(initialData);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 

@@ -9,12 +9,18 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { InteractiveGridPattern } from "@/components/interactive-grid-pattern";
 import { cn } from "@/lib/utils";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Redirect to inventory if the user is already logged in
+  if (user) {
+    redirect("/inventory");
+  }
 
   const pricingTiers = [
     {
