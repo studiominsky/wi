@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Word Inventory",
+  "short_name": "Wi",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
