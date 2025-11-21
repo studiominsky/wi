@@ -8,6 +8,7 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 
 import "@/styles/globals.css";
+import ThemeColorSync from "@/components/theme-color-sync";
 
 const tomatoGrotesk = localFont({
   src: "./fonts/TomatoGrotesk.woff2",
@@ -48,6 +49,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <AuthProvider>
             <ThemeProvider>
+              <ThemeColorSync />
               <Header />
               <main className="flex-1 text-foreground">{children}</main>
               <Footer />
