@@ -49,7 +49,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <AuthProvider>
             <ThemeProvider>
-              <ThemeColorSync />
+              {/* <ThemeColorSync /> */}
               <Header />
               <main className="flex-1 text-foreground">{children}</main>
               <Footer />
