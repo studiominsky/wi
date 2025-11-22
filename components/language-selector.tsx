@@ -36,7 +36,7 @@ export function LanguageSelector({
     <select
       value={langSlug}
       onChange={handleValueChange}
-      className="h-9 w-[180px] rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm transition-colors focus:border-ring focus:outline-none"
+      className="h-9 w-[180px] rounded-md border bg-transparent px-3 py-2 text-sm transition-colors focus:border-ring focus:outline-none"
     >
       {languagesWithSlug.map((lang) => (
         <option key={lang.id} value={lang.iso_code!}>

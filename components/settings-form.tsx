@@ -1,4 +1,3 @@
-// studiominsky/wi/wi-f5dfbd236c9a97521343ab4512a1acaf15a3da07/components/settings-form.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -173,16 +172,9 @@ export function SettingsForm({
   const { user, signOut } = useAuth();
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
-
-  // Settings State
   const [nativeLanguage, setNativeLanguage] = useState(currentLanguage);
-  const [themePreferenceToSave, setThemePreferenceToSave] =
-    useState(currentTheme);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Profile State
   const [username, setUsername] = useState(initialUsername);
   const [currentUsername, setCurrentUsername] = useState(initialUsername);
   const [profileMessage, setProfileMessage] = useState("");
@@ -191,7 +183,6 @@ export function SettingsForm({
   const [passwordMessage, setPasswordMessage] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(false);
 
-  // Delete Account State
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
@@ -203,46 +194,48 @@ export function SettingsForm({
 
   useEffect(() => {
     setMounted(true);
-    if (theme) setThemePreferenceToSave(theme);
-  }, [theme]);
+  }, []);
 
-  // Initialize username states once mounted/if prop changes
   useEffect(() => {
     setUsername(initialUsername);
     setCurrentUsername(initialUsername);
   }, [initialUsername]);
 
-  const handleThemeChange = (newThemePreference: string) => {
-    setThemePreferenceToSave(newThemePreference);
-    setTheme(newThemePreference);
-  };
-
-  const handleSaveSettings = async () => {
+  const updateProfileSetting = async (updates: {
+    native_language?: string;
+    theme?: string;
+  }) => {
     if (!user) return;
-    setLoading(true);
-    setMessage("");
 
     const { error } = await supabase
       .from("profiles")
       .update({
-        native_language: nativeLanguage,
-        theme: themePreferenceToSave,
+        ...updates,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
 
     if (error) {
       if (error.message.includes("schema cache")) {
-        setMessage(
-          "Error: Database schema might be out of sync. Please try restarting the application or contact support if the issue persists."
+        toast.error(
+          "Database schema error. Please refresh the page or try again later."
         );
       } else {
-        setMessage(`Error: ${error.message}`);
+        toast.error(`Failed to save setting: ${error.message}`);
       }
     } else {
-      setMessage("Language and Theme saved successfully!");
+      toast.success("Settings saved");
     }
-    setLoading(false);
+  };
+
+  const handleThemeChange = (newThemePreference: string) => {
+    setTheme(newThemePreference);
+    updateProfileSetting({ theme: newThemePreference });
+  };
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setNativeLanguage(newLanguage);
+    updateProfileSetting({ native_language: newLanguage });
   };
 
   const handleUpdateUsername = async () => {
@@ -274,6 +267,7 @@ export function SettingsForm({
     } else {
       setProfileMessage("Username updated successfully!");
       setCurrentUsername(username);
+      toast.success("Username updated");
     }
     setLoadingProfile(false);
   };
@@ -305,6 +299,7 @@ export function SettingsForm({
       setPasswordMessage("Password updated successfully!");
       setPassword("");
       setConfirmPassword("");
+      toast.success("Password updated");
     }
     setLoadingProfile(false);
   };
@@ -312,14 +307,10 @@ export function SettingsForm({
   const handleDeleteAccount = async () => {
     if (!user) return;
     setLoadingDelete(true);
-    setLoading(true);
 
-    // In a real application, this would call a secure Server Action or Supabase Edge function
-    // to perform the user/data deletion which requires admin privileges.
-    // Here we simulate success and rely on signOut/redirect.
     const { error: deletionError } = await supabase.rpc(
       "delete_current_user_and_data"
-    ); // Assumed RLS function
+    );
 
     if (deletionError) {
       console.error("User deletion attempt failed:", deletionError);
@@ -327,7 +318,6 @@ export function SettingsForm({
         `Account deletion failed: ${deletionError.message}. Please try again.`
       );
       setLoadingDelete(false);
-      setLoading(false);
       return;
     }
 
@@ -336,7 +326,6 @@ export function SettingsForm({
     router.push("/");
 
     setLoadingDelete(false);
-    setLoading(false);
   };
 
   if (!mounted) {
@@ -349,9 +338,7 @@ export function SettingsForm({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-      {/* COLUMN 1: ACCOUNT DETAILS */}
       <div className="space-y-8">
-        {/* SECTION 1A: PROFILE / ACCOUNT INFO */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Account Details</h2>
           <div>
@@ -360,7 +347,6 @@ export function SettingsForm({
           </div>
         </div>
 
-        {/* UPDATE USERNAME */}
         <div className="space-y-4 border-t pt-6">
           <h2 className="text-xl font-semibold">Update Username</h2>
           <div className="space-y-2">
@@ -387,7 +373,6 @@ export function SettingsForm({
           {profileMessage && <p className="text-sm">{profileMessage}</p>}
         </div>
 
-        {/* UPDATE PASSWORD */}
         <div className="space-y-4 border-t pt-6">
           <h2 className="text-xl font-semibold">Update Password</h2>
           <p className="text-sm text-muted-foreground">
@@ -430,9 +415,7 @@ export function SettingsForm({
         </div>
       </div>
 
-      {/* COLUMN 2: APP SETTINGS */}
       <div className="space-y-8">
-        {/* SECTION 2A: APPEARANCE */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Appearance</h2>
           <Label>Theme</Label>
@@ -442,7 +425,6 @@ export function SettingsForm({
               size="icon"
               onClick={() => handleThemeChange("light")}
               aria-pressed={isLightActive}
-              disabled={loading}
             >
               <SunIcon className="size-4" />
             </Button>
@@ -451,7 +433,6 @@ export function SettingsForm({
               size="icon"
               onClick={() => handleThemeChange("dark")}
               aria-pressed={isDarkActive}
-              disabled={loading}
             >
               <MoonIcon className="size-4" />
             </Button>
@@ -460,7 +441,6 @@ export function SettingsForm({
               size="icon"
               onClick={() => handleThemeChange("system")}
               aria-pressed={isSystemActive}
-              disabled={loading}
             >
               <MonitorIcon className="size-4" />
             </Button>
@@ -470,16 +450,14 @@ export function SettingsForm({
           </p>
         </div>
 
-        {/* SECTION 2B: LANGUAGE */}
         <div className="space-y-4 border-t pt-6">
           <h2 className="text-xl font-semibold">Language</h2>
           <div className="space-y-2 max-w-sm">
             <Label htmlFor="native-language">Native Language</Label>
             <LanguageCombobox
               value={nativeLanguage}
-              onChange={setNativeLanguage}
+              onChange={handleLanguageChange}
               options={languageOptions}
-              disabled={loading}
             />
             <p className="text-sm text-muted-foreground">
               AI translations will be provided in this language.
@@ -487,16 +465,7 @@ export function SettingsForm({
           </div>
         </div>
 
-        {/* SAVE BUTTON */}
-        <div className="border-t pt-6 flex flex-col items-start gap-4">
-          <Button onClick={handleSaveSettings} disabled={loading}>
-            {loading ? "Saving..." : "Save Language & Theme"}
-          </Button>
-          {message && <p className="text-sm">{message}</p>}
-        </div>
-
-        {/* DELETE ACCOUNT SECTION (NEW) */}
-        <div className="space-y-4 pt-6">
+        <div className="space-y-4 pt-6 border-t">
           <h2 className="text-xl font-semibold">Delete Account</h2>
           <p className="text-sm text-muted-foreground">
             Permanently delete your account and all associated data, including
@@ -506,7 +475,7 @@ export function SettingsForm({
             <DialogTrigger asChild>
               <Button
                 variant="destructive"
-                disabled={loadingProfile || loadingDelete || loading}
+                disabled={loadingProfile || loadingDelete}
               >
                 Delete My Account
               </Button>
