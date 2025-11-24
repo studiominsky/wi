@@ -8,7 +8,6 @@ import Link from "next/link";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/ssr";
 import { TagIconMap } from "@/lib/tag-icons";
 import { TagIcon } from "@phosphor-icons/react/ssr";
-import { fetchRandomEntry } from "@/app/actions";
 
 const iconComponentMap = TagIconMap;
 
@@ -787,7 +786,7 @@ export default async function WordDetailPage({
             <span className="hidden sm:inline">Random Previous</span>
           </Link>
 
-          <p className="text-xs text-muted-foreground py-2 mt-1 text-center">
+          <p className="text-xs text-muted-foreground py-2 mt-1 text-center mx-5 sm:mx-0">
             &copy; {currentYear} Word Inventory by{" "}
             <a href="https://studiominsky.com" target="_blank">
               Studio Minsky

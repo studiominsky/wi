@@ -53,7 +53,8 @@ interface TagData {
 
 const _iconComponentMap: Record<string, Icon> = TagIconMap;
 
-const MAX_NODES_PER_TAG = 4;
+// UPDATED: Increased limit to show all your example items
+const MAX_NODES_PER_TAG = 15;
 
 type TagGraphNode = NodeObject & {
   id: string;
@@ -233,7 +234,8 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   const [forcesConfigured, setForcesConfigured] = useState(false);
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const initialSpread = 400;
+
+  const initialSpread = 600;
 
   const getRandomInitialPosition = () => ({
     x: (Math.random() - 0.5) * initialSpread,

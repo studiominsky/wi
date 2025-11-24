@@ -401,7 +401,7 @@ export function EditWordDialog({
               placeholder="e.g., Personal reminder..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[60px]"
+              className="min-h-[80px]"
               disabled={loading}
             />
           </div>
