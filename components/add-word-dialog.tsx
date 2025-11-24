@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,58 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { TagInputToggles } from "./tag-input-toggles";
+
+const LOADING_STEPS = [
+  "Analyzing context...",
+  "Identifying grammar & gender...",
+  "Generating examples...",
+  "Finalizing translation...",
+];
+
+function LoadingProgress() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full pr-2">
+      <p className="font-semibold mb-2 text-sm">AI is generating details...</p>
+      <div className="space-y-1.5">
+        {LOADING_STEPS.map((label, index) => (
+          <div key={label} className="flex items-center gap-2 text-xs">
+            {index < step ? (
+              <CheckIcon
+                className="size-3.5 text-green-500 shrink-0"
+                weight="bold"
+              />
+            ) : index === step ? (
+              <CircleNotchIcon className="size-3.5 animate-spin text-primary shrink-0" />
+            ) : (
+              <div className="size-3.5 rounded-full border border-muted-foreground/30 shrink-0" />
+            )}
+            <span
+              className={cn(
+                "transition-colors duration-300",
+                index === step
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground",
+                index < step &&
+                  "text-muted-foreground/60 line-through decoration-transparent"
+              )}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type UserLanguage = { id: string; language_name: string };
 
@@ -211,11 +263,10 @@ export function AddWordDialog({
       });
     }
 
-    const toastId = toast.loading(
-      `Generating AI details for the ${
-        isNativePhrase ? "translation" : "word"
-      }...`
-    );
+    const toastId = toast(<LoadingProgress />, {
+      duration: Infinity,
+      dismissible: false,
+    });
 
     let aiDataResponse: {
       success: boolean;
@@ -264,11 +315,12 @@ export function AddWordDialog({
             errorMsg = errJson.error || errorMsg;
           } catch {}
           if (res.status === 422 && errJson?.code === "WORD_NOT_RECOGNIZED") {
+            toast.dismiss(toastId);
             toast.warning(
               `"${word}" might not be a valid ${
                 isNativePhrase ? "translation source" : "word"
               }, or AI couldn't process it. Entry not added.`,
-              { id: toastId, duration: 6000 }
+              { duration: 6000 }
             );
             setLoading(false);
             return;
@@ -297,7 +349,6 @@ export function AddWordDialog({
       if (apiError) throw apiError;
 
       if (aiDataResponse?.success) {
-        toast.message("AI details generated, saving word...", { id: toastId });
         dbErrorOccurred = true;
 
         const targetTable = isNativePhrase ? "user_translations" : "user_words";
@@ -331,7 +382,9 @@ export function AddWordDialog({
         }
         insertedWordId = newWordData?.id ?? null;
 
-        toast.success("Entry added & AI details saved!", { id: toastId });
+        toast.dismiss(toastId);
+        toast.success("Entry added & AI details saved!");
+
         resetForm();
         if (insertedWordId !== null) onWordAdded?.(insertedWordId);
         setTimeout(() => setOpen(false), 1500);
@@ -339,12 +392,12 @@ export function AddWordDialog({
         throw new Error("AI processing failed silently.");
       }
     } catch (e: any) {
+      toast.dismiss(toastId);
       const messagePrefix = dbErrorOccurred
         ? "Failed to save entry after getting AI data:"
         : "Error processing entry:";
       toast.error(
-        `${messagePrefix} ${e.message || "An unexpected error occurred."}`,
-        { id: toastId }
+        `${messagePrefix} ${e.message || "An unexpected error occurred."}`
       );
     } finally {
       setLoading(false);
