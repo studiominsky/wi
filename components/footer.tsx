@@ -8,7 +8,6 @@ export default function Footer() {
           <a href="https://studiominsky.com" target="_blank">
             Studio Minsky
           </a>
-          . All rights reserved.
         </p>
       </div>
     </footer>

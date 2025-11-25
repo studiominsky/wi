@@ -355,7 +355,6 @@ export default async function TranslationDetailPage({
             <a href="https://studiominsky.com" target="_blank">
               Studio Minsky
             </a>
-            . All rights reserved.
           </p>
 
           <Link

@@ -61,11 +61,10 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]",
-          "grid w-[90vw] max-w-lg gap-4 p-6",
+          "flex flex-col w-[90vw] max-w-lg gap-4 p-6",
           "bg-background rounded-lg border shadow-lg",
-          "max-h-[85vh]",
+          "max-h-[85vh] overflow-y-auto",
           "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-
           className
         )}
         {...props}
@@ -89,7 +88,10 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn(
+        "flex flex-col gap-2 text-center sm:text-left shrink-0",
+        className
+      )}
       {...props}
     />
   );
@@ -100,7 +102,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end shrink-0",
         className
       )}
       {...props}
