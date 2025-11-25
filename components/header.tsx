@@ -62,7 +62,7 @@ export default function Header() {
   const dynamicHeaderClasses = isTransparentHeroState
     ? "bg-[#011c42] dark:bg-black border-b-transparent text-white shadow-none"
     : isHomePage && isScrolled
-    ? "bg-[#fbfbfb]/95 dark:bg-[#000]/95 border-b-border text-foreground"
+    ? "bg-[#fbfbfb] dark:bg-[#000] border-b-border text-foreground"
     : "dark:bg-black border-b-border text-foreground";
 
   const handleSignOut = async () => {
@@ -164,7 +164,7 @@ export default function Header() {
     <>
       <header
         className={cn(
-          "w-full border-b sticky top-0 backdrop-blur-sm z-50 py-4 md:py-7",
+          "w-full border-b sticky top-0 z-50 py-4 md:py-7",
           dynamicHeaderClasses,
           mobileMenuOpen
             ? "z-[60] bg-[#fbfbfb] dark:bg-[#000] text-foreground border-b-border"
@@ -295,7 +295,7 @@ export default function Header() {
 
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in-0"
+          className="fixed inset-0 z-40 bg-black/50 animate-in fade-in-0"
           onClick={() => setMobileMenuOpen(false)}
           aria-hidden="true"
         />
