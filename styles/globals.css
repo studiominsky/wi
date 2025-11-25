@@ -108,6 +108,7 @@
 
   html {
     color-scheme: light;
+    scroll-behavior: smooth;
   }
   .dark html,
   :where(.dark) html {

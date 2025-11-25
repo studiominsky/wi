@@ -337,7 +337,7 @@ export default async function Home() {
 
       <section
         id="how-it-works"
-        className="w-full bg-[#fbfbfb] dark:bg-black py-12 md:py-24 lg:py-32"
+        className="w-full bg-[#fbfbfb] dark:bg-black py-12 md:py-24 lg:py-32 scroll-mt-20 sm:scroll-mt-10"
       >
         <div className="container px-4 md:px-6 px-5 mx-auto w-full max-w-screen-lg md:px-7">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">

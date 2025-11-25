@@ -538,7 +538,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   };
 
   return (
-    <div className="border rounded-lg shadow-lg overflow-hidden bg-card/60">
+    <div className="border rounded-lg shadow-lg overflow-hidden bg-card">
       <div
         ref={containerRef}
         className="relative w-full"

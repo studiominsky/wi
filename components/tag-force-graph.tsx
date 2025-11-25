@@ -528,7 +528,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
   };
 
   return (
-    <div className="border rounded-md overflow-hidden bg-card/60">
+    <div className="border rounded-md overflow-hidden bg-background">
       <div
         ref={containerRef}
         className="relative w-full"
@@ -609,7 +609,7 @@ export function TagNodeGraphFlow({ tagsData }: { tagsData: TagData[] | null }) {
         </div>
       </div>
 
-      <div className="p-4 bg-muted/60 text-xs md:text-sm text-muted-foreground flex flex-col gap-2">
+      <div className="p-4 bg-muted/50 text-xs md:text-sm text-muted-foreground flex flex-col gap-2">
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {tagsToDisplay.map((tag) => (
             <TagLegendItem key={tag.tag_name} tag={tag} />
