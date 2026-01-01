@@ -309,7 +309,7 @@ export default async function Home() {
 
           <div className="grid gap-8 lg:gap-12 md:grid-cols-3">
             {/* Feature 1 */}
-            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50 hover:bg-card transition-colors duration-300">
+            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50">
               <div className="p-4 bg-muted rounded-xl mb-6">
                 <MagicWandIcon size={32} className="text-primary" />
               </div>
@@ -341,7 +341,7 @@ export default async function Home() {
             </div>
 
             {/* Feature 2 */}
-            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50 hover:bg-card transition-colors duration-300">
+            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50">
               <div className="p-4 bg-muted rounded-xl mb-6">
                 <PaletteIcon size={32} className="text-primary" />
               </div>
@@ -374,8 +374,7 @@ export default async function Home() {
               </ul>
             </div>
 
-            {/* Feature 3 */}
-            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50 hover:bg-card transition-colors duration-300">
+            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50">
               <div className="p-4 bg-muted rounded-xl mb-6">
                 <BrainIcon size={32} className="text-primary" />
               </div>
