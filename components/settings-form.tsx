@@ -338,39 +338,13 @@ export function SettingsForm({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-      <div className="space-y-8">
+      <div className="space-y-8 order-last md:order-none">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Account Details</h2>
           <div>
             <h3 className="text-lg font-medium mb-1">Email</h3>
             <p className="text-muted-foreground">{user?.email}</p>
           </div>
-        </div>
-
-        <div className="space-y-4 border-t pt-6">
-          <h2 className="text-xl font-semibold">Update Username</h2>
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="Choose a username (min 3 chars)"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={loadingProfile}
-            />
-          </div>
-          <Button
-            onClick={handleUpdateUsername}
-            disabled={
-              loadingProfile ||
-              username === currentUsername ||
-              username.length < 3
-            }
-          >
-            {loadingProfile ? "Updating..." : "Update Username"}
-          </Button>
-          {profileMessage && <p className="text-sm">{profileMessage}</p>}
         </div>
 
         <div className="space-y-4 border-t pt-6">
@@ -412,6 +386,56 @@ export function SettingsForm({
             {loadingProfile ? "Updating..." : "Update Password"}
           </Button>
           {passwordMessage && <p className="text-sm">{passwordMessage}</p>}
+        </div>
+        <div className="space-y-4 pt-6 border-t">
+          <h2 className="text-xl font-semibold">Delete Account</h2>
+          <p className="text-sm text-muted-foreground">
+            Permanently delete your account and all associated data, including
+            all words and translations. This action cannot be undone.
+          </p>
+          <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={loadingProfile || loadingDelete}
+              >
+                Delete My Account
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Confirm Account Deletion</DialogTitle>
+                <DialogDescription>
+                  Are you absolutely sure you want to delete your account? All
+                  your vocabulary data will be permanently lost.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="sm:justify-between flex-row">
+                <DialogClose asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={loadingDelete}
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={loadingDelete}
+                >
+                  {loadingDelete ? (
+                    <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <TrashIcon className="mr-2 h-4 w-4" />
+                  )}
+                  {loadingDelete ? "Deleting..." : "Confirm Delete"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -463,57 +487,6 @@ export function SettingsForm({
               AI translations will be provided in this language.
             </p>
           </div>
-        </div>
-
-        <div className="space-y-4 pt-6 border-t">
-          <h2 className="text-xl font-semibold">Delete Account</h2>
-          <p className="text-sm text-muted-foreground">
-            Permanently delete your account and all associated data, including
-            all words and translations. This action cannot be undone.
-          </p>
-          <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="destructive"
-                disabled={loadingProfile || loadingDelete}
-              >
-                Delete My Account
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Confirm Account Deletion</DialogTitle>
-                <DialogDescription>
-                  Are you absolutely sure you want to delete your account? All
-                  your vocabulary data will be permanently lost.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="sm:justify-between flex-row">
-                <DialogClose asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={loadingDelete}
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDeleteAccount}
-                  disabled={loadingDelete}
-                >
-                  {loadingDelete ? (
-                    <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <TrashIcon className="mr-2 h-4 w-4" />
-                  )}
-                  {loadingDelete ? "Deleting..." : "Confirm Delete"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </div>
