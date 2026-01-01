@@ -269,7 +269,7 @@ export default function Header() {
                   {mobileNavItem("/#how-it-works", "How It Works")}
                   {mobileNavItem("/blog", "Blog")}
                   <div className="flex items-center justify-between p-0 border-border/50 mt-2">
-                    <span className="font-medium">Theme</span>
+                    <span className="font-medium">THEME</span>
                     <ThemeToggle className="text-foreground" />
                   </div>
 
