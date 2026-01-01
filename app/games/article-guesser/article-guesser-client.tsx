@@ -204,7 +204,7 @@ export default function ArticleGuesserClient({
                       disabled={buttonsDisabled}
                       variant={buttonVariant}
                       className={cn(
-                        "text-xl h-12 w-24 capitalize font-sans",
+                        "text-lg w-fit capitalize font-sans",
                         isCorrectAnswer &&
                           "bg-green-600/20 capitalize hover:bg-green-600/30 border-green-600 dark:border-green-400 text-green-700 dark:text-green-300"
                       )}

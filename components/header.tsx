@@ -164,7 +164,7 @@ export default function Header() {
     <>
       <header
         className={cn(
-          "w-full border-b sticky top-0 z-50 py-4 md:py-7",
+          "bg-background w-full border-b sticky top-0 z-50 py-4 md:py-7",
           dynamicHeaderClasses,
           mobileMenuOpen
             ? "z-[60] bg-[#fbfbfb] dark:bg-[#000] text-foreground border-b-border"

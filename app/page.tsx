@@ -10,7 +10,6 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { InteractiveGridPattern } from "@/components/interactive-grid-pattern";
-import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
 import { blogPosts } from "@/lib/blog-data";
 import { TagNodeGraphFlow } from "@/components/tag-force-graph";
@@ -24,51 +23,6 @@ export default async function Home() {
   if (user) {
     redirect("/inventory");
   }
-
-  const pricingTiers = [
-    {
-      name: "Free",
-      price: "0€",
-      description: "Perfect for casual learners",
-      features: [
-        "Up to 100 words",
-        "Basic Flashcards",
-        "Community Support",
-        "1 Language",
-      ],
-      buttonText: "Get Started",
-      popular: false,
-    },
-    {
-      name: "Pro",
-      price: "5€",
-      period: "/month",
-      description: "For serious language students",
-      features: [
-        "Unlimited words",
-        "AI-Powered Grammar Analysis",
-        "All Mini-Games",
-        "Unlimited Languages",
-        "Priority Support",
-      ],
-      buttonText: "Start Free Trial",
-      popular: true,
-    },
-    {
-      name: "Lifetime",
-      price: "50€",
-      period: " one-time",
-      description: "Pay once, learn forever",
-      features: [
-        "Everything in Pro",
-        "No monthly subscription",
-        "Early access to new features",
-        "Support our development",
-      ],
-      buttonText: "Buy Lifetime",
-      popular: false,
-    },
-  ];
 
   const fakeGraphData = [
     {
@@ -296,17 +250,17 @@ export default async function Home() {
 
         <section className="absolute inset-0 text-center z-10 p-12 md:p-24 lg:p-32 xl:p-48 pointer-events-none">
           <div className="container px-4 md:px-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-lg">
-            <div className="flex flex-col items-center space-y-4">
-              <h1 className="font-grotesk text-white text-4xl sm:text-5xl lg:text-[72px] !tracking-[-0.123rem] tracking-tighter">
+            <div className="flex flex-col items-center space-y-6">
+              <h1 className="font-grotesk text-white text-4xl sm:text-5xl lg:text-[72px] !tracking-[-0.123rem] tracking-tighter leading-tight">
                 Your German word inventory. Powered by AI.
               </h1>
-              <p className="mx-auto max-w-[700px] text-white/80 md:text-xl">
+              <p className="mx-auto max-w-[700px] text-white/80 md:text-xl leading-relaxed">
                 Build your personal word inventory. Just drop in a word, and let
                 AI automatically add grammar and real-world examples. Turn your
                 inventory into interactive graphs and games to master the
                 language faster.
               </p>
-              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-6">
                 <Link
                   href={user ? "/inventory" : "/login"}
                   className="pointer-events-auto"
@@ -337,69 +291,136 @@ export default async function Home() {
 
       <section
         id="how-it-works"
-        className="w-full bg-[#fbfbfb] dark:bg-black py-12 md:py-24 lg:py-32 scroll-mt-20 sm:scroll-mt-10"
+        className="w-full bg-[#fbfbfb] dark:bg-black py-24 md:py-32 scroll-mt-20"
       >
-        <div className="container px-4 md:px-6 px-5 mx-auto w-full max-w-screen-lg md:px-7">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <span className="bg-[#c4e456] text-black px-2.5 py-0.5 rounded-full text-xs font-medium font-mono uppercase tracking-wide">
+        <div className="container px-4 md:px-6 mx-auto w-full max-w-screen-xl">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-20">
+            <span className="bg-[#c4e456] text-black px-3 py-1 rounded-full text-xs font-bold font-mono uppercase tracking-wider">
               Workflow
             </span>
-            <h2 className="text-3xl font-grotesk tracking-tighter sm:text-5xl">
+            <h2 className="text-4xl font-grotesk tracking-tighter sm:text-6xl">
               How It Works
             </h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              A complete system designed to take you from a blank page to
-              fluency.
+            <p className="max-w-[800px] text-muted-foreground text-lg md:text-xl leading-relaxed">
+              A complete system designed to transform your vocabulary list into
+              an intelligent learning engine.
             </p>
           </div>
-          <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:grid-cols-3">
-            <div className="flex flex-col items-center space-y-2 text-center p-4">
-              <div className="p-4 bg-muted/50 rounded-full border mb-2">
+
+          <div className="grid gap-8 lg:gap-12 md:grid-cols-3">
+            {/* Feature 1 */}
+            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50 hover:bg-card transition-colors duration-300">
+              <div className="p-4 bg-muted rounded-xl mb-6">
                 <MagicWandIcon size={32} className="text-primary" />
               </div>
-              <h3 className="text-xl font-bold">AI-Powered Enrichment</h3>
-              <p className="text-sm text-muted-foreground">
-                Just type a word. AI instantly adds translations, grammar
-                tables, and example sentences tailored to your exact level
-                (A1–C2).
+              <h3 className="text-2xl font-bold mb-4">Context-Aware AI</h3>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Don&apos;t just save words; master them. Our Gemini-powered AI
+                analyzes context instantly to provide tailored insights.
               </p>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 size-4 text-primary shrink-0" />
+                  <span>
+                    <strong className="text-foreground font-medium">
+                      Deep Grammar:
+                    </strong>{" "}
+                    Auto-generated conjugation tables & noun declensions.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 size-4 text-primary shrink-0" />
+                  <span>
+                    <strong className="text-foreground font-medium">
+                      Adaptive Level:
+                    </strong>{" "}
+                    Examples tailored to your specific CEFR level (A1–C2).
+                  </span>
+                </li>
+              </ul>
             </div>
-            <div className="flex flex-col items-center space-y-2 text-center p-4">
-              <div className="p-4 bg-muted/50 rounded-full border mb-2">
+
+            {/* Feature 2 */}
+            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50 hover:bg-card transition-colors duration-300">
+              <div className="p-4 bg-muted rounded-xl mb-6">
                 <PaletteIcon size={32} className="text-primary" />
               </div>
-              <h3 className="text-xl font-bold">Visual & Connected</h3>
-              <p className="text-sm text-muted-foreground">
-                Make memories stick. Upload your own images, color-code genders
-                (e.g. blue for masculine), and link words with Tags to build a
-                visual knowledge graph.
+              <h3 className="text-2xl font-bold mb-4">
+                Visual Knowledge Graph
+              </h3>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Language is a network, not a list. We help you visualize the
+                connections between your vocabulary.
               </p>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 size-4 text-primary shrink-0" />
+                  <span>
+                    <strong className="text-foreground font-medium">
+                      Semantic Mapping:
+                    </strong>{" "}
+                    Interactive force-directed graphs showing topic clusters.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 size-4 text-primary shrink-0" />
+                  <span>
+                    <strong className="text-foreground font-medium">
+                      Visual Anchors:
+                    </strong>{" "}
+                    Use color-coding strategies (e.g., Blue for Masculine).
+                  </span>
+                </li>
+              </ul>
             </div>
-            <div className="flex flex-col items-center space-y-2 text-center p-4">
-              <div className="p-4 bg-muted/50 rounded-full border mb-2">
+
+            {/* Feature 3 */}
+            <div className="flex flex-col items-start p-8 rounded-2xl border bg-card/50 hover:bg-card transition-colors duration-300">
+              <div className="p-4 bg-muted rounded-xl mb-6">
                 <BrainIcon size={32} className="text-primary" />
               </div>
-              <h3 className="text-xl font-bold">Gamified Mastery</h3>
-              <p className="text-sm text-muted-foreground">
-                Your inventory powers the game engine. Automatically generate
-                Memory Cards, Article Guessing games, and Quick Recall
-                challenges.
+              <h3 className="text-2xl font-bold mb-4">
+                Inventory Gamification
+              </h3>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Your study materials are automatically converted into playable
+                challenges based on your personal list.
               </p>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 size-4 text-primary shrink-0" />
+                  <span>
+                    <strong className="text-foreground font-medium">
+                      Active Recall:
+                    </strong>{" "}
+                    Dynamic flashcards and timed challenges.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 size-4 text-primary shrink-0" />
+                  <span>
+                    <strong className="text-foreground font-medium">
+                      Targeted Practice:
+                    </strong>{" "}
+                    Games specifically for Article Guessing (Der/Die/Das).
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24">
+      <section className="w-full py-24 md:py-32">
         <div className="container px-4 md:px-6 mx-auto max-w-screen-lg">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <span className="bg-[#e88dfb] text-black px-2.5 py-0.5 rounded-full text-xs font-medium font-mono uppercase tracking-wide">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
+            <span className="bg-[#e88dfb] text-black px-3 py-1 rounded-full text-xs font-bold font-mono uppercase tracking-wider">
               Organization
             </span>
-            <h2 className="text-3xl font-grotesk tracking-tighter sm:text-5xl">
+            <h2 className="text-4xl font-grotesk tracking-tighter sm:text-6xl">
               Visual Knowledge Graph
             </h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed">
+            <p className="max-w-[900px] text-muted-foreground text-lg md:text-xl leading-relaxed">
               See how your vocabulary connects. Group words by topic and explore
               your learning journey visually.
             </p>
@@ -411,16 +432,16 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24">
+      <section className="w-full py-24 md:py-32">
         <div className="container px-4 md:px-6 mx-auto max-w-screen-lg">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <span className="bg-[#e88dfb] text-black px-2.5 py-0.5 rounded-full text-xs font-medium font-mono uppercase tracking-wide">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
+            <span className="bg-[#e88dfb] text-black px-3 py-1 rounded-full text-xs font-bold font-mono uppercase tracking-wider">
               Blog
             </span>
-            <h2 className="text-3xl font-grotesk tracking-tighter sm:text-5xl">
+            <h2 className="text-4xl font-grotesk tracking-tighter sm:text-6xl">
               Latest from the Blog
             </h2>
-            <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed">
+            <p className="max-w-[700px] text-muted-foreground text-lg md:text-xl leading-relaxed">
               Tips and tricks to help you get the most out of your language
               learning journey.
             </p>
@@ -431,9 +452,9 @@ export default async function Home() {
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="group flex flex-col h-full bg-background border rounded-md overflow-hidden hover:shadow-md"
+                className="group flex flex-col h-full bg-background border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
               >
-                <div className="relative h-40 w-full overflow-hidden">
+                <div className="relative h-48 w-full overflow-hidden">
                   <Image
                     src={post.image}
                     alt={post.title}
@@ -441,32 +462,32 @@ export default async function Home() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
-                <div className="flex flex-col flex-1 p-5">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <span className="bg-[#c4e456] text-black px-2 py-0.5 rounded-full font-medium">
+                <div className="flex flex-col flex-1 p-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <span className="bg-[#c4e456] text-black px-2 py-0.5 rounded-full font-bold">
                       {post.category}
                     </span>
                     <span>•</span>
                     <span>{post.readTime}</span>
                   </div>
-                  <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors line-clamp-2">
                     {post.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-1">
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-1 leading-relaxed">
                     {post.excerpt}
                   </p>
-                  <div className="flex items-center text-sm font-medium text-primary mt-auto">
+                  <div className="flex items-center text-sm font-bold text-primary mt-auto">
                     Read Article{" "}
-                    <ArrowRightIcon className="ml-1 size-3 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRightIcon className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>
             ))}
           </div>
 
-          <div className="flex justify-center mt-10">
+          <div className="flex justify-center mt-12">
             <Link href="/blog">
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" className="px-8">
                 View All Posts
               </Button>
             </Link>

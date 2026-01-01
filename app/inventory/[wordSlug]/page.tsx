@@ -696,7 +696,7 @@ export default async function WordDetailPage({
         </div>
       </div>
 
-      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-10 mb-40">
+      <div className="container mx-auto max-w-8xl p-4 md:p-6 space-y-6 mt-5 sm:mt-10 mb-40">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
           <div className="space-y-6">
             {aiData && (
