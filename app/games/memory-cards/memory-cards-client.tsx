@@ -154,7 +154,7 @@ export default function MemoryCardsClient({
 
           <div
             key={currentCard.id}
-            className="w-full aspect-[4/3] cursor-pointer"
+            className="w-full aspect-[5/6] sm:aspect-[4/3] cursor-pointer"
             style={{ perspective: "1200px" }}
             onClick={handleFlip}
           >
@@ -169,27 +169,27 @@ export default function MemoryCardsClient({
               }}
             >
               <div
-                className="absolute inset-0 flex flex-col items-center justify-center px-8 py-6 rounded-md bg-[#c4e456] text-black from-card to-card/80"
+                className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:px-8 sm:py-6 rounded-md bg-[#c4e456] text-black from-card to-card/80"
                 style={{
                   backfaceVisibility: "hidden",
                   WebkitBackfaceVisibility: "hidden",
                   transform: "rotateY(0deg)",
                 }}
               >
-                <p className="text-xs uppercase tracking-[0.18em] text-black mb-3">
+                <p className="text-sm uppercase tracking-[0.18em] text-black mb-2 sm:mb-3">
                   {isWord ? "German Word" : "Native Phrase"}
                 </p>
-                <h2 className="text-4xl sm:text-5xl font-bold text-center leading-tight">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center leading-tight break-words hyphens-auto">
                   {isWord ? currentCard.german : currentCard.native}
                 </h2>
-                <p className="mt-4 text-sm text-black">
-                  Tap the card to reveal / hide the translation
+                <p className="mt-4 text-xs sm:text-sm text-black opacity-75">
+                  Tap to reveal
                 </p>
               </div>
 
               <div
                 className={cn(
-                  "absolute inset-0 flex flex-col px-8 py-6 rounded-md",
+                  "absolute inset-0 flex flex-col p-4 sm:px-8 sm:py-6 rounded-md",
                   isCustomColor ? "border-current" : "border-transparent",
                   flippedCardBackground
                 )}
@@ -198,26 +198,30 @@ export default function MemoryCardsClient({
                   transform: "rotateY(180deg)",
                 }}
               >
-                <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-                  <span>
+                <div className="flex-none flex flex-col items-center justify-center space-y-1 sm:space-y-4 mb-2">
+                  <span className="text-sm sm:text-base text-center break-words opacity-90">
                     {isWord ? currentCard.germanDisplay : currentCard.native}
                   </span>
 
-                  <p className="text-xs uppercase tracking-[0.18em] opacity-80 mt-2">
+                  <p className="text-sm uppercase tracking-[0.18em] opacity-60 mt-1 sm:mt-2">
                     {isWord ? "Native Translation" : "German Translation"}
                   </p>
 
-                  <h2 className="text-3xl sm:text-4xl font-bold text-center leading-tight">
+                  <h2 className="text-3xl sm:text-3xl md:text-4xl font-bold text-center leading-tight break-words hyphens-auto">
                     {isWord ? currentCard.native : currentCard.germanDisplay}
                   </h2>
                 </div>
 
                 {displayedExamples.length > 0 && (
-                  <div className={cn("mt-4 pt-4 border-t border-current/30")}>
-                    <p className="text-xs font-mono opacity-80 mb-2 flex items-center gap-1">
+                  <div
+                    className={cn(
+                      "mt-2 pt-2 sm:mt-4 sm:pt-4 border-t border-current/30 flex-1 min-h-0 flex flex-col"
+                    )}
+                  >
+                    <p className="text-sm font-mono opacity-80 mb-1 flex items-center gap-1 shrink-0">
                       <LightbulbIcon className="size-3" /> Examples:
                     </p>
-                    <ul className="list-disc list-inside space-y-1 text-sm italic leading-relaxed text-left max-h-24 overflow-y-auto">
+                    <ul className="list-disc list-inside space-y-1 text-sm italic leading-relaxed text-left flex-1 overflow-y-auto">
                       {displayedExamples.map((ex, index) => (
                         <li key={index} className="text-start">
                           {ex}

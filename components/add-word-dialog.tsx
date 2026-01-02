@@ -51,7 +51,7 @@ function LoadingProgress() {
   useEffect(() => {
     const interval = setInterval(() => {
       setStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 1000);
+    }, 1800);
     return () => clearInterval(interval);
   }, []);
 
