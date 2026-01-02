@@ -129,7 +129,7 @@ export default function ArticleGuesserClient({
       <div className="flex items-center justify-between">
         <Link
           href="/games"
-          className="inline-flex items-center gap-2 text-xs md:text-sm text-foreground font-medium"
+          className="inline-flex items-center gap-2 text-xs md:text-sm text-foreground font-medium hover:text-primary transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />
           <span className="hidden sm:inline">Back to Games</span>
@@ -146,7 +146,7 @@ export default function ArticleGuesserClient({
       </p>
 
       <div className="flex justify-center w-full">
-        <div className="w-full max-w-xl space-y-6 p-6 border rounded-md g-[#fbfbfb] dark:bg-[#000]">
+        <div className="w-full max-w-xl space-y-6 p-4 md:p-6 border rounded-md bg-[#fbfbfb] dark:bg-[#000]">
           {isGameOver ? (
             <div className="text-center py-10">
               <h2 className="text-3xl font-bold mb-2">Game Over!</h2>
@@ -168,8 +168,10 @@ export default function ArticleGuesserClient({
                 </span>
               </div>
 
-              <div className="text-center space-y-2">
-                <p className="text-5xl font-bold">{currentItem.word}</p>
+              <div className="text-center space-y-2 py-4">
+                <p className="text-5xl font-bold break-words leading-tight">
+                  {currentItem.word}
+                </p>
                 <p className="text-xl text-muted-foreground">
                   ({currentItem.translation})
                 </p>
@@ -177,7 +179,7 @@ export default function ArticleGuesserClient({
 
               <Separator className="bg-[#52eec8]" />
 
-              <div className="flex justify-around gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
                 {Object.values(articleMap).map((article) => {
                   const isCorrect =
                     currentItem.status === "correct" &&
@@ -204,7 +206,8 @@ export default function ArticleGuesserClient({
                       disabled={buttonsDisabled}
                       variant={buttonVariant}
                       className={cn(
-                        "text-lg w-fit capitalize font-sans",
+                        "text-lg capitalize font-sans h-12 md:h-14 transition-all active:scale-[0.98]",
+                        "w-full",
                         isCorrectAnswer &&
                           "bg-green-600/20 capitalize hover:bg-green-600/30 border-green-600 dark:border-green-400 text-green-700 dark:text-green-300"
                       )}
@@ -240,7 +243,7 @@ export default function ArticleGuesserClient({
                   <Button
                     onClick={handleNext}
                     size="lg"
-                    className="mt-4 flex items-center justify-center"
+                    className="mt-4 w-full md:w-auto flex items-center justify-center"
                   >
                     {currentIndex < data.length - 1 ? (
                       <>
