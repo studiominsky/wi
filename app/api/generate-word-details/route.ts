@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
 
   const isPhrase = wordText.trim().includes(" ");
   const isNativePhraseMode = !!isNativePhrase;
-
   const PRONOUN_ORDER = "ich, du, er/sie/es, wir, ihr, sie";
 
   const sourceLang = isNativePhraseMode ? nativeLanguage : languageName;
@@ -36,104 +35,54 @@ export async function POST(req: NextRequest) {
 
   const requestedKeys = [
     isNativePhraseMode ? `- "original_phrase_language": ("${sourceLang}")` : "",
-
     `- "category": (A single string classifying the input for filtering. Must be one of: "Noun", "Verb", "Adjective", "Adverb", "Preposition", "Conjunction", "Phrase/Sentence", or "Other".)`,
-
     `- "translation": (A string translating the text into ${targetLang})`,
-
     !isNativePhraseMode && !isPhrase && options.gender_verb_forms
-      ? `- "gender": (Grammatical gender if noun and applicable, e.g., Masculine/Feminine/Neuter, otherwise null. Must be in ${languageName} or English.)`
+      ? `- "gender": (Grammatical gender if noun and applicable, e.g., Masculine/Feminine/Neuter, otherwise null.)`
       : "",
     !isNativePhraseMode && !isPhrase && options.gender_verb_forms
-      ? `- "verb_forms": (Object with key verb forms like infinitive, past tense, present participle if verb and applicable, otherwise null. Keys and values must be in ${languageName} or English.)`
+      ? `- "verb_forms": (Object with key verb forms like infinitive, past tense, present participle if verb and applicable, otherwise null.)`
       : "",
-
     !isNativePhraseMode && !isPhrase
-      ? `- "full_conjugation_table": (Full verb conjugation, including **Present**, **Preterit/Simple Past**, **Perfect**, **Future**, and **Past Perfect** tenses. Structure this as a JSON object where keys are the Tense names and values are an object/map where keys are **Pronouns (${PRONOUN_ORDER})** and values are the conjugated forms. Otherwise null.)`
+      ? `- "full_conjugation_table": (Full verb conjugation. CRITICAL: Use these EXACT German keys: "Präsens", "Perfekt", "Präteritum", "Futur I", "Plusquamperfekt". Structure as JSON object where keys are Tense names and values are an object where keys are Pronouns (${PRONOUN_ORDER}). Otherwise null.)`
       : "",
-
     !isNativePhraseMode && !isPhrase
-      ? `- "passive_forms": (A detailed description in ${nativeLanguage} of the **Active Voice** forms for the **Present Passive**, **Preterit Passive**, and **Perfect Passive**. Only if the word is a verb. Otherwise null.)`
-      : "",
-
-    !isNativePhraseMode && !isPhrase && options.detailed_grammar_tables
-      ? `- "noun_declension_table": (A detailed structured JSON object showing the word's declension. CRITICAL: Use this EXACT structure with keys in this EXACT order:
-{
-  "Singular": {
-    "Nominative": "der/die/das + word",
-    "Accusative": "den/die/das + word",
-    "Dative": "dem/der/dem + word",
-    "Genitive": "des/der/des + word"
-  },
-  "Plural": {
-    "Nominative": "die + word",
-    "Accusative": "die + word",
-    "Dative": "den + word",
-    "Genitive": "der + word"
-  }
-}
-Only if the word is a noun and the language supports declension. Otherwise null.)`
+      ? `- "passive_forms": (Object containing passive voice forms. Use these EXACT German keys: "Präsens", "Perfekt", "Präteritum", "Futur I", "Plusquamperfekt". Only if applicable and the word is a verb. Otherwise null.)`
       : "",
     !isNativePhraseMode && !isPhrase && options.detailed_grammar_tables
-      ? `- "adjective_declension_example": (A structured JSON object providing an example of an adjective modifying the noun. CRITICAL: Use this EXACT structure with keys in this EXACT order:
-{
-  "Nominative": "article + adjective + noun",
-  "Accusative": "article + adjective + noun",
-  "Dative": "article + adjective + noun",
-  "Genitive": "article + adjective + noun",
-  "Plural": "article + adjective + noun"
-}
-Use a common adjective (e.g., "schöne" for "Frau"). Only if applicable. Otherwise null.)`
+      ? `- "noun_declension_table": (Structured JSON showing the word's declension. CRITICAL: Use keys "Singular" and "Plural". Each should contain "Nominativ", "Akkusativ", "Dativ", "Genitiv". Otherwise null.)`
       : "",
-
+    !isNativePhraseMode && !isPhrase && options.detailed_grammar_tables
+      ? `- "adjective_declension_example": (Structured JSON providing an example of an adjective modifying the noun. Otherwise null.)`
+      : "",
     options.grammar
-      ? `- "grammar": (A concise grammar/usage explanation for the input. Must be fully in ${nativeLanguage}.)`
+      ? `- "grammar": (A concise grammar explanation. Use <b>text</b> tags instead of ** for bolding. Must be fully in ${nativeLanguage}.)`
       : "",
-
     (options.examples ?? 0) > 0
-      ? `- "examples": (Array of ${options.examples} example sentences using the phrase/word. Each array item must be a single string formatted as: "${sourceLang} sentence. (${targetLang} translation.)")`
+      ? `- "examples": (Array of ${options.examples} example sentences using the phrase/word.)`
       : "",
-
     options.synonyms
-      ? `- "synonyms_antonyms": (Object with arrays "synonyms" and "antonyms". The words in the arrays must be in ${languageName}. If the input is a phrase, provide equivalent phrases/expressions instead of single words.)`
+      ? `- "synonyms_antonyms": (Object with arrays "synonyms" and "antonyms". If no synonyms or antonyms exist, return null.)`
       : "",
-
     options.phrases
-      ? `- "phrases": (Array of common phrases or idioms related to the word/phrase. Each item must be a single string formatted as: "Phrase in ${languageName} - Translation in ${nativeLanguage}")`
+      ? `- "phrases": (Array of common phrases or idioms related to the word/phrase.)`
       : "",
   ].filter(Boolean);
-
-  const hiddenKeys = isNativePhraseMode ? ['"isNativePhrase": true'] : [];
 
   const system = [
     `You are a language learning assistant.`,
     `For the input "${wordText}", ${instruction}`,
-    `If the input "${wordText}" is not recognizable or appears to be nonsensical, respond ONLY with the JSON: {"error": "Word not recognized"}.`,
-    `The user's native language is ${nativeLanguage}. The learning language is ${languageName}.`,
-    `CRITICAL INSTRUCTION: All descriptive and explanatory fields (grammar) MUST be written entirely in ${nativeLanguage}. Example sentences and phrases must follow the required format.`,
-    `CRITICAL INSTRUCTION: First and foremost, you MUST classify the input "${wordText}" and provide the result in the mandatory "category" field.`,
-    `ABSOLUTE PRIORITY: Grammatical gender/case/conjugation must be 100% accurate. For German, remember that nouns ending in -chen or -lein are always Neuter (das), and common words like Baby are Neuter (das Baby).`,
-    `CRITICAL FOR CASE TABLES AND VERB CONJUGATION: You MUST follow the exact key names, order, and structure specified in the requested keys above.`,
-    `ABSOLUTE PRIORITY: If "${wordText}" is a verb, you MUST provide data for **Present**, **Preterit**, **Perfect**, **Future**, and **Past Perfect** tenses in "full_conjugation_table". DO NOT return null for these tenses.`,
-    (options.grammar || (options.examples ?? 0) > 0 || options.phrases) &&
-    options.level
-      ? `All explanations, examples, phrases MUST be tailored specifically for a ${options.level} (CEFR) learner. Examples must be grammatically correct but limited to the vocabulary and complexity expected for a ${options.level} user.`
-      : "",
-    `Requested keys:`,
-    ...requestedKeys,
-    `Provide null for keys that are not applicable or were explicitly excluded from the request.`,
+    `If the input "${wordText}" is not recognizable, respond ONLY with: {"error": "Word not recognized"}.`,
+    `Native language: ${nativeLanguage}. Learning language: ${languageName}.`,
+    `CRITICAL: All explanations in "grammar" MUST use <b>tags</b> for bolding. Never use **.`,
+    `CRITICAL: Use German tense names: Präsens, Perfekt, Präteritum, Futur I, Plusquamperfekt.`,
+    `CRITICAL: For noun declension, the order of cases must be: Nominativ, Akkusativ, Dativ, Genitiv.`,
     `Do not include any text outside the JSON object. Ensure the JSON is valid.`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  let aiData: any;
-  let translation: string = "";
-  let bodyStr = "";
+  ].join("\n");
 
   try {
     const r = await generateText({
-      model: google(process.env.GEMINI_MODEL || "gemini-2.5-flash"),
+      model: google(process.env.GEMINI_MODEL || "gemini-2.0-flash"),
       messages: [
         { role: "system", content: system },
         { role: "user", content: "Respond with the JSON object only." },
@@ -144,52 +93,26 @@ Use a common adjective (e.g., "schöne" for "Frau"). Only if applicable. Otherwi
 
     const raw = r.text?.trim() || "";
     const codeFence = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    bodyStr = codeFence ? codeFence[1].trim() : raw;
+    const bodyStr = codeFence ? codeFence[1].trim() : raw;
 
-    aiData = JSON.parse(bodyStr);
+    const aiData = JSON.parse(bodyStr);
 
-    if (aiData.error && aiData.error === "Word not recognized") {
-      console.warn(
-        `AI indicated word "${wordText}" not recognized in ${sourceLang}.`
-      );
+    if (aiData.error === "Word not recognized") {
       return NextResponse.json(
         {
-          error: `Word or phrase "${wordText}" not recognized or processable.`,
+          error: `Word or phrase "${wordText}" not recognized.`,
           code: "WORD_NOT_RECOGNIZED",
         },
         { status: 422 }
       );
-    }
-
-    if (aiData.translation && typeof aiData.translation === "string") {
-      translation = aiData.translation;
-    } else {
-      console.error(
-        `AI did not provide a valid translation string for "${wordText}".`
-      );
-      throw new Error("AI failed to provide a translation.");
     }
 
     return NextResponse.json({
       success: true,
-      translation: translation,
+      translation: aiData.translation,
       aiData: aiData,
     });
   } catch (aiError: any) {
-    console.error("AI Generation or JSON parse error:", aiError);
-    console.error("Raw AI response attempt:", bodyStr);
-    if (bodyStr.includes('"error": "Word not recognized"')) {
-      console.warn(
-        `AI indicated word "${wordText}" not recognized (parsing failed).`
-      );
-      return NextResponse.json(
-        {
-          error: `Word or phrase "${wordText}" not recognized or processable.`,
-          code: "WORD_NOT_RECOGNIZED",
-        },
-        { status: 422 }
-      );
-    }
     return NextResponse.json(
       { error: "AI returned invalid data or failed", details: aiError.message },
       { status: 502 }

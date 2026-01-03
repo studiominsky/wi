@@ -92,17 +92,20 @@ const CANONICAL_VERB_PRONOUN_ORDER = [
 ];
 
 const TENSE_ORDER = [
-  "Present",
-  "Preterit",
-  "Perfect",
-  "Future",
-  "Past Perfect",
+  "Präsens",
+  "Perfekt",
+  "Präteritum",
+  "Futur I",
+  "Plusquamperfekt",
 ];
 
 const PRONOUN_ORDER_FOR_SORT = ["ich", "du", "er/sie/es", "wir", "ihr", "sie"];
 
 const formatKey = (key: string) =>
-  key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  key
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/^\w/, (c) => c.toUpperCase());
 
 const renderArticleForm = (cell: any) => {
   if (!cell) return "";
@@ -202,11 +205,11 @@ function DataDisplay({ data }: { data: any }) {
     } else if (isVerbTable) {
       const colKeys = Object.keys(processedData);
       const columnOrderPriority = {
-        present: 10,
-        preterit: 11,
-        perfect: 12,
-        future: 13,
-        "past perfect": 14,
+        präsens: 10,
+        perfekt: 11,
+        präteritum: 12,
+        "futur i": 13,
+        plusquamperfekt: 14,
       };
 
       orderedColKeys = [...colKeys].sort((a, b) => {
@@ -333,18 +336,17 @@ function DataDisplay({ data }: { data: any }) {
     );
 
   if (isTenseObject) {
-    entries = rawEntries.sort(([keyA, _a], [keyB, _b]) => {
+    entries = rawEntries.sort(([keyA], [keyB]) => {
       const indexA = TENSE_ORDER.findIndex(
         (t) => t.toLowerCase() === keyA.toLowerCase()
       );
       const indexB = TENSE_ORDER.findIndex(
         (t) => t.toLowerCase() === keyB.toLowerCase()
       );
-      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      return 0;
+      return (indexA !== -1 ? indexA : 99) - (indexB !== -1 ? indexB : 99);
     });
   } else if (isPronounObject) {
-    entries = rawEntries.sort(([keyA, _a], [keyB, _b]) => {
+    entries = rawEntries.sort(([keyA], [keyB]) => {
       const cleanA = keyA.toLowerCase().replace(/\s/g, "");
       const cleanB = keyB.toLowerCase().replace(/\s/g, "");
       const indexA = PRONOUN_ORDER_FOR_SORT.findIndex(
@@ -367,16 +369,6 @@ function DataDisplay({ data }: { data: any }) {
           </strong>
           {typeof value === "string" ? (
             <p className="pl-2 italic">{value}</p>
-          ) : Array.isArray(value) ? (
-            <ul className="list-disc list-inside pl-4">
-              {(value as any[]).map((item, i) => (
-                <li key={i}>
-                  {typeof item === "object"
-                    ? JSON.stringify(item)
-                    : String(item)}
-                </li>
-              ))}
-            </ul>
           ) : typeof value === "object" && value !== null ? (
             <div className="pl-2 space-y-1">
               <DataDisplay data={value} />
@@ -413,61 +405,65 @@ function VerbFormsSection({ data }: { data: any }) {
 function AiDataSection({ title, data }: { title: string; data: any }) {
   if (data === null || data === undefined || data === "") return null;
 
+  if (typeof data === "object" && !Array.isArray(data)) {
+    const values = Object.values(data);
+    const hasContent = values.some(
+      (v) => v !== null && v !== undefined && v !== ""
+    );
+    if (!hasContent) return null;
+  }
+
   let content;
 
   if (
     title === "Full Verb Conjugation" ||
     title === "Noun Declension Table" ||
-    title === "Adjective Declension Example"
+    title === "Adjective Declension Example" ||
+    title === "Passive Voice Forms"
   ) {
     content = <GrammarTable data={data} />;
   } else if (title === "Key Verb Forms" && typeof data === "object") {
     content = <VerbFormsSection data={data} />;
-  } else if (title === "Passive Voice Forms") {
+  } else if (title === "Grammar Explanation") {
     content = (
-      <p className="text-md leading-7 whitespace-pre-wrap">{String(data)}</p>
+      <div
+        className="text-md leading-7 whitespace-pre-wrap"
+        dangerouslySetInnerHTML={{ __html: String(data) }}
+      />
     );
   } else if (typeof data === "string") {
     content = <p className="text-md leading-7 whitespace-pre-wrap">{data}</p>;
   } else if (Array.isArray(data)) {
     if (data.length === 0) return null;
-    if (title === "Common Phrases / Idioms") {
-      content = (
-        <ul className="list-disc list-inside space-y-1 text-md leading-7">
-          {data.map((item, index) => (
-            <li key={index}>"{item}"</li>
-          ))}
-        </ul>
-      );
-    } else {
-      content = (
-        <ul className="list-disc list-inside leading-7 space-y-1 text-md">
-          {data.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
+    content = (
+      <ul className="list-disc list-inside leading-7 space-y-1 text-md">
+        {data.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    );
   } else if (typeof data === "object") {
-    if (title === "Synonyms" && (data as any).synonyms?.length > 0) {
+    if (title === "Synonyms") {
+      const hasSyns = data.synonyms && data.synonyms.length > 0;
+      const hasAnts = data.antonyms && data.antonyms.length > 0;
+      if (!hasSyns && !hasAnts) return null;
       content = (
-        <div className="text-sm space-y-1">
-          <p>
-            <strong>Synonyms:</strong> {(data as any).synonyms.join(", ")}
-          </p>
+        <div className="text-sm space-y-2">
+          {hasSyns && (
+            <p>
+              <strong>Synonyme:</strong> {data.synonyms.join(", ")}
+            </p>
+          )}
+          {hasAnts && (
+            <p>
+              <strong>Antonyme:</strong> {data.antonyms.join(", ")}
+            </p>
+          )}
         </div>
       );
-    } else if (Object.keys(data).length === 0) {
-      return null;
     } else {
-      content = (
-        <pre className="text-xs whitespace-pre-wrap bg-muted p-2">
-          {JSON.stringify(data, null, 2)}
-        </pre>
-      );
+      content = <DataDisplay data={data} />;
     }
-  } else {
-    content = <p className="text-sm">{String(data)}</p>;
   }
 
   if (!content) return null;
@@ -544,6 +540,14 @@ export default async function WordDetailPage({
   const adjectiveDeclensionExample = aiData?.adjective_declension_example;
   const passiveForms = aiData?.passive_forms;
   const category = aiData?.category;
+
+  const hasGrammarTables = !!(
+    fullConjugationTable ||
+    nounDeclensionTable ||
+    adjectiveDeclensionExample ||
+    passiveForms ||
+    aiData?.verb_forms
+  );
 
   let pluralForm: string | null = null;
   let singularNominativeForm: string | null = null;
@@ -739,7 +743,7 @@ export default async function WordDetailPage({
               )}
             </div>
 
-            {aiData && (
+            {aiData && hasGrammarTables && (
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 space-y-4 rounded-md">
                 <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">
                   Grammar Tables & Forms

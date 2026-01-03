@@ -51,7 +51,7 @@ function LoadingProgress() {
   useEffect(() => {
     const interval = setInterval(() => {
       setStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 1800);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -268,15 +268,6 @@ export function AddWordDialog({
       dismissible: false,
     });
 
-    let aiDataResponse: {
-      success: boolean;
-      translation: string;
-      aiData: any;
-    } | null = null;
-    let apiError: Error | null = null;
-    let dbErrorOccurred = false;
-    let insertedWordId: string | number | null = null;
-
     try {
       const aiOptions = {
         translation: true,
@@ -305,100 +296,65 @@ export function AddWordDialog({
         body: JSON.stringify(payload),
       });
 
-      const contentType = res.headers.get("content-type") || "";
       if (!res.ok) {
-        let errorMsg = `HTTP ${res.status} ${res.statusText}`;
-        let errJson: any = null;
-        if (contentType.includes("application/json")) {
-          try {
-            errJson = await res.json();
-            errorMsg = errJson.error || errorMsg;
-          } catch {}
-          if (res.status === 422 && errJson?.code === "WORD_NOT_RECOGNIZED") {
-            toast.dismiss(toastId);
-            toast.warning(
-              `"${word}" might not be a valid ${
-                isNativePhrase ? "translation source" : "word"
-              }, or AI couldn't process it. Entry not added.`,
-              { duration: 6000 }
-            );
-            setLoading(false);
-            return;
-          }
-        } else {
-          const text = await res.text();
-          errorMsg += `: ${text.slice(0, 200)}`;
+        const errorData = await res.json().catch(() => ({}));
+        if (res.status === 422 && errorData.code === "WORD_NOT_RECOGNIZED") {
+          toast.dismiss(toastId);
+          toast.warning(`"${word}" was not recognized by AI.`, {
+            duration: 5000,
+          });
+          setLoading(false);
+          return;
         }
-        apiError = new Error(`Failed to generate AI details: ${errorMsg}`);
-      } else {
-        if (contentType.includes("application/json")) {
-          aiDataResponse = await res.json();
-          if (!aiDataResponse?.success || !aiDataResponse.translation) {
-            apiError = new Error(
-              "API returned success but data was incomplete."
-            );
-          }
-        } else {
-          const text = await res.text();
-          apiError = new Error(
-            `API returned unexpected success format: ${text.slice(0, 100)}`
-          );
-        }
+        throw new Error(
+          errorData.error || `AI Generation failed (HTTP ${res.status})`
+        );
       }
 
-      if (apiError) throw apiError;
-
-      if (aiDataResponse?.success) {
-        dbErrorOccurred = true;
-
-        const targetTable = isNativePhrase ? "user_translations" : "user_words";
-        const tagsArray = tags;
-
-        let aiDataToSave = aiDataResponse.aiData;
-        if (isNativePhrase) delete aiDataToSave.isNativePhrase;
-
-        const { data: newWordData, error: insertError } = await supabase
-          .from(targetTable)
-          .insert({
-            user_id: user.id,
-            language_id: currentLanguageId,
-            word,
-            translation: aiDataResponse.translation,
-            ai_data: aiDataToSave,
-            notes: notes || null,
-            tags: tagsArray.length > 0 ? tagsArray : null,
-            color: selectedColor,
-            image_url: image_url,
-          })
-          .select("id")
-          .single();
-
-        if (insertError || !newWordData?.id) {
-          if ((insertError as any)?.code === "23505") {
-            throw new Error(
-              `Failed to save: You've already added "${word}" for this language.`
-            );
-          }
-        }
-        insertedWordId = newWordData?.id ?? null;
-
-        toast.dismiss(toastId);
-        toast.success("Entry added & AI details saved!");
-
-        resetForm();
-        if (insertedWordId !== null) onWordAdded?.(insertedWordId);
-        setTimeout(() => setOpen(false), 1500);
-      } else {
-        throw new Error("AI processing failed silently.");
+      const aiDataResponse = await res.json();
+      if (!aiDataResponse?.success || !aiDataResponse.aiData) {
+        throw new Error("AI returned incomplete data.");
       }
+
+      toast.loading("Saving to database...", { id: toastId });
+
+      const targetTable = isNativePhrase ? "user_translations" : "user_words";
+      const aiDataToSave = { ...aiDataResponse.aiData };
+      if (isNativePhrase) delete aiDataToSave.isNativePhrase;
+
+      const { data: newWordData, error: insertError } = await supabase
+        .from(targetTable)
+        .insert({
+          user_id: user.id,
+          language_id: currentLanguageId,
+          word: word.trim(),
+          translation: aiDataResponse.translation,
+          ai_data: aiDataToSave,
+          notes: notes?.trim() || null,
+          tags: tags.length > 0 ? tags : null,
+          color: selectedColor,
+          image_url: image_url,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        if (insertError.code === "23505") {
+          throw new Error(`"${word}" is already in your inventory.`);
+        }
+        throw new Error(`Database error: ${insertError.message}`);
+      }
+
+      toast.success("Word added successfully!", { id: toastId });
+
+      resetForm();
+      if (newWordData?.id) onWordAdded?.(newWordData.id);
+      setTimeout(() => setOpen(false), 1000);
     } catch (e: any) {
       toast.dismiss(toastId);
-      const messagePrefix = dbErrorOccurred
-        ? "Failed to save entry after getting AI data:"
-        : "Error processing entry:";
-      toast.error(
-        `${messagePrefix} ${e.message || "An unexpected error occurred."}`
-      );
+      toast.error(e.message || "An unexpected error occurred.", {
+        duration: 5000,
+      });
     } finally {
       setLoading(false);
     }
