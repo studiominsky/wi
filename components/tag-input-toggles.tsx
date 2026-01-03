@@ -24,7 +24,7 @@ const normalizeTag = (tag: string): string =>
   tag
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
+    .replace(/[^\p{L}\p{N}]/gu, "");
 
 const stringToTags = (s: string): string[] => {
   return s

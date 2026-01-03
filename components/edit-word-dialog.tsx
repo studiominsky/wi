@@ -557,7 +557,7 @@ export function EntryActionMenu({
             cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-between flex-row">
+        <DialogFooter className="justify-end flex-row">
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Cancel

@@ -93,7 +93,7 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   } else if (typeof data === "object") {
     if (title === "Equivalent Phrases" && (data as any).synonyms?.length > 0) {
       content = (
-        <div className="text-sm space-y-1">
+        <div className="space-y-1">
           <p>
             <strong>Equivalent Phrases:</strong>{" "}
             {(data as any).synonyms.join(", ")}
