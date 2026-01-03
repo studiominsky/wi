@@ -91,18 +91,33 @@ const CANONICAL_VERB_PRONOUN_ORDER = [
   "sie",
 ];
 
-const TENSE_ORDER = [
-  "Present",
-  "Preterit",
-  "Perfect",
-  "Future",
-  "Past Perfect",
-];
+const TENSE_DISPLAY_NAMES: Record<string, string> = {
+  present: "Präsens",
+  perfect: "Perfekt",
+  preterit: "Präteritum",
+  future: "Futur I",
+  "past perfect": "Plusquamperfekt",
+};
 
 const PRONOUN_ORDER_FOR_SORT = ["ich", "du", "er/sie/es", "wir", "ihr", "sie"];
 
 const formatKey = (key: string) =>
   key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+function FormattedText({ text }: { text: string }) {
+  if (!text) return null;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return (
+    <span className="text-md leading-7 whitespace-pre-wrap">
+      {parts.map((part, i) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={i}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      })}
+    </span>
+  );
+}
 
 const renderArticleForm = (cell: any) => {
   if (!cell) return "";
@@ -203,8 +218,8 @@ function DataDisplay({ data }: { data: any }) {
       const colKeys = Object.keys(processedData);
       const columnOrderPriority = {
         present: 10,
-        preterit: 11,
-        perfect: 12,
+        perfect: 11,
+        preterit: 12,
         future: 13,
         "past perfect": 14,
       };
@@ -274,7 +289,12 @@ function DataDisplay({ data }: { data: any }) {
     }
 
     if (finalRowKeys.length > 0 && orderedColKeys.length > 0) {
-      const headers = [firstHeader, ...orderedColKeys.map(formatKey)];
+      const headers = [
+        firstHeader,
+        ...orderedColKeys.map(
+          (k) => TENSE_DISPLAY_NAMES[k.toLowerCase()] || formatKey(k)
+        ),
+      ];
 
       return (
         <div className="overflow-x-auto mt-2">
@@ -322,7 +342,9 @@ function DataDisplay({ data }: { data: any }) {
   let entries = rawEntries;
 
   const isTenseObject = rawEntries.some(([key]) =>
-    TENSE_ORDER.some((t) => t.toLowerCase() === key.toLowerCase())
+    Object.keys(TENSE_DISPLAY_NAMES).some(
+      (t) => t.toLowerCase() === key.toLowerCase()
+    )
   );
   const isPronounObject =
     rawEntries.length > 0 &&
@@ -333,13 +355,16 @@ function DataDisplay({ data }: { data: any }) {
     );
 
   if (isTenseObject) {
+    const TENSE_ORDER_KEYS = [
+      "present",
+      "perfect",
+      "preterit",
+      "future",
+      "past perfect",
+    ];
     entries = rawEntries.sort(([keyA, _a], [keyB, _b]) => {
-      const indexA = TENSE_ORDER.findIndex(
-        (t) => t.toLowerCase() === keyA.toLowerCase()
-      );
-      const indexB = TENSE_ORDER.findIndex(
-        (t) => t.toLowerCase() === keyB.toLowerCase()
-      );
+      const indexA = TENSE_ORDER_KEYS.indexOf(keyA.toLowerCase());
+      const indexB = TENSE_ORDER_KEYS.indexOf(keyB.toLowerCase());
       if (indexA !== -1 && indexB !== -1) return indexA - indexB;
       return 0;
     });
@@ -363,10 +388,10 @@ function DataDisplay({ data }: { data: any }) {
       {entries.map(([key, value]) => (
         <div key={key} className="border-b border-muted last:border-b-0 pb-1">
           <strong className="block text-primary/80 capitalize font-medium">
-            {formatKey(key)}:
+            {TENSE_DISPLAY_NAMES[key.toLowerCase()] || formatKey(key)}:
           </strong>
           {typeof value === "string" ? (
-            <p className="pl-2 italic">{value}</p>
+            <FormattedText text={value} />
           ) : Array.isArray(value) ? (
             <ul className="list-disc list-inside pl-4">
               {(value as any[]).map((item, i) => (
@@ -399,7 +424,7 @@ function VerbFormsSection({ data }: { data: any }) {
   if (!data || typeof data !== "object" || Object.keys(data).length === 0)
     return null;
   return (
-    <div className="text-sm space-y-1">
+    <div className="space-y-1">
       {Object.entries(data).map(([key, value]) => (
         <p key={key}>
           <strong className="capitalize">{formatKey(key)}:</strong>{" "}
@@ -424,11 +449,9 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
   } else if (title === "Key Verb Forms" && typeof data === "object") {
     content = <VerbFormsSection data={data} />;
   } else if (title === "Passive Voice Forms") {
-    content = (
-      <p className="text-md leading-7 whitespace-pre-wrap">{String(data)}</p>
-    );
+    content = <FormattedText text={String(data)} />;
   } else if (typeof data === "string") {
-    content = <p className="text-md leading-7 whitespace-pre-wrap">{data}</p>;
+    content = <FormattedText text={data} />;
   } else if (Array.isArray(data)) {
     if (data.length === 0) return null;
     if (title === "Common Phrases / Idioms") {
@@ -449,19 +472,31 @@ function AiDataSection({ title, data }: { title: string; data: any }) {
       );
     }
   } else if (typeof data === "object") {
-    if (title === "Synonyms" && (data as any).synonyms?.length > 0) {
+    if (title === "Synonyms") {
+      const hasSynonyms = (data as any).synonyms?.length > 0;
+      const hasAntonyms = (data as any).antonyms?.length > 0;
+
+      if (!hasSynonyms && !hasAntonyms) return null;
+
       content = (
-        <div className="text-sm space-y-1">
-          <p>
-            <strong>Synonyms:</strong> {(data as any).synonyms.join(", ")}
-          </p>
+        <div className="space-y-1">
+          {hasSynonyms && (
+            <p>
+              <strong>Synonyms:</strong> {(data as any).synonyms.join(", ")}
+            </p>
+          )}
+          {hasAntonyms && (
+            <p>
+              <strong>Antonyms:</strong> {(data as any).antonyms.join(", ")}
+            </p>
+          )}
         </div>
       );
     } else if (Object.keys(data).length === 0) {
       return null;
     } else {
       content = (
-        <pre className="text-xs whitespace-pre-wrap bg-muted p-2">
+        <pre className="whitespace-pre-wrap bg-muted p-2">
           {JSON.stringify(data, null, 2)}
         </pre>
       );
@@ -603,7 +638,7 @@ export default async function WordDetailPage({
           <div className="flex items-center justify-between mb-6">
             <Link
               href="/inventory"
-              className="inline-flex items-center gap-2 text-xs md:text-sm text-foreground font-medium"
+              className="inline-flex items-center gap-2 text-sm text-foreground font-medium"
             >
               <ArrowLeftIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Back to inventory</span>
@@ -640,7 +675,7 @@ export default async function WordDetailPage({
                     )}
 
                     <div className="relative space-y-2 px-4 py-3 bg-muted/60">
-                      <div className="flex flex-col gap-3 text-xs sm:text-sm">
+                      <div className="flex flex-col gap-3 text-sm">
                         {genderAndSingularDisplay && (
                           <div className="flex items-center gap-2">
                             <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-foreground/60">
@@ -733,7 +768,7 @@ export default async function WordDetailPage({
             >
               <h2 className="text-lg font-semibold mb-2">My Notes</h2>
               {word.notes ? (
-                <p className="text-md whitespace-pre-wrap">{word.notes}</p>
+                <FormattedText text={word.notes} />
               ) : (
                 <p className="text-md opacity-80">No notes provided.</p>
               )}
